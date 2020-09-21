@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   weather:
-    image: blueorigin/service-weather
+    build: ./service-weather
     restart: unless-stopped
     container_name: weather
     environment:
@@ -18,7 +18,7 @@ services:
     stdin_open: true
 
   rocket:
-    image: blueorigin/service-rocket
+    build: ./service-mission
     restart: unless-stopped
     container_name: rocket
     environment:
@@ -34,7 +34,7 @@ services:
     stdin_open: true
 
   mission:
-    image: blueorigin/service-mission
+    build: ./service-mission
     container_name: mission
     restart: unless-stopped
     environment:
@@ -58,3 +58,6 @@ services:
       - MONGODB_DATABASE="nest"
     ports:
       - 27017:27017
+
+networks:
+  services:
