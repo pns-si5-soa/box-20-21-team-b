@@ -7,7 +7,7 @@ export class AppService {
   constructor(private httpService: HttpService) {}
 
   sendPollToWeather(): void {
-    this.httpService.post('http://'+WEATHER_HOST+':'+WEATHER_PORT+':3000/poll');
+    this.httpService.post('http://'+WEATHER_HOST+':'+WEATHER_PORT+'/poll');
   }
 
   sendPollToRocket(): void {

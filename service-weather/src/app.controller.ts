@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
@@ -19,4 +19,12 @@ export class AppController {
   getHumidity(): string {
     return this.appService.getHumidity();
   }
+
+  @Post('/poll')
+  Polling(): boolean {
+    this.appService.sendAnswerToMission();
+    return true;
+  }
+
+
 }

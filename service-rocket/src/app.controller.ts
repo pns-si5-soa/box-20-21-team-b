@@ -9,4 +9,10 @@ export class AppController {
   getRocketStatus(): string {
     return "Ready";
   }
+
+  @Post('/poll')
+  Polling(): boolean {
+    this.appService.sendAnswerToMission();
+    return true;
+  }
 }
