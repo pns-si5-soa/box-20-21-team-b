@@ -4,6 +4,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import {PORT} from "../../service-mission/src/env_variables";
 
 
 async function bootstrap() {
@@ -11,6 +12,6 @@ async function bootstrap() {
       AppModule,
       new FastifyAdapter()
   );
-  await app.listen(PORT, "0.0.0.0");
+  await app.listen(Number(PORT), "0.0.0.0");
 }
 bootstrap();
