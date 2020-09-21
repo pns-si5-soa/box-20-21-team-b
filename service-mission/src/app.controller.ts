@@ -16,16 +16,16 @@ export class AppController {
 
   @Post('/poll/weather')
   progressPollWeather(@Body() message: PollDTO, @Res() res: Response): void {
-    res.status(HttpStatus.OK).send(this.appService.progressPollWeather());
+    res.status(HttpStatus.OK).send(this.appService.progressPollWeather(message.ready));
   }
 
   @Post('/poll/rocket')
-  progressPollRocket(@Res() res: Response): void {
-    res.status(HttpStatus.OK).send(this.appService.progressPollRocket());
+  progressPollRocket(@Body() message: PollDTO, @Res() res: Response): void {
+    res.status(HttpStatus.OK).send(this.appService.progressPollRocket(message.ready));
   }
 
   @Post('/poll')
-  finalizePoll(@Res() res:Response): void {
-    res.status(HttpStatus.OK).send(this.appService.finalizePoll());
+  finalizePoll(@Body() message: PollDTO, @Res() res:Response): void {
+    res.status(HttpStatus.OK).send(this.appService.finalizePoll(message.ready));
   }
 }
