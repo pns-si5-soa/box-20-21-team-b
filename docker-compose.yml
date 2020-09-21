@@ -15,7 +15,6 @@ services:
       - "3000"
     networks:
       - services
-    stdin_open: true
 
   rocket:
     build: ./service-mission
@@ -31,7 +30,6 @@ services:
       - "3001"
     networks:
       - services
-    stdin_open: true
 
   mission:
     build: ./service-mission
@@ -47,7 +45,6 @@ services:
       - "3002"
     networks:
       - services
-    stdin_open: true
 
   mongo:
     image: mongo
@@ -56,8 +53,8 @@ services:
       # MONGO_INITDB_ROOT_USERNAME: root
       # MONGO_INITDB_ROOT_PASSWORD: toor
       - MONGODB_DATABASE="nest"
-    ports:
-      - 27017:27017
+    expose:
+      - 27017
 
 networks:
   services:
