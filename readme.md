@@ -7,8 +7,14 @@ Blue Origin X project for the "Service Oriented Architecture" course.
 
 ## Technology
 [Node.js 12.18.3](https://nodejs.org/en/)  
-[MongoDB](https://www.mongodb.com/fr)
-[NestJs](https://nestjs.com/)
+[MongoDB](https://www.mongodb.com/fr)  
+[NestJs](https://nestjs.com/)  
+[Docker](https://www.docker.com/)  
+
+## Dockerize
+
+First of all you need to download Docker. Then run the following command `docker-compose up -d`. The docker-compose will create each container for each service.
+
 
 ## Setup a project with NestJs
 
@@ -20,3 +26,4 @@ Masia Sylvain
 Montoya Damien  
 Peres Richard  
 Rigaut François
+
