@@ -51,7 +51,8 @@ export class AppService {
     if(ready) {
       if(this.polling == 3){
         this.polling = 4;
-        return 'Everyone is now ready!';
+        this.sendLaunchRequest();
+        return 'Everyone is now ready!\nA launch request has been sent to the rocket service.';
       } else {
         return 'Poll not in progress !';
       }
@@ -67,6 +68,10 @@ export class AppService {
 
   sendPollToRocket(): void {
     this.httpService.post('http://'+ROCKET_HOST+':'+ROCKET_PORT+'/poll');
+  }
+
+  sendLaunchRequest(): void {
+    this.httpService.post('http://'+ROCKET_HOST+':'+ROCKET_PORT+'/requestLaunch')
   }
 
   isReady(): boolean {
