@@ -16,6 +16,6 @@ export class AppService {
   }
 
   sendAnswerToMission(): void {
-    this.httpService.post('http://'+MISSION_HOST+':'+MISSION_PORT+'/poll/weather/ready');
+    this.httpService.post('http://'+MISSION_HOST+':'+MISSION_PORT+'/poll/weather');
   }
 }
