@@ -14,11 +14,6 @@ export class AppController {
     return this.polling == 4;
   }
 
-  @Get()
-  getMissionStatus(@Res() res: Response): void {
-    res.status(HttpStatus.OK).send(this.appService.getMissionStatus());
-  }
-
   @Post('/poll/launch')
   launchPoll(@Res() res: Response): void {
     if(this.polling === 0) {
