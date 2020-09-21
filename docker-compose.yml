@@ -19,7 +19,7 @@ services:
       - services
 
   rocket:
-    build: ./service-mission
+    build: ./service-rocket
     restart: unless-stopped
     container_name: rocket
     environment:
