@@ -4,7 +4,7 @@ services:
   weather:
     image: blueorigin/service-weather
     restart: unless-stopped
-    container_name: service_weather
+    container_name: weather
     environment:
       - PORT=3000
       - ROCKET_HOST=rocket
@@ -20,7 +20,7 @@ services:
   rocket:
     image: blueorigin/service-rocket
     restart: unless-stopped
-    container_name: service_rocket
+    container_name: rocket
     environment:
       - PORT=3001
       - MISSION_HOST=mission
@@ -35,7 +35,7 @@ services:
 
   mission:
     image: blueorigin/service-mission
-    container_name: service_mission
+    container_name: mission
     restart: unless-stopped
     environment:
       - PORT=3001
