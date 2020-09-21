@@ -1,34 +1,52 @@
 version: '3.8'
 
 services:
-  service_weather:
+  weather:
     image: blueorigin/service-weather
     restart: unless-stopped
     container_name: service_weather
+    environment:
+      - PORT=3000
+      - ROCKET_HOST=rocket
+      - ROCKET_PORT=3001
+      - MISSION_HOST=mission
+      - MISSION_PORT=3002
     expose:
       - "3000"
-    ports:
-      - "3000:3000"
+    networks:
+      - services
     stdin_open: true
 
-  service_rocket:
+  rocket:
     image: blueorigin/service-rocket
     restart: unless-stopped
     container_name: service_rocket
+    environment:
+      - PORT=3001
+      - MISSION_HOST=mission
+      - MISSION_PORT=3002
+      - WEATHER_HOST=weather
+      - WEATHER_PORT=3000
     expose:
       - "3001"
-    ports:
-      - "3001:3001"
+    networks:
+      - services
     stdin_open: true
 
-  service_mission:
+  mission:
     image: blueorigin/service-mission
     container_name: service_mission
     restart: unless-stopped
+    environment:
+      - PORT=3001
+      - ROCKET_HOST=rocket
+      - ROCKET_PORT=3001
+      - WEATHER_HOST=weather
+      - WEATHER_PORT=3000
     expose:
       - "3002"
-    ports:
-      - "3002:3002"
+    networks:
+      - services
     stdin_open: true
 
   mongo:
