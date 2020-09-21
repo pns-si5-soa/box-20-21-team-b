@@ -3,7 +3,7 @@ import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly appService: AppService) { }
 
   @Get('/weather')
   getWeather(): string {
@@ -21,9 +21,9 @@ export class AppController {
   }
 
   @Post('/poll')
-  Polling(): boolean {
-    this.appService.sendAnswerToMission();
-    return true;
+  Polling(): void {
+    console.log("Polling in weather service, answering to mission");
+    this.appService.sendAnswerToMission().subscribe((val) => console.log(val));
   }
 
 

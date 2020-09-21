@@ -1,4 +1,5 @@
 import { Injectable, HttpService } from '@nestjs/common';
+import { Observable } from 'rxjs';
 import { MISSION_HOST, MISSION_PORT, } from './env_variables';
 
 
@@ -11,7 +12,7 @@ export class AppService {
     return 'Rocket is ready to take off !';
   }
 
-  sendAnswerToMission(): void {
-    this.httpService.post('http://'+MISSION_HOST+':'+MISSION_PORT+'/poll/rocket/ready');
+  sendAnswerToMission(): Observable<any> {
+    return this.httpService.post('http://' + MISSION_HOST + ':' + MISSION_PORT + '/poll/rocket', { ready: true });
   }
 }

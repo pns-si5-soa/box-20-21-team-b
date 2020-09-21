@@ -1,4 +1,5 @@
 import { HttpService, HttpStatus, Injectable } from '@nestjs/common';
+import { Observable } from 'rxjs';
 import { ROCKET_HOST, ROCKET_PORT, WEATHER_HOST, WEATHER_PORT } from './env_variables';
 
 @Injectable()
@@ -6,12 +7,12 @@ export class AppService {
 
   private polling = 0;
 
-  constructor(private httpService: HttpService) {}
+  constructor(private httpService: HttpService) { }
 
   launchPoll(): string {
     if (this.polling == 0) {
       this.polling = 1;
-      this.sendPollToWeather();
+      this.sendPollToWeather().subscribe((val) => console.log(val));
       return 'Launching poll: Sending poll to weather';
     } else {
       return 'Poll already in progress !';
@@ -19,10 +20,10 @@ export class AppService {
   }
 
   progressPollWeather(ready: boolean): string {
-    if(ready) {
+    if (ready) {
       if (this.polling == 1) {
         this.polling = 2;
-        this.sendPollToRocket();
+        this.sendPollToRocket().subscribe((val) => console.log(val));
         return 'Weather is ready!\nPolling rocket service...';
       } else {
         return 'Poll not in progress !';
@@ -34,8 +35,8 @@ export class AppService {
   }
 
   progressPollRocket(ready: boolean): string {
-    if(ready) {
-      if(this.polling == 2){
+    if (ready) {
+      if (this.polling == 2) {
         this.polling = 3;
         return 'Rocket is ready!\nPolling mission service...!';
       } else {
@@ -48,10 +49,10 @@ export class AppService {
   }
 
   finalizePoll(ready: boolean): string {
-    if(ready) {
-      if(this.polling == 3){
+    if (ready) {
+      if (this.polling == 3) {
         this.polling = 4;
-        this.sendLaunchRequest();
+        this.sendLaunchRequest().subscribe((val) => console.log(val));
         return 'Everyone is now ready!\nA launch request has been sent to the rocket service.';
       } else {
         return 'Poll not in progress !';
@@ -62,16 +63,16 @@ export class AppService {
     }
   }
 
-  sendPollToWeather(): void {
-    this.httpService.post('http://'+WEATHER_HOST+':'+WEATHER_PORT+'/poll');
+  sendPollToWeather(): Observable<any> {
+    return this.httpService.post('http://' + WEATHER_HOST + ':' + WEATHER_PORT + '/poll');
   }
 
-  sendPollToRocket(): void {
-    this.httpService.post('http://'+ROCKET_HOST+':'+ROCKET_PORT+'/poll');
+  sendPollToRocket(): Observable<any> {
+    return this.httpService.post('http://' + ROCKET_HOST + ':' + ROCKET_PORT + '/poll');
   }
 
-  sendLaunchRequest(): void {
-    this.httpService.post('http://'+ROCKET_HOST+':'+ROCKET_PORT+'/requestLaunch')
+  sendLaunchRequest(): Observable<any> {
+    return this.httpService.post('http://' + ROCKET_HOST + ':' + ROCKET_PORT + '/requestLaunch')
   }
 
   isReady(): boolean {
