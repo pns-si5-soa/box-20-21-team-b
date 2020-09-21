@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  weather:
+    build: ./service-weather
+    restart: unless-stopped
+    container_name: weather
+    environment:
+      - PORT=3000
+      - ROCKET_HOST=rocket
+      - ROCKET_PORT=3001
+      - MISSION_HOST=mission
+      - MISSION_PORT=3002
+    expose:
+      - "3000"
+    networks:
+      - services
+    stdin_open: true
+
+  rocket:
+    build: ./service-mission
+    restart: unless-stopped
+    container_name: rocket
+    environment:
+      - PORT=3001
+      - MISSION_HOST=mission
+      - MISSION_PORT=3002
+      - WEATHER_HOST=weather
+      - WEATHER_PORT=3000
+    expose:
+      - "3001"
+    networks:
+      - services
+    stdin_open: true
+
+  mission:
+    build: ./service-mission
+    container_name: mission
+    restart: unless-stopped
+    environment:
+      - PORT=3001
+      - ROCKET_HOST=rocket
+      - ROCKET_PORT=3001
+      - WEATHER_HOST=weather
+      - WEATHER_PORT=3000
+    expose:
+      - "3002"
+    networks:
+      - services
+    stdin_open: true
+
+  mongo:
+    image: mongo
+    restart: unless-stopped
+    environment:
+      # MONGO_INITDB_ROOT_USERNAME: root
+      # MONGO_INITDB_ROOT_PASSWORD: toor
+      - MONGODB_DATABASE="nest"
+    ports:
+      - 27017:27017
+
+networks:
+  services:
