@@ -13,8 +13,4 @@ export class AppService {
   sendPollToRocket(): void {
     this.httpService.post('http://'+ROCKET_HOST+':'+ROCKET_PORT+'/poll');
   }
-
-  getMissionStatus(): string {
-    return 'Mission is ready, get to (╯°□°）╯︵ ┻━┻';
-  }
 }
