@@ -4,7 +4,7 @@ import { ROCKET_HOST, ROCKET_PORT, WEATHER_HOST, WEATHER_PORT } from './env_vari
 @Injectable()
 export class AppService {
 
-  private polling: Number = 0;
+  private polling = 0;
 
   constructor(private httpService: HttpService) {}
 
@@ -14,35 +14,50 @@ export class AppService {
       this.sendPollToWeather();
       return 'Launching poll: Sending poll to weather';
     } else {
-      return 'Poll not in progress !';
+      return 'Poll already in progress !';
     }
   }
 
-  progressPollWeather(): string {
-    if (this.polling == 1) {
-      this.polling = 2;
-      this.sendPollToRocket();
-      return 'Weather is ready!\nPolling rocket service...';
+  progressPollWeather(ready: boolean): string {
+    if(ready) {
+      if (this.polling == 1) {
+        this.polling = 2;
+        this.sendPollToRocket();
+        return 'Weather is ready!\nPolling rocket service...';
+      } else {
+        return 'Poll not in progress !';
+      }
     } else {
-      return 'Poll not in progress !';
+      this.polling = 0;
+      return 'Weather is not ready!\nResetting poll state.'
     }
   }
 
-  progressPollRocket(): string {
-    if(this.polling == 2){
-      this.polling = 3;
-      return 'Rocket is ready!\nPolling mission service...!';
+  progressPollRocket(ready: boolean): string {
+    if(ready) {
+      if(this.polling == 2){
+        this.polling = 3;
+        return 'Rocket is ready!\nPolling mission service...!';
+      } else {
+        return 'Poll not in progress !';
+      }
     } else {
-      return 'Poll not in progress !';
+      this.polling = 0;
+      return 'Rocket is not ready!\nResetting poll state.'
     }
   }
 
-  finalizePoll(): string {
-    if(this.polling == 3){
-      this.polling = 4;
-      return 'Mission is now ready!';
+  finalizePoll(ready: boolean): string {
+    if(ready) {
+      if(this.polling == 3){
+        this.polling = 4;
+        return 'Everyone is now ready!';
+      } else {
+        return 'Poll not in progress !';
+      }
     } else {
-      return 'Poll not in progress !';
+      this.polling = 0;
+      return 'Mission is not ready!\nResetting poll state.'
     }
   }
 
