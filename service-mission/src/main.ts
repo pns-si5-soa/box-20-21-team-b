@@ -1,10 +1,7 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { PORT } from './env_variables';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import {NestFactory} from '@nestjs/core';
+import {AppModule} from './app.module';
+import {PORT} from './env_variables';
+import {FastifyAdapter, NestFastifyApplication,} from '@nestjs/platform-fastify';
 
 
 async function bootstrap() {
