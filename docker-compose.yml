@@ -13,6 +13,8 @@ services:
       - MISSION_PORT=3002
     expose:
       - "3000"
+    ports:
+    - 3000:3000
     networks:
       - services
 
@@ -28,6 +30,8 @@ services:
       - WEATHER_PORT=3000
     expose:
       - "3001"
+    ports:
+    - 3001:3001
     networks:
       - services
 
@@ -36,13 +40,15 @@ services:
     container_name: mission
     restart: unless-stopped
     environment:
-      - PORT=3001
+      - PORT=3002
       - ROCKET_HOST=rocket
       - ROCKET_PORT=3001
       - WEATHER_HOST=weather
       - WEATHER_PORT=3000
     expose:
       - "3002"
+    ports:
+    - 3002:3002
     networks:
       - services
 
