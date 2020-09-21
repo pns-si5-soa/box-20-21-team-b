@@ -3,18 +3,20 @@ version: '3.8'
 services:
   service_weather:
     image: blueorigin/service-weather
+    restart: unless-stopped
     container_name: service_weather
     expose:
-          - "3000"
+      - "3000"
     ports:
       - "3000:3000"
     stdin_open: true
 
   service_rocket:
     image: blueorigin/service-rocket
+    restart: unless-stopped
     container_name: service_rocket
     expose:
-          - "3001"
+      - "3001"
     ports:
       - "3001:3001"
     stdin_open: true
@@ -22,8 +24,19 @@ services:
   service_mission:
     image: blueorigin/service-mission
     container_name: service_mission
+    restart: unless-stopped
     expose:
-          - "3002"
+      - "3002"
     ports:
       - "3002:3002"
     stdin_open: true
+
+  mongo:
+    image: mongo
+    restart: unless-stopped
+    environment:
+      # MONGO_INITDB_ROOT_USERNAME: root
+      # MONGO_INITDB_ROOT_PASSWORD: toor
+      - MONGODB_DATABASE="nest"
+    ports:
+      - 27017:27017
