@@ -42,6 +42,8 @@ services:
       - 3001:3001
     networks:
       - services
+    volumes:
+      - ./service-rocket/src/:/app/src/
 
   mission:
     build: ./service-mission
