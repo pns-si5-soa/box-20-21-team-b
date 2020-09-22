@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
 import { Response } from 'express'
 import { AppService } from './app.service';
 import { PollDTO } from './poll.dto';
@@ -24,7 +24,7 @@ export class AppController {
     res.status(HttpStatus.OK).send(this.appService.progressPollRocket(message.ready));
   }
 
-  @Post('/poll')
+  @Post('/poll/go')
   finalizePoll(@Body() message: PollDTO, @Res() res:Response): void {
     res.status(HttpStatus.OK).send(this.appService.finalizePoll(message.ready));
   }

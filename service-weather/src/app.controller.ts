@@ -1,4 +1,5 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import {Controller, Get, HttpStatus, Logger, Post, Res} from '@nestjs/common';
+import { Response } from 'express'
 import { AppService } from './app.service';
 
 @Controller()
@@ -10,21 +11,17 @@ export class AppController {
     return this.appService.getTemperature() + ' ' + this.appService.getHumidity();
   }
 
-  @Get('/temperature')
-  getTemperature(): string {
-    return this.appService.getTemperature();
-  }
-
-  @Get('/humidity')
-  getHumidity(): string {
-    return this.appService.getHumidity();
-  }
-
   @Post('/poll')
-  Polling(): void {
-    console.log("Polling in weather service, answering to mission");
-    this.appService.sendAnswerToMission().subscribe((val) => console.log(val));
+  initPoll(@Res() res: Response): void {
+    Logger.log('Mission has started a launch poll, please send a response');
+    res.status(HttpStatus.OK).send('Waiting for weather response...');
   }
 
+  @Post('/poll/mission')
+  answerToMission(@Res() res: Response): void{
+    this.appService.sendAnswerToMission().subscribe((val) => console.log(val.data))
+    res.status(HttpStatus.OK).send('Response to mission has been sent');
+  }
 
 }
+

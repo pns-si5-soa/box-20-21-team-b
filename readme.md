@@ -15,7 +15,6 @@ Blue Origin X project for the "Service Oriented Architecture" course.
 
 First of all you need to download Docker. Then run the following command `docker-compose up -d`. The docker-compose will create each container for each service.
 
-
 ## Setup a project with NestJs
 
 First you need to download Node.js. Then run the following command `npm i -g @nestjs/cli`. In the folder where you want to start a project type `nest new project-name`
