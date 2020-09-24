@@ -12,7 +12,7 @@ export class AppService {
     return 'Rocket is ready to take off !';
   }
 
-  sendAnswerToMission(): Observable<any> {
-    return this.httpService.post('http://' + MISSION_HOST + ':' + MISSION_PORT + '/poll/rocket', { ready: true });
+  sendAnswerToMission(go: boolean): Observable<any> {
+    return this.httpService.post('http://' + MISSION_HOST + ':' + MISSION_PORT + '/poll/rocket', { ready: go });
   }
 }

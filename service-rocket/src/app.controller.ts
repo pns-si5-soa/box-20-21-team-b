@@ -17,13 +17,19 @@ export class AppController {
     res.status(HttpStatus.OK).send('Waiting for rocket response...');
   }
 
-  @Post('/poll/mission')
-  answerToMission(@Res() res: Response): void{
-    this.appService.sendAnswerToMission().subscribe((val) => console.log(val.data))
-    res.status(HttpStatus.OK).send('Response to mission has been sent');
+  @Post('/poll/mission/go')
+  answerToMissionGo(@Res() res: Response): void{
+    this.appService.sendAnswerToMission(true).subscribe((val) => console.log(val.data))
+    res.status(HttpStatus.OK).send('Response go to mission has been sent');
   }
 
-  @Post('/requestLaunch')
+  @Post('/poll/mission/no-go')
+  answerToMissionNoGo(@Res() res: Response): void{
+    this.appService.sendAnswerToMission(false).subscribe((val) => console.log(val.data))
+    res.status(HttpStatus.OK).send('Response no go to mission has been sent');
+  }
+
+  @Post('/request-launch')
   launching(@Res() res: Response): void {
     Logger.log('Launching the rocket!!');
     res.status(HttpStatus.OK).send('Ok');

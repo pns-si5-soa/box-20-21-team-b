@@ -16,7 +16,7 @@ export class AppService {
     return 'The humidity is about 52%.';
   }
 
-  sendAnswerToMission(): Observable<any> {
-    return this.httpService.post('http://' + MISSION_HOST + ':' + MISSION_PORT + '/poll/weather', { ready: true });
+  sendAnswerToMission(go: boolean): Observable<any> {
+    return this.httpService.post('http://' + MISSION_HOST + ':' + MISSION_PORT + '/poll/weather', { ready: go });
   }
 }
