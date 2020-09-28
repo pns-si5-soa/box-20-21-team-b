@@ -1,6 +1,7 @@
-import {Controller, Get, HttpStatus, Logger, Post, Res} from '@nestjs/common';
+import {Controller, Get, HttpStatus, Logger, Post, Res, Body} from '@nestjs/common';
 import { AppService } from './app.service';
 import { Response } from 'express'
+import { PollDTO } from './poll.dto';
 
 @Controller()
 export class AppController {
@@ -17,16 +18,10 @@ export class AppController {
     res.status(HttpStatus.OK).send('Waiting for rocket response...');
   }
 
-  @Post('/poll/mission/go')
-  answerToMissionGo(@Res() res: Response): void{
-    this.appService.sendAnswerToMission(true).subscribe((val) => console.log(val.data))
-    res.status(HttpStatus.OK).send('Response go to mission has been sent');
-  }
-
-  @Post('/poll/mission/no-go')
-  answerToMissionNoGo(@Res() res: Response): void{
-    this.appService.sendAnswerToMission(false).subscribe((val) => console.log(val.data))
-    res.status(HttpStatus.OK).send('Response no go to mission has been sent');
+  @Post('/poll/answer-mission')
+  answerToMissionGo(@Body() message: PollDTO, @Res() res: Response): void{
+    this.appService.sendAnswerToMission(message.ready).subscribe((val) => console.log(val.data))
+    res.status(HttpStatus.OK).send('Response go {' + message.ready + '} to mission has been sent');
   }
 
   @Post('/request-launch')
