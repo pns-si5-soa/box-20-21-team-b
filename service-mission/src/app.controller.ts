@@ -24,7 +24,7 @@ export class AppController {
     res.status(HttpStatus.OK).send(this.appService.progressPollRocket(message.ready));
   }
 
-  @Post('/poll/go')
+  @Post('/poll/mission')
   finalizePoll(@Body() message: PollDTO, @Res() res:Response): void {
     res.status(HttpStatus.OK).send(this.appService.finalizePoll(message.ready));
   }

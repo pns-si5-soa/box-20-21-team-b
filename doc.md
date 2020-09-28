@@ -2,13 +2,15 @@
 
 `http://localhost:3002/poll/launch`
 
-`http://localhost:3000/poll/mission/go`
-
-`http://localhost:3001/poll/mission/go`
-
-`http://localhost:3002/poll/go` with the following body :
+Next post are using the following body :
 `
 {
-    "ready" : true
+    "ready" : true | false
 }
 `
+
+`http://localhost:3000/poll/answer-mission`
+
+`http://localhost:3001/poll/answer-mission`
+
+`http://localhost:3002/poll/mission`
