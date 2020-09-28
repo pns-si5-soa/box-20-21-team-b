@@ -17,6 +17,9 @@ services:
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=nest
+    volumes:
+      - ./service-weather/src/:/app/src/
+
     expose:
       - "3000"
     ports:
@@ -37,18 +40,19 @@ services:
       - WEATHER_HOST=weather
       - WEATHER_PORT=3000
 
-      
+
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=nest
+    volumes:
+      - ./service-rocket/src/:/app/src/
+
     expose:
       - "3001"
     ports:
       - 3001:3001
     networks:
       - services
-    volumes:
-      - ./service-rocket/src/:/app/src/
 
   mission:
     build: ./service-mission
@@ -66,6 +70,9 @@ services:
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=nest
+    volumes:
+      - ./service-mission/src/:/app/src/
+
     expose:
       - "3002"
     ports:
@@ -80,6 +87,7 @@ services:
       # MONGO_INITDB_ROOT_USERNAME: root
       # MONGO_INITDB_ROOT_PASSWORD: toor
       - MONGODB_DATABASE="nest"
+
     expose:
       - 27017
     ports:
@@ -87,5 +95,17 @@ services:
     networks:
       - services
 
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./reverse_proxy.conf:/etc/nginx/nginx.conf
+
+    networks:
+      - services
+    ports:
+      - 80:80
+
 networks:
   services:
+
