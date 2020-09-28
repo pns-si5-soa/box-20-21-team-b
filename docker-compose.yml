@@ -19,6 +19,9 @@ services:
       - MONGO_DB=nest
     volumes:
       - ./service-weather/src/:/app/src/
+    depends_on:
+      - nginx
+      - mongo
 
     expose:
       - "3000"
@@ -26,6 +29,7 @@ services:
       - 3000:3000
     networks:
       - services
+      - proxy
 
   rocket:
     build: ./service-rocket
@@ -46,6 +50,9 @@ services:
       - MONGO_DB=nest
     volumes:
       - ./service-rocket/src/:/app/src/
+    depends_on:
+      - nginx
+      - mongo
 
     expose:
       - "3001"
@@ -53,6 +60,7 @@ services:
       - 3001:3001
     networks:
       - services
+      - proxy
 
   mission:
     build: ./service-mission
@@ -72,6 +80,9 @@ services:
       - MONGO_DB=nest
     volumes:
       - ./service-mission/src/:/app/src/
+    depends_on:
+      - nginx
+      - mongo
 
     expose:
       - "3002"
@@ -79,6 +90,7 @@ services:
       - 3002:3002
     networks:
       - services
+      - proxy
 
   mongo:
     image: mongo
@@ -102,10 +114,12 @@ services:
       - ./reverse_proxy.conf:/etc/nginx/nginx.conf
 
     networks:
-      - services
+      - proxy
+
     ports:
       - 80:80
 
 networks:
   services:
+  proxy:
 
