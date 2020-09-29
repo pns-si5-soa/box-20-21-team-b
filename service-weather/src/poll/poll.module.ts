@@ -1,10 +1,11 @@
 import {HttpModule, Module} from '@nestjs/common';
-import { PollService } from './poll.service';
+import {PollService} from './poll.service';
 import {PollController} from "./poll.controller";
 
 @Module({
-  imports: [HttpModule, PollModule],
-  controllers: [PollController],
-  providers: [PollService],
+    imports: [HttpModule, PollModule],
+    controllers: [PollController],
+    providers: [PollService],
 })
-export class PollModule {}
+export class PollModule {
+}

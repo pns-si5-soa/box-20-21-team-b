@@ -4,9 +4,10 @@ import {MISSION_HOST, MISSION_PORT} from "../env_variables";
 
 @Injectable()
 export class PollService {
-    constructor(private httpService: HttpService) { }
+    constructor(private httpService: HttpService) {
+    }
 
     sendAnswerToMission(go: boolean): Observable<any> {
-        return this.httpService.post('http://' + MISSION_HOST + ':' + MISSION_PORT + '/poll/weather', { ready: go });
+        return this.httpService.post('http://' + MISSION_HOST + ':' + MISSION_PORT + '/poll/weather', {ready: go});
     }
 }

@@ -6,7 +6,8 @@ import {ROCKET_HOST, ROCKET_PORT, WEATHER_HOST, WEATHER_PORT} from "../env_varia
 export class PollService {
     private polling = 0;
 
-    constructor(private httpService: HttpService) { }
+    constructor(private httpService: HttpService) {
+    }
 
     launchPoll(): string {
         if (this.polling == 0) {

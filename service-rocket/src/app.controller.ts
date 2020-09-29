@@ -1,20 +1,19 @@
-import {Controller, Get, HttpStatus, Logger, Post, Res, Body} from '@nestjs/common';
-import { AppService } from './app.service';
-import { Response } from 'express'
-import { PollDTO } from './poll.dto';
+import {Controller, Get, Logger, Post} from '@nestjs/common';
+import {AppService} from './app.service';
 
 @Controller('rocket')
 export class AppController {
-  constructor(private readonly appService: AppService) { }
+    constructor(private readonly appService: AppService) {
+    }
 
-  @Get('/status')
-  getRocketStatus(): string {
-    return "Ready";
-  }
+    @Get('/status')
+    getRocketStatus(): string {
+        return this.appService.getStatus();
+    }
 
-  @Post('/request-launch')
-  launching(@Res() res: Response): void {
-    Logger.log('Launching the rocket!!');
-    res.status(HttpStatus.OK).send('Ok');
-  }
+    @Post('/request-launch')
+    launching(): string {
+        Logger.log('Launching the rocket!!');
+        return this.appService.requestLaunch();
+    }
 }
