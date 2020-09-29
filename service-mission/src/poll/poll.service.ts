@@ -71,15 +71,15 @@ export class PollService {
     }
 
     sendPollToWeather(): Observable<any> {
-        return this.httpService.post('http://' + WEATHER_HOST + ':' + WEATHER_PORT + '/poll');
+        return this.httpService.post('http://' + WEATHER_HOST + ':' + WEATHER_PORT + '/weather/poll');
     }
 
     sendPollToRocket(): Observable<any> {
-        return this.httpService.post('http://' + ROCKET_HOST + ':' + ROCKET_PORT + '/poll');
+        return this.httpService.post('http://' + ROCKET_HOST + ':' + ROCKET_PORT + '/rocket/poll');
     }
 
     sendLaunchRequest(): Observable<any> {
-        return this.httpService.post('http://' + ROCKET_HOST + ':' + ROCKET_PORT + '/request-launch')
+        return this.httpService.post('http://' + ROCKET_HOST + ':' + ROCKET_PORT + '/rocket/request-launch')
     }
 
     isReady(): boolean {

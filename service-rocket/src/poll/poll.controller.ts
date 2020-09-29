@@ -8,13 +8,13 @@ export class PollController {
     constructor(private readonly pollService: PollService) {
     }
 
-    @Post('/poll')
+    @Post('/')
     initPoll(): string {
         Logger.log('Mission has started a launch poll, please send a response');
         return 'Waiting for rocket response...';
     }
 
-    @Post('/poll/answer-mission')
+    @Post('/answer-mission')
     answerToMissionGo(@Body() message: PollDTO): string {
         this.pollService.sendAnswerToMission(message.ready).subscribe((val) => console.log(val.data))
         return 'Response go {' + message.ready + '} to mission has been sent';

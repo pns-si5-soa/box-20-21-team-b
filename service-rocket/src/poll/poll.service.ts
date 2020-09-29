@@ -8,6 +8,6 @@ export class PollService {
     }
 
     sendAnswerToMission(go: boolean): Observable<any> {
-        return this.httpService.post('http://' + MISSION_HOST + ':' + MISSION_PORT + '/poll/rocket', {ready: go});
+        return this.httpService.post('http://' + MISSION_HOST + ':' + MISSION_PORT + '/mission/poll/rocket', {ready: go});
     }
 }
