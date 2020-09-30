@@ -1,13 +1,19 @@
-import { Injectable, HttpService } from '@nestjs/common';
-import {ROCKET_HOST, ROCKET_PORT} from "./env_variables";
-import {Observable} from "rxjs";
+import {Injectable, Logger} from '@nestjs/common';
+import {ROCKET_HOST, ROCKET_SOCKET_PORT} from "./env_variables";
+import * as io from 'socket.io-client';
 
 @Injectable()
 export class AppService {
-  constructor(private httpService: HttpService) {
-  }
+  //private ws = new WebSocket('ws://' + ROCKET_HOST + ':' + ROCKET_SOCKET_PORT + '/rocket');
 
-  initRocketConnection(): Observable<any> {
-    return this.httpService.get('http://' + ROCKET_HOST + ':' + ROCKET_PORT + '/rocket/connect-telemetry');
+  constructor() {
+    const socket = io('ws://' + ROCKET_HOST + ':' + ROCKET_SOCKET_PORT + '/rocket');
+    socket.on('connect', () => {
+      Logger.log('Socket initiated');
+    });
+    socket.on('telemetryChannel', (msg) => {
+      console.log('Message received in telemetry : ' + msg);
+      //TODO save in database incoming messages
+    });
   }
 }

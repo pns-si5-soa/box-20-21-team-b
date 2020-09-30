@@ -1,10 +1,14 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {setInterval} from "timers";
+import {TelemetryGateway} from "./telemetry/telemetry.gateway";
 
 @Injectable()
 export class AppService {
     private calculateAltitude: any;
     private altitude = 0;
+
+    constructor(private readonly telemetryGateway: TelemetryGateway) {
+    }
 
     getStatus(): string {
         return 'Rocket is ready to take off !';
@@ -21,20 +25,21 @@ export class AppService {
 
     altitudeInterval(): void{
         Logger.log("Calculating altitude... " + this.altitude + "m");
-        //TODO send information to telemetry
+        this.telemetryGateway.sendMessageToTelemetry("Calculating altitude... " + this.altitude + "m");
         this.altitude += 100;
         if(this.altitude == 1000){
             Logger.log('Detaching part...');
-            //TODO send information to telemetry
+            this.telemetryGateway.sendMessageToTelemetry('Detaching part');
         }else if(this.altitude == 2000){
             Logger.log('Charging payload...');
-            //TODO send information to telemetry
+            this.telemetryGateway.sendMessageToTelemetry('Charging payload');
+            this.altitude = 0;
             clearInterval(this.calculateAltitude);
         }
     }
 
     sendStatusToTelemetry(status: string): void{
-        //TODO send status to telemetry
+        this.telemetryGateway.sendMessageToTelemetry(status);
     }
 
 }

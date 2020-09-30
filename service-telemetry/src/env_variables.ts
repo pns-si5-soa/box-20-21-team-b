@@ -1,5 +1,6 @@
 export const PORT = process.env.PORT ? process.env.PORT : 3003;
 export const ROCKET_PORT = process.env.ROCKET_PORT ? process.env.ROCKET_PORT : 3001;
+export const ROCKET_SOCKET_PORT = process.env.ROCKET_SOCKET_PORT ? process.env.ROCKET_SOCKET_PORT : 30011;
 
 export const ROCKET_HOST = process.env.ROCKET_HOST ? process.env.ROCKET_HOST : 'localhost';
 
