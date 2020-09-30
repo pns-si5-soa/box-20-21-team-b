@@ -3,9 +3,8 @@ import {setInterval} from "timers";
 
 @Injectable()
 export class AppService {
-    telemetryRes: Response;
-    calculateAltitude: any;
-    altitude = 0;
+    private calculateAltitude: any;
+    private altitude = 0;
 
     getStatus(): string {
         return 'Rocket is ready to take off !';
@@ -17,17 +16,20 @@ export class AppService {
     }
 
     initLaunch(): void{
-        this.calculateAltitude = setInterval(this.altitudeInterval, 1000);
+        this.calculateAltitude = setInterval(this.altitudeInterval.bind(this), 1000);
     }
 
     altitudeInterval(): void{
+        Logger.log("Calculating altitude... " + this.altitude + "m");
         //TODO send information to telemetry
-        Logger.log("Calculating altitude... {" + this.altitude + "}");
-        this.altitude += 150;
-        if(this.altitude > 1000){
-            //TODO detach rocket
-
-            // clearInterval(this.calculateAltitude);
+        this.altitude += 100;
+        if(this.altitude == 1000){
+            Logger.log('Detaching part...');
+            //TODO send information to telemetry
+        }else if(this.altitude == 2000){
+            Logger.log('Charging payload...');
+            //TODO send information to telemetry
+            clearInterval(this.calculateAltitude);
         }
     }
 
