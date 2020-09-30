@@ -6,7 +6,7 @@ export class AppController {
     constructor(private readonly appService: AppService) {
     }
 
-    @Get('/')
+    @Get('/status')
     getWeather(): string {
         return this.appService.getTemperature() + ' ' + this.appService.getHumidity();
     }

@@ -3,15 +3,18 @@ import {AppService} from './app.service';
 
 @Controller('rocket')
 export class AppController {
+
     constructor(private readonly appService: AppService) {
     }
 
     @Get('/status')
     getRocketStatus(): string {
-        return this.appService.getStatus();
+        const status = this.appService.getStatus();
+        this.appService.sendStatusToTelemetry(status);
+        return status;
     }
 
-    @Post('/request-launch')
+    @Post('/launch')
     launching(): string {
         Logger.log('Launching the rocket!!');
         return this.appService.requestLaunch();

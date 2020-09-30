@@ -7,6 +7,8 @@ Blue Origin X project for the "Service Oriented Architecture" course.
 
 ## Technology
 [Node.js 12.18.3](https://nodejs.org/en/)  
+  - [NestJs SSE](https://www.npmjs.com/package/nestjs-sse)  
+  
 [MongoDB](https://www.mongodb.com/fr)  
 [NestJs](https://nestjs.com/)  
 [Docker](https://www.docker.com/)  

@@ -8,7 +8,7 @@ export class PollController {
     constructor(private readonly pollService: PollService) {
     }
 
-    @Post('launch')
+    @Post('initiate')
     launchPoll(): string {
         return this.pollService.launchPoll();
     }

@@ -1,6 +1,6 @@
 # Requests to launch in this order to test the services
 
-`http://localhost/mission/poll/launch`
+Post `http://localhost/mission/poll/initiate`
 
 Next post are using the following body :
 `
@@ -9,8 +9,12 @@ Next post are using the following body :
 }
 `
 
-`http://localhost/weather/poll/answer-mission`
+Get `http://localhost/weather/status`
 
-`http://localhost/rocket/poll/answer-mission`
+Post `http://localhost/weather/poll/respond`
 
-`http://localhost/mission/poll/mission`
+Get `http://localhost/rocket/status`
+
+Post `http://localhost/rocket/poll/respond`
+
+Post `http://localhost/mission/poll/mission`
