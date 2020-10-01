@@ -1,6 +1,6 @@
-import {Injectable, Logger} from '@nestjs/common';
-import {setInterval} from "timers";
-import {TelemetryGateway} from "./telemetry/telemetry.gateway";
+import { Injectable, Logger } from '@nestjs/common';
+import { setInterval } from "timers";
+import { TelemetryGateway } from "./telemetry/telemetry.gateway";
 
 @Injectable()
 export class AppService {
@@ -16,30 +16,31 @@ export class AppService {
 
     requestLaunch(): string {
         this.initLaunch();
+        this.telemetryGateway.sendProcess("Rocket Launched")
         return "Sayounarada roketto-san";
     }
 
-    initLaunch(): void{
+    initLaunch(): void {
         this.calculateAltitude = setInterval(this.altitudeInterval.bind(this), 1000);
     }
 
-    altitudeInterval(): void{
+    altitudeInterval(): void {
         Logger.log("Calculating altitude... " + this.altitude + "m");
-        this.telemetryGateway.sendMessageToTelemetry("Calculating altitude... " + this.altitude + "m");
+        this.telemetryGateway.sendPosition(this.altitude);
         this.altitude += 100;
-        if(this.altitude == 1000){
+        if (this.altitude == 1000) {
             Logger.log('Detaching part...');
-            this.telemetryGateway.sendMessageToTelemetry('Detaching part');
-        }else if(this.altitude == 2000){
+            this.telemetryGateway.sendProcess('Detaching part');
+        } else if (this.altitude == 2000) {
             Logger.log('Charging payload...');
-            this.telemetryGateway.sendMessageToTelemetry('Charging payload');
+            this.telemetryGateway.sendProcess('Charging payload');
             this.altitude = 0;
             clearInterval(this.calculateAltitude);
         }
     }
 
-    sendStatusToTelemetry(status: string): void{
-        this.telemetryGateway.sendMessageToTelemetry(status);
+    sendStatusToTelemetry(status: string): void {
+        this.telemetryGateway.sendProcess(status);
     }
 
 }

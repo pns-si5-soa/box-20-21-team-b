@@ -1,7 +1,7 @@
 import * as mongoose from 'mongoose'
 
-enum RocketMetricTopic {
-    PROCESSUS, POSITION
+export enum RocketMetricTopic {
+    PROCESSUS = "Mission Processus", POSITION="Rocket Position"
 }
 
 export const RocketMetricSchema = new mongoose.Schema({

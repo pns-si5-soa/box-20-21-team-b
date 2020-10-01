@@ -5,10 +5,10 @@ import {
     OnGatewayDisconnect,
     OnGatewayInit
 } from '@nestjs/websockets';
-import {Logger} from "@nestjs/common";
-import {SOCKET_PORT} from '../env_variables';
+import { Logger } from "@nestjs/common";
+import { SOCKET_PORT } from '../env_variables';
 
-@WebSocketGateway(Number(SOCKET_PORT), {namespace: 'rocket'})
+@WebSocketGateway(Number(SOCKET_PORT), { namespace: 'rocket' })
 export class TelemetryGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
     @WebSocketServer() server;
 
@@ -16,15 +16,19 @@ export class TelemetryGateway implements OnGatewayConnection, OnGatewayDisconnec
         Logger.log('Socket initiated');
     }
 
-    async handleConnection(){
+    async handleConnection() {
         Logger.log('A new client is here');
     }
 
-    async handleDisconnect(){
+    async handleDisconnect() {
         Logger.log('A client has leaved');
     }
 
-    sendMessageToTelemetry(message: string){
-        this.server.emit('telemetryChannel', message);
+    sendPosition(message: number) {
+        this.server.emit('position', message);
+    }
+
+    sendProcess(message: string) {
+        this.server.emit('processus', message);
     }
 }

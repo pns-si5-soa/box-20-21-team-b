@@ -17,6 +17,7 @@ export class AppController {
     @Post('/launch')
     launching(): string {
         Logger.log('Launching the rocket!!');
+        
         return this.appService.requestLaunch();
     }
 }
