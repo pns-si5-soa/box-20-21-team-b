@@ -13,12 +13,11 @@ export class DataService {
             Logger.log('Socket initiated');
         });
         socket.on('processus', async (msg) => {
-            Logger.log('Telemetry processus Data');
+            Logger.log('Telemetry processus Data : ' + msg);
             await this.insertRocketMetric(RocketMetricTopic.PROCESSUS, msg);
         })
         socket.on('position', async (msg) => {
-            Logger.log('Telemetry position Data');
-            console.log('Message received in telemetry : ' + msg);
+            Logger.log('Telemetry position Data : ' + msg + 'km');
             await this.insertRocketMetric(RocketMetricTopic.POSITION, `Current altitude is ${msg}`, Date.now().toString(), msg);
         });
     }
@@ -26,6 +25,10 @@ export class DataService {
     async insertRocketMetric(topic: RocketMetricTopic, description: string, timestamp = Date.now().toString(), altitude = null) {
         const metric = new this.rocketMetric({ topic, description, timestamp, altitude });
         await metric.save();
+    }
+
+    async retrieveRocketMetrics() : Promise<RocketMetric[]>{
+        return await this.rocketMetric.find().exec();
     }
 
 

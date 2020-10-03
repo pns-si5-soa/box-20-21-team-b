@@ -1,7 +1,12 @@
-abstract class Module {
+export abstract class Module {
   successor: Module;
+  fuel: number;
 
-  numberOfStages(): number{
+  protected constructor(fuel: number) {
+    this.fuel = fuel;
+  }
+
+  public numberOfStages(): number{
     if(this.successor){
       return 1+this.successor.numberOfStages();
     } else {
@@ -9,7 +14,7 @@ abstract class Module {
     }
   }
 
-  detachLastModule(): void{
+  public detachLastModule(): void{
     if(this.successor){
       if(this.successor.successor){
         this.successor.detachLastModule();
@@ -19,5 +24,19 @@ abstract class Module {
     } else {
       //TODO: throw exception: cannot detach module because there is none
     }
+  }
+
+  public getLastModule(): Module{
+    if(this.successor){
+      return this.successor.getLastModule();
+    } else {
+      return this;
+    }
+  }
+
+  public removeFuel(amount: number): void{
+    this.fuel -= amount;
+    if(this.fuel < 0)
+      this.fuel = 0;
   }
 }

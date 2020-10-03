@@ -1,3 +1,6 @@
+import { HeadModule } from './headModule';
+import { Module } from './module';
+
 export class Rocket {
   head: HeadModule;
   altitude: number;
@@ -23,5 +26,21 @@ export class Rocket {
   detachLastModule(): void{
     this.head.detachLastModule();
     // TODO: catch exception
+  }
+
+  removeFuel(amount: number): void{
+    this.head.getLastModule().removeFuel(amount);
+  }
+
+  getFuelAtLastModule(): number{
+    return this.head.getLastModule().fuel;
+  }
+
+  setHeadModule(module: HeadModule): void{
+    this.head = module;
+  }
+
+  addModule(module: Module): void{
+    this.head.getLastModule().successor = module;
   }
 }
