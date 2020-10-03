@@ -28,5 +28,10 @@ export class DataService {
         await metric.save();
     }
 
+    async retrieveRocketMetrics() : Promise<RocketMetric[]>{
+        const rocketMetrics = await this.rocketMetric.find().exec();
+        return rocketMetrics;
+    }
+
 
 }
