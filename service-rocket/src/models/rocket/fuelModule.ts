@@ -1,3 +1,5 @@
-class FuelModule extends Module {
+import { Module } from './module';
+
+export class FuelModule extends Module {
 }
 

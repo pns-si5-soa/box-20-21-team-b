@@ -1,4 +1,4 @@
-abstract class Module {
+export abstract class Module {
   successor: Module;
   fuel: number;
 
