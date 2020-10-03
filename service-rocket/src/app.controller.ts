@@ -32,7 +32,7 @@ export class AppController {
         return this.appService.detachPayloadPart();
     }
 
-    @Post('/detach-payload')
+    @Post('/detach-payload/altitude')
     setPayloadAltitudeToDetach(@Body() message: AltitudePayloadDTODto): string{
         return this.appService.setPayloadAltitudeToDetach(message.altitude);
     }
