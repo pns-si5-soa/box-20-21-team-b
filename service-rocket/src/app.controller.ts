@@ -1,5 +1,6 @@
-import {Controller, Get, Logger, Post} from '@nestjs/common';
+import {Body, Controller, Get, Logger, Post} from '@nestjs/common';
 import {AppService} from './app.service';
+import {AltitudePayloadDTODto} from "./dto/AltitudePayloadDTO.dto";
 
 @Controller('rocket')
 export class AppController {
@@ -19,5 +20,20 @@ export class AppController {
         Logger.log('Launching the rocket!!');
         
         return this.appService.requestLaunch();
+    }
+
+    @Post('/detach-stage')
+    detachFuelPart(): string{
+        return this.appService.detachFuelPart();
+    }
+
+    @Post('/detach-payload')
+    detachPayloadPart(): string{
+        return this.appService.detachPayloadPart();
+    }
+
+    @Post('/detach-payload')
+    setPayloadAltitudeToDetach(@Body() message: AltitudePayloadDTODto): string{
+        return this.appService.setPayloadAltitudeToDetach(message.altitude);
     }
 }
