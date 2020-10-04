@@ -1,19 +1,19 @@
 version: 2.1
 orbs:
   node: circleci/node@3.0.0
+build:
+    working_directory: ~/service-mission
 jobs:
-  test-mission:
+  jest:
     executor:
       name: node/default
       tag: '13.14'
     steps:
       - checkout
-      - run:
-          command: cd service-mission
       - node/install-packages
       - run:
           command: npm run test
 workflows:
-  all_services_tests:
+  mission_service_tests:
     jobs:
-      - test-mission
+      - jest
