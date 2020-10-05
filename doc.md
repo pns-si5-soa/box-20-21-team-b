@@ -1,14 +1,27 @@
 # Requests to launch in this order to test the services
 
-`http://localhost:3002/poll/launch`
+Post `http://localhost/mission/poll/initiate`
 
-`http://localhost:3000/poll/mission/go`
-
-`http://localhost:3001/poll/mission/go`
-
-`http://localhost:3002/poll/go` with the following body :
+Next post are using the following body :
 `
 {
-    "ready" : true
+    "ready" : true | false
+}
+`
+
+Get `http://localhost/weather/status`
+
+Post `http://localhost/weather/poll/respond`
+
+Get `http://localhost/rocket/status`
+
+Post `http://localhost/rocket/poll/respond`
+
+Post `http://localhost/mission/poll/mission`
+
+Post `http://localhost/rocket/detach-payload/altitude` with the following body
+`
+{
+    "altitude" : 140
 }
 `

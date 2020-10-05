@@ -1,3 +1,3 @@
 export class PollDTO {
-  ready: boolean
+    ready: boolean
 }

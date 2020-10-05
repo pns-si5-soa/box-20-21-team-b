@@ -1,37 +1,39 @@
-import {Controller, Get, HttpStatus, Logger, Post, Res} from '@nestjs/common';
-import { AppService } from './app.service';
-import { Response } from 'express'
+import {Body, Controller, Get, Logger, Post} from '@nestjs/common';
+import {AppService} from './app.service';
+import {AltitudePayloadDTODto} from "./dto/AltitudePayloadDTO.dto";
 
-@Controller()
+@Controller('rocket')
 export class AppController {
-  constructor(private readonly appService: AppService) { }
 
-  @Get('/status')
-  getRocketStatus(): string {
-    return "Ready";
-  }
+    constructor(private readonly appService: AppService) {
+    }
 
-  @Post('/poll')
-  initPoll(@Res() res: Response): void {
-    Logger.log('Mission has started a launch poll, please send a response');
-    res.status(HttpStatus.OK).send('Waiting for rocket response...');
-  }
+    @Get('/status')
+    getRocketStatus(): string {
+        const status = this.appService.getStatus();
+        this.appService.sendStatusToTelemetry(status);
+        return status;
+    }
 
-  @Post('/poll/mission/go')
-  answerToMissionGo(@Res() res: Response): void{
-    this.appService.sendAnswerToMission(true).subscribe((val) => console.log(val.data))
-    res.status(HttpStatus.OK).send('Response go to mission has been sent');
-  }
+    @Post('/launch')
+    launching(): string {
+        Logger.log('Launching the rocket!!');
+        
+        return this.appService.requestLaunch();
+    }
 
-  @Post('/poll/mission/no-go')
-  answerToMissionNoGo(@Res() res: Response): void{
-    this.appService.sendAnswerToMission(false).subscribe((val) => console.log(val.data))
-    res.status(HttpStatus.OK).send('Response no go to mission has been sent');
-  }
+    @Post('/detach-stage')
+    detachFuelPart(): string{
+        return this.appService.detachFuelPart();
+    }
 
-  @Post('/request-launch')
-  launching(@Res() res: Response): void {
-    Logger.log('Launching the rocket!!');
-    res.status(HttpStatus.OK).send('Ok');
-  }
+    @Post('/detach-payload')
+    detachPayloadPart(): string{
+        return this.appService.detachPayloadPart();
+    }
+
+    @Post('/detach-payload/altitude')
+    setPayloadAltitudeToDetach(@Body() message: AltitudePayloadDTODto): string{
+        return this.appService.setPayloadAltitudeToDetach(message.altitude);
+    }
 }
