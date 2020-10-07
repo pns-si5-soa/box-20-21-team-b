@@ -13,11 +13,13 @@ Get `http://localhost/weather/status`
 
 Post `http://localhost/weather/poll/respond`
 
-Get `http://localhost/rocket/status`
+**Get `http://localhost/rocket/status**`
 
 Post `http://localhost/rocket/poll/respond`
 
 Post `http://localhost/mission/poll/mission`
+
+Post `http://localhost/rocket/launch`
 
 Post `http://localhost/rocket/detach-payload/altitude` with the following body
 `
@@ -26,4 +28,4 @@ Post `http://localhost/rocket/detach-payload/altitude` with the following body
 }
 `
 
-Get `http://localhost/telemetrysender/rocket-metrics/null/null`
+Get `http://localhost/telemetry-sender/rocket-metrics/null/null`

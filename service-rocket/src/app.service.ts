@@ -11,11 +11,18 @@ export class AppService {
     private payloadAltitudeToDetach = 200;
     private calculateAltitude: any;
     private rocket: Rocket;
+    private canLaunch = false;
 
     constructor(private readonly telemetryGateway: TelemetryGateway) {}
 
     getStatus(): string {
         return 'Rocket status : ready';
+    }
+
+    allowLaunch(): string{
+        this.canLaunch = true;
+        Logger.log('Mission commander sent a go. You can now launch the rocket')
+        return 'Rocket can now be launched';
     }
 
     requestLaunch(): string {

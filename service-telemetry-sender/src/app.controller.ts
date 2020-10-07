@@ -16,7 +16,7 @@ export class AppController {
     let beginDate = params.beginDate;
     if(beginDate === null || beginDate === 'null') {
       beginDate = new Date();
-      beginDate.setHours(beginDate.getHours() - 1); //if no hour given, get current time and remove one hour
+      beginDate.setMinutes(beginDate.getMinutes() - 3); //if no hour given, get current time and remove trhee minutes
       beginDate = beginDate.getTime();
     }else{
       beginDate = Date.parse(beginDate + '+02:00');
@@ -24,7 +24,7 @@ export class AppController {
     let endDate = params.endDate;
     if(endDate === null || endDate === 'null') {
       endDate = new Date();
-      endDate.setHours(endDate.getHours() + 1); //if no hour given, get current time and add one hour
+      endDate.setMinutes(endDate.getMinutes() + 1); //if no hour given, get current time and add one minute
       endDate = endDate.getTime();
     }else{
       endDate = Date.parse(endDate + '+02:00');

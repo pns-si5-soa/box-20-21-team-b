@@ -55,7 +55,7 @@ export class PollService {
                 this.polling = 4;
                 this.sendLaunchRequest().subscribe((val) => console.log(val.data));
                 this.polling = 0;
-                return 'Everyone is now ready! A launch request has been sent to the rocket service.';
+                return 'Everyone is now ready! Sending go to rocket chief.';
             } else {
                 return 'Poll not in progress !';
             }
@@ -74,7 +74,7 @@ export class PollService {
     }
 
     sendLaunchRequest(): Observable<any> {
-        return this.httpService.post('http://' + ROCKET_HOST + ':' + ROCKET_PORT + '/rocket/launch')
+        return this.httpService.post('http://' + ROCKET_HOST + ':' + ROCKET_PORT + '/rocket/allow-launch')
     }
 
     isReady(): boolean {
