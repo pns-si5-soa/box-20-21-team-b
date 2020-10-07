@@ -45,7 +45,9 @@ echo ""
 echo -e "${YELLOW}Chief Payload department -> I want to deliver the payload by setting the altitude to deliver payload (I can also drop it manually but I won't)${NC}"
 curl --silent http://localhost/rocket/detach-payload/altitude -H "Content-type:application/json" -X POST -d @run_bodies/payload.json
 
-echo -e "\n"
+echo -e "\n\nWaiting for the telemetry to get every data from launch (~30secs)"
+
+sleep 30
 
 echo -e "${YELLOW}Telemetry Officer -> I want to check the telemetry of the launch${NC}"
 curl --silent http://localhost/telemetry-sender/rocket-metrics/null/null -X GET

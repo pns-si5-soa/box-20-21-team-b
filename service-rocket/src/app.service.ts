@@ -59,7 +59,10 @@ export class AppService {
         Logger.log("Calculating altitude... " + this.rocket.altitude + "km");
         this.telemetryGateway.sendPosition(this.rocket.altitude);
         this.rocket.altitude += 10;
-        this.rocket.removeFuel(10);
+        if(this.rocket.numberOfStages() > 1)
+            this.rocket.removeFuel(8);
+        else
+            this.rocket.removeFuel(1); //head consomme moins
 
 
         if(this.rocket.getFuelAtLastModule() == 0){
