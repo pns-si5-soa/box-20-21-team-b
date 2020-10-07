@@ -26,10 +26,4 @@ export class DataService {
         const metric = new this.rocketMetric({ topic, description, timestamp, altitude });
         await metric.save();
     }
-
-    async retrieveRocketMetrics() : Promise<RocketMetric[]>{
-        return await this.rocketMetric.find().exec();
-    }
-
-
 }

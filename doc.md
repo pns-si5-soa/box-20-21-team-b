@@ -25,3 +25,5 @@ Post `http://localhost/rocket/detach-payload/altitude` with the following body
     "altitude" : 140
 }
 `
+
+Get `http://localhost/telemetrysender/rocket-metrics/null/null`

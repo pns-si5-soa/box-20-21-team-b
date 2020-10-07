@@ -9,13 +9,9 @@ services:
       - PORT=3000
       - MISSION_HOST=mission
       - MISSION_PORT=3002
-      - MONGO_HOST=mongo
-      - MONGO_PORT=27017
-      - MONGO_DB=nest
     volumes:
       - ./service-weather/src/:/app/src/
     depends_on:
-      - nginx
       - mongo
     expose:
       - "3000"
@@ -36,16 +32,36 @@ services:
       - ROCKET_SOCKET_PORT=30011
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
-      - MONGO_DB=nest
+      - MONGO_DB=blue_origin
     volumes:
       - ./service-telemetry/src/:/app/src/
     depends_on:
-      - nginx
       - mongo
     expose:
       - "3003"
     ports:
       - 3003:3003
+    networks:
+      - services
+      - proxy
+
+  telemetry-sender:
+    build: ./service-telemetry-sender
+    restart: unless-stopped
+    container_name: telemetrysender
+    environment:
+      - PORT=3004
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MONGO_DB=blue_origin
+    volumes:
+      - ./service-telemetry-sender/src/:/app/src/
+    depends_on:
+      - mongo
+    expose:
+      - "3004"
+    ports:
+      - 3004:3004
     networks:
       - services
       - proxy
@@ -61,11 +77,10 @@ services:
       - MISSION_PORT=3002
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
-      - MONGO_DB=nest
+      - MONGO_DB=blue_origin
     volumes:
       - ./service-rocket/src/:/app/src/
     depends_on:
-      - nginx
       - mongo
     expose:
       - "3001"
@@ -87,11 +102,10 @@ services:
       - WEATHER_PORT=3000
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
-      - MONGO_DB=nest
+      - MONGO_DB=blue_origin
     volumes:
       - ./service-mission/src/:/app/src/
     depends_on:
-      - nginx
       - mongo
     expose:
       - "3002"
@@ -107,7 +121,7 @@ services:
     environment:
       # MONGO_INITDB_ROOT_USERNAME: root
       # MONGO_INITDB_ROOT_PASSWORD: toor
-      - MONGODB_DATABASE="nest"
+      - MONGODB_DATABASE="blue_origin"
     expose:
       - 27017
     ports:
@@ -124,6 +138,13 @@ services:
       - proxy
     ports:
       - 80:80
+    depends_on:
+      - mongo
+      - rocket
+      - mission
+      - weather
+      - telemetry
+      - telemetry-sender
 
 networks:
   services:

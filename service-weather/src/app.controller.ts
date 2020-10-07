@@ -8,7 +8,7 @@ export class AppController {
 
     @Get('/status')
     getWeather(): string {
-        return this.appService.getTemperature() + ' ' + this.appService.getHumidity();
+        return this.appService.getWeatherStatus();
     }
 }
 

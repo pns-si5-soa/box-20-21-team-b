@@ -15,7 +15,7 @@ export class AppService {
     constructor(private readonly telemetryGateway: TelemetryGateway) {}
 
     getStatus(): string {
-        return 'Rocket is ready to take off !';
+        return 'Rocket status : ready';
     }
 
     requestLaunch(): string {
@@ -26,7 +26,7 @@ export class AppService {
 
         this.calculateAltitude = setInterval(this.altitudeInterval.bind(this), 1500);
         this.telemetryGateway.sendProcess("Rocket Launched");
-        return "Sayounarada roketto-san";
+        return "Launching the rocket!";
     }
 
     public detachFuelPart(): string{
@@ -49,7 +49,7 @@ export class AppService {
     }
 
     private altitudeInterval(): void {
-        Logger.log("Calculating altitude... " + this.rocket.altitude + "m");
+        Logger.log("Calculating altitude... " + this.rocket.altitude + "km");
         this.telemetryGateway.sendPosition(this.rocket.altitude);
         this.rocket.altitude += 10;
         this.rocket.removeFuel(10);
@@ -67,7 +67,7 @@ export class AppService {
     public setPayloadAltitudeToDetach(altitudeToDetach: number): string{
         this.payloadAltitudeToDetach = altitudeToDetach;
         this.telemetryGateway.sendProcess('Altitude to detach payload : ' + this.payloadAltitudeToDetach);
-        return 'Ok';
+        return 'Altitude to detach payload is now ' + this.payloadAltitudeToDetach + 'km';
     }
 
     public sendStatusToTelemetry(status: string): void {
