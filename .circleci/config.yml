@@ -2,15 +2,19 @@ version: 2.1
 orbs:
   node: circleci/node@3.0.0
 jobs:
-  jest:
+  jest-node:
     docker:
         - image : cimg/ruby:2.7.1-node
+    parameters:
+      folder:
+        type: string
+        default: '.'
     steps:
       - checkout
       - run:
           name: "Npm install and test"
           command: |
-            cd ./service-mission
+            cd << parameters.folder >>
             ls -l
             npm install
             npm run test
@@ -19,4 +23,9 @@ workflows:
   version : 2
   mission_service_tests:
     jobs:
-      - jest
+      - jest-node:
+            folder: './service-mission'
+  rocket_service_tests:
+    jobs:
+      - jest-node:
+            folder: './service-rocket'
