@@ -153,7 +153,7 @@ func generateMetric(done <-chan bool) {
 }
 
 func main() {
-	// If there is a seed set in env
+	// If there is a seed variable set in env
 	if os.Getenv("SEED") != "" {
 		seed, err := strconv.ParseInt(os.Getenv("SEED"), 10, 64)
 		if err != nil {
@@ -162,6 +162,12 @@ func main() {
 		rand.Seed(seed)
 	} else {
 		rand.Seed(time.Now().UnixNano())
+	}
+
+	// If there is a port variable set in env
+	var port string
+	if port = os.Getenv("PORT"); port == "" {
+		port = "3003"
 	}
 
 	// TODO Add backup / Restore for cache
@@ -190,8 +196,8 @@ func main() {
 	router.HandleFunc("/module-metrics/metrics", allMetrics).Methods("GET")
 	router.HandleFunc("/module-metrics/metrics/{timestamp}", metrics).Methods("GET")
 
-	fmt.Println("Server is running on port " + os.Getenv("PORT"))
+	fmt.Println("Server is running on port " + port)
 
 	// Start the server
-	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), router))
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }
