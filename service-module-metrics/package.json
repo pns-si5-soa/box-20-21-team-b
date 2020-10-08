@@ -27,7 +27,7 @@
     "@nestjs/platform-express": "^7.0.0",
     "@nestjs/platform-fastify": "^7.4.4",
     "@nestjs/websockets": "^7.4.4",
-    "mongoose": "^5.10.6",
+    "mongoose": "^5.10.8",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^6.5.4",
