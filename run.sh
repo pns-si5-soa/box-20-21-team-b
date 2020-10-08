@@ -14,7 +14,7 @@ curl --silent http://localhost/weather/status -X GET
 echo -e "\n"
 
 echo -e "${YELLOW}Weather Officer -> I have to respond to Mission Commander${NC}"
-curl --silent http://localhost/weather/poll/respond -H "Content-type:application/json" -X POST -d @run_bodies/poll_ready.json
+curl --silent http://localhost/weather/poll/respond -H "Content-type:application/json" -X POST -d "{\"ready\": true}"
 
 echo -e "\n"
 
@@ -24,12 +24,12 @@ curl --silent http://localhost/rocket/status -X GET
 echo -e "\n"
 
 echo -e "${YELLOW}Chief Rocket Department -> I have to respond to Mission Commander${NC}"
-curl --silent http://localhost/rocket/poll/respond -H "Content-type:application/json" -X POST -d @run_bodies/poll_ready.json
+curl --silent http://localhost/rocket/poll/respond -H "Content-type:application/json" -X POST -d "{\"ready\": true}"
 
 echo -e "\n"
 
 echo -e "${YELLOW}Mission Commander -> I have to send the go to the chief rocket department${NC}"
-curl --silent http://localhost/mission/poll/mission -H "Content-type:application/json" -X POST -d @run_bodies/poll_ready.json
+curl --silent http://localhost/mission/poll/mission -H "Content-type:application/json" -X POST -d "{\"ready\": true}"
 
 echo -e "\n"
 
@@ -43,7 +43,7 @@ echo -e "${YELLOW}Chief Rocket department -> I want to stage the rocket mid-flig
 echo ""
 
 echo -e "${YELLOW}Chief Payload department -> I want to deliver the payload by setting the altitude to deliver payload (I can also drop it manually but I won't)${NC}"
-curl --silent http://localhost/rocket/detach-payload/altitude -H "Content-type:application/json" -X POST -d @run_bodies/payload.json
+curl --silent http://localhost/rocket/detach-payload/altitude -H "Content-type:application/json" -X POST -d "{\"altitude\": 140}"
 
 echo -e "\n\nWaiting for the telemetry to get every data from launch (~30secs)"
 
