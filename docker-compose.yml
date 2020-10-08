@@ -29,14 +29,9 @@ services:
     container_name: module-metrics
     environment:
       - PORT=3003
-      - ROCKET_HOST=rocket
-      - ROCKET_PORT=3001
-      - ROCKET_SOCKET_PORT=30011
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=blue_origin
-    volumes:
-      - ./service-module-metrics/src/:/app/src/
     depends_on:
       - mongo
     expose:
