@@ -1,16 +1,15 @@
-package actions
+package main
 
 import (
+	actions "./actions"
 	"context"
 	"google.golang.org/grpc"
-	"io"
 	"log"
-	"math/rand"
 	"net"
-	"net/http"
-	"os"
-	"strconv"
-	"time"
+)
+
+const (
+	port = ":3004"
 )
 
 // A module representation
@@ -23,64 +22,25 @@ type JSONError struct {
 }
 
 type moduleActionsServer struct {
-	UnimplementedModuleActionsServer
-}
-
-func (s *moduleActionsServer) Boom(ctx context.Context, empty *Empty) (*BoomReply, error) {
-	boomMessage := "Module went Boom !"
-	log.Println(boomMessage)
-	return &BoomReply{Content: &boomMessage}, nil
+	actions.UnimplementedModuleActionsServer
 }
 
 // Make the module go BOOM
-func boom(w http.ResponseWriter, req *http.Request) {
-	_, err := io.WriteString(w, "Module went BOOM")
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-// Reboot
-func reboot(w http.ResponseWriter, req *http.Request) {
-	_, err := io.WriteString(w, "Rebooting coz IQ reached a null value")
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-
-// Set the module's speed to a fixed value
-func setThrustersSpeed(w http.ResponseWriter, req *http.Request) {
-	_, err := io.WriteString(w, "Module went BOOM")
-	if err != nil {
-		log.Fatal(err)
-	}
+func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*actions.BoomReply, error) {
+	boomMessage := "Module went Boom !"
+	log.Println(boomMessage)
+	return &actions.BoomReply{Content: &boomMessage}, nil
 }
 
 func main() {
-	// If there is a seed variable set in env
-	if os.Getenv("SEED") != "" {
-		seed, err := strconv.ParseInt(os.Getenv("SEED"), 10, 64)
-		if err != nil {
-			log.Fatal(err)
-		}
-		rand.Seed(seed)
-	} else {
-		rand.Seed(time.Now().UnixNano())
-	}
-
-	// If there is a port variable set in env
-	var port string
-	if port = os.Getenv("PORT"); port == "" {
-		port = "3004"
-	}
-
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
+	} else {
+		log.Println("Server up on localhost" + port)
 	}
 	s := grpc.NewServer()
-	RegisterModuleActionsServer(s, &moduleActionsServer{})
+	actions.RegisterModuleActionsServer(s, &moduleActionsServer{})
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
