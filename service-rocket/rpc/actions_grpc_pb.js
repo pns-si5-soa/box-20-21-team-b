@@ -48,6 +48,28 @@ function deserialize_actions_Empty(buffer_arg) {
   return rpc_actions_pb.Empty.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_actions_OkReply(arg) {
+  if (!(arg instanceof rpc_actions_pb.OkReply)) {
+    throw new Error('Expected argument of type actions.OkReply');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_actions_OkReply(buffer_arg) {
+  return rpc_actions_pb.OkReply.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_actions_RunningReply(arg) {
+  if (!(arg instanceof rpc_actions_pb.RunningReply)) {
+    throw new Error('Expected argument of type actions.RunningReply');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_actions_RunningReply(buffer_arg) {
+  return rpc_actions_pb.RunningReply.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_actions_SetThrustersSpeedReply(arg) {
   if (!(arg instanceof rpc_actions_pb.SetThrustersSpeedReply)) {
     throw new Error('Expected argument of type actions.SetThrustersSpeedReply');
@@ -93,6 +115,28 @@ var ModuleActionsService = exports.ModuleActionsService = {
     requestDeserialize: deserialize_actions_Double,
     responseSerialize: serialize_actions_SetThrustersSpeedReply,
     responseDeserialize: deserialize_actions_SetThrustersSpeedReply,
+  },
+  ok: {
+    path: '/actions.ModuleActions/Ok',
+    requestStream: false,
+    responseStream: false,
+    requestType: rpc_actions_pb.Empty,
+    responseType: rpc_actions_pb.OkReply,
+    requestSerialize: serialize_actions_Empty,
+    requestDeserialize: deserialize_actions_Empty,
+    responseSerialize: serialize_actions_OkReply,
+    responseDeserialize: deserialize_actions_OkReply,
+  },
+  toggleRunning: {
+    path: '/actions.ModuleActions/ToggleRunning',
+    requestStream: false,
+    responseStream: false,
+    requestType: rpc_actions_pb.Empty,
+    responseType: rpc_actions_pb.RunningReply,
+    requestSerialize: serialize_actions_Empty,
+    requestDeserialize: deserialize_actions_Empty,
+    responseSerialize: serialize_actions_RunningReply,
+    responseDeserialize: deserialize_actions_RunningReply,
   },
 };
 

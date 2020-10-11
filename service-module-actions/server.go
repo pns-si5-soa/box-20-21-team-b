@@ -101,19 +101,18 @@ func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*
 	// Exit system to simulate boom
 	defer os.Exit(0)
 
-	return &actions.BoomReply{Content: &boomMessage}, nil
+	return &actions.BoomReply{Content: boomMessage}, nil
 }
 
 // Detach the module from its predecessor
 func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) (*actions.Boolean, error) {
-	res := true
 	log.Println("Detaching module:")
 
 	tempMetric, _ := readJSONMetric()
 	tempMetric.Attached = false
 	writeJSONMetric(tempMetric)
 
-	return &actions.Boolean{Val: &res}, nil
+	return &actions.Boolean{Val: true}, nil
 }
 
 // Set thrusters so that the rocket goes to a certain speed
@@ -125,7 +124,32 @@ func (s *moduleActionsServer) SetThrustersSpeed(ctx context.Context, value *acti
 	tempMetric.Speed = int(value.GetVal())
 	writeJSONMetric(tempMetric)
 
-	return &actions.SetThrustersSpeedReply{Content: &res}, nil
+	return &actions.SetThrustersSpeedReply{Content: res}, nil
+}
+
+// Detach the module from its predecessor
+func (s *moduleActionsServer) Ok(ctx context.Context, empty *actions.Empty) (*actions.OkReply, error) {
+	log.Println("Ok")
+	return &actions.OkReply{Content: "Ok"}, nil
+}
+
+// Start or stop the engine
+func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.Empty) (*actions.RunningReply, error) {
+	tempMetric, _ := readJSONMetric()
+	var message string
+
+	// If the module is currently on
+	if tempMetric.Running {
+		message = "Stop the engine"
+	} else {
+		message = "Start the engine"
+	}
+
+	log.Println(message)
+	tempMetric.Attached = !tempMetric.Attached
+	writeJSONMetric(tempMetric)
+
+	return &actions.RunningReply{Content: message}, nil
 }
 
 func main() {
