@@ -5,9 +5,10 @@ import {MONGO_DB, MONGO_HOST, MONGO_PORT} from "./env_variables";
 import {MongooseModule} from "@nestjs/mongoose";
 import {RocketMetricSchema} from "./model/rocketmetric.model";
 import { DataModule } from './data/data.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [HttpModule, MongooseModule.forRoot('mongodb://' + MONGO_HOST + ':' + MONGO_PORT + '/' + MONGO_DB), MongooseModule.forFeature([{name: 'RocketMetric', schema: RocketMetricSchema}]), DataModule],
+  imports: [HttpModule, MongooseModule.forRoot('mongodb://' + MONGO_HOST + ':' + MONGO_PORT + '/' + MONGO_DB), MongooseModule.forFeature([{name: 'RocketMetric', schema: RocketMetricSchema}]), DataModule, ScheduleModule.forRoot()],
   controllers: [AppController],
   providers: [AppService],
 })
