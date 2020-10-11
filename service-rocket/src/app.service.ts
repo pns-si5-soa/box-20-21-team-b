@@ -7,6 +7,7 @@ import {Payload} from "./models/payload";
 import {FuelModule} from "./models/rocket/fuelModule";
 import {Double, Empty} from "../rpc/actions_pb";
 import {client} from "./actions.stub";
+import { Response } from 'express'
 
 @Injectable()
 export class AppService {
@@ -86,38 +87,57 @@ export class AppService {
         this.telemetryGateway.sendProcess(status);
     }
 
-    public boom(): string {
-        let res = '';
+    public boom(res: Response): void {
         client.boom(new Empty(), function(err, response) {
             if(response !== undefined)
-                res = response.getContent();
+                res.status(200).send(response.getContent());
             else
-                res = 'Error: gRPC communication fail';
+                res.status(500).send('Error: gRPC communication fail');
         });
-        return res;
     }
 
-    detachModule() {
-        let res = '';
+    detachModule(res: Response) {
         client.detach(new Empty(), function(err, response) {
-            if(response !== undefined)
-                res = response.getVal() ? 'Successfully detached module' : 'Error: could not detach module';
-            else
-                res = 'Error: gRPC communication fail';
+            if(response !== undefined){
+                if(response.getVal() === true){
+                    res.status(200).send('Successfully detached module');
+                } else{
+                    res.status(403).send('Error: could not detach module');
+                }
+            }
+            else{
+                res.status(500).send('Error: gRPC communication fail');
+            }
         });
         return res;
     }
 
-    setThrustersSpeed(value: number) {
-        let res = '';
+    setThrustersSpeed(value: number, res: Response) {
         const speed = new Double();
         speed.setVal(value);
         client.setThrustersSpeed(speed, function(err, response) {
             if(response !== undefined)
-                res = response.getContent();
+                res.status(200).send(response.getContent());
             else
-                res = 'Error: gRPC communication fail';
+                res.status(500).send('Error: gRPC communication fail');
         });
-        return res;
+    }
+
+    okActions(res: Response) {
+        client.ok(new Empty(), function(err, response) {
+            if(response !== undefined)
+                res.status(200).send(response.getContent());
+            else
+                res.status(500).send('Error: gRPC communication fail');
+        });
+    }
+
+    toggleRunning(res: Response) {
+        client.toggleRunning(new Empty(), function(err, response) {
+            if(response !== undefined)
+                res.status(200).send(response.getContent());
+            else
+                res.status(500).send('Error: gRPC communication fail');
+        });
     }
 }

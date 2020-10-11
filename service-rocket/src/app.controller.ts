@@ -1,4 +1,5 @@
-import {Body, Controller, Get, Post} from '@nestjs/common';
+import {Body, Controller, Get, Post, Res} from '@nestjs/common';
+import { Response } from 'express';
 import {AppService} from './app.service';
 import {AltitudePayloadDTODto} from "./dto/AltitudePayloadDTO.dto";
 import {ThrustersSpeedPayloadDTODto} from "./dto/ThrustersSpeedPayloadDTO.dto";
@@ -42,17 +43,27 @@ export class AppController {
     }
 
     @Post('/actions/boom')
-    boom(): string{
-        return this.appService.boom();
+    boom(@Res() res: Response): void{
+        this.appService.boom(res);
     }
 
     @Post('/actions/detach-module')
-    detachModule(): string{
-        return this.appService.detachModule();
+    detachModule(@Res() res: Response): void{
+        this.appService.detachModule(res);
     }
 
     @Post('/actions/set-thrusters-speed')
-    setThrustersSpeed(@Body() message: ThrustersSpeedPayloadDTODto): string{
-        return this.appService.setThrustersSpeed(message.value)
+    setThrustersSpeed(@Body() message: ThrustersSpeedPayloadDTODto, @Res() res: Response): void{
+        this.appService.setThrustersSpeed(message.value, res);
+    }
+
+    @Post('/actions/ok')
+    ok(@Res() res: Response): void{
+        this.appService.okActions(res);
+    }
+
+    @Post('/actions/toggle-running')
+    toggleRunning(@Res() res: Response): void{
+        this.appService.toggleRunning(res);
     }
 }

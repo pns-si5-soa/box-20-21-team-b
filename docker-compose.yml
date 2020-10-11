@@ -152,7 +152,7 @@ services:
 #      - MONGO_PORT=27017
 #      - MONGO_DB=blue_origin
     volumes:
-    - ../analog-mock.txt:/etc/analog-mock.txt # FOR ANALOGIQUE MODULE STATUS ONLY
+    - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
     depends_on:
       - mongo
     expose:
@@ -173,7 +173,7 @@ services:
 #      - MONGO_PORT=27017
 #      - MONGO_DB=blue_origin
     volumes:
-      - ../analog-mock.txt:/etc/analog-mock.txt # FOR ANALOGIQUE MODULE STATUS ONLY
+      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
     depends_on:
       - mongo
     expose:

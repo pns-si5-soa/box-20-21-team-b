@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"io"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -29,6 +31,7 @@ type Metric struct {
 	Latitude  float32   `json:"latitude"`
 	Longitude float32   `json:"longitude"`
 	Timestamp time.Time `json:"timestamp"`
+	Boom      bool      `json:"boom"`
 }
 
 // Custom error to return in case of a JSON parsing error
@@ -42,6 +45,43 @@ var CurrentModule Module
 // Max metrics entry saved in cache, currently 24h with 1 log per second
 const MaxCache int = 86400
 
+// Path of the mocked analog system
+const AnalogFilePath = "/etc/analog-mock.json"
+//const AnalogFilePath = "../analog-mock.json"
+
+var Analog, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
+var mu sync.Mutex // Its mutex for read / write
+
+// Read the analog file & unmarchal metric (or return the error)
+func readJSONMetric() (Metric, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	Analog.Sync()
+
+	metric := Metric{}
+
+	byteValue, _ := ioutil.ReadFile(AnalogFilePath)
+	parseErr := json.Unmarshal(byteValue, &metric)
+	if parseErr != nil {
+		log.Println("Error Unmarshal : ")
+		log.Println(parseErr)
+		//log.Fatal(parseErr)
+	}
+
+	// boom detected
+	if metric.Boom && len(CurrentModule.LastMetrics) > 1 {
+		log.Println("Boom initiated")
+		mu.Lock()
+		defer mu.Unlock()
+		encoder := json.NewEncoder(Analog)
+		encoder.Encode("{}")
+		os.Exit(0)
+	}
+
+	return metric, parseErr
+}
+
 // Add a metric to the current module's cache
 func appendMetric(metric Metric) {
 	// If the cache is full (24 hours of logs with 1 log / second), pop the last entry (FIFO)
@@ -52,12 +92,25 @@ func appendMetric(metric Metric) {
 	// Add the current metric at the first place (FIFO)
 	CurrentModule.LastMetrics = append([]Metric{metric}, CurrentModule.LastMetrics...)
 
-	// TODO add write in analog
+	mu.Lock()
+	defer mu.Unlock()
+	// Write metrics in mocked analog (https://medium.com/eaciit-engineering/better-way-to-read-and-write-json-file-in-golang-9d575b7254f2)
+	Analog.Sync()
+	Analog.Truncate(0)
+	Analog.Seek(0, 0)
+	encoder := json.NewEncoder(Analog)
+	err := encoder.Encode(metric)
+	if err != nil {
+		log.Println("Write JSON error")
+		log.Fatal(err)
+	}
 }
 
 // Return all the metrics newer than the timestamp
 func getMetricsFromTimestamp(timestamp time.Time) []Metric {
 	metricsFrom := make([]Metric, 0, MaxCache)
+	delta, _ := time.ParseDuration("-1s")
+	timestamp = timestamp.Add(delta)
 
 	for _, metric := range CurrentModule.LastMetrics {
 		if metric.Timestamp.After(timestamp) {
@@ -74,6 +127,7 @@ func getMetricsFromTimestamp(timestamp time.Time) []Metric {
 func ok(w http.ResponseWriter, req *http.Request) {
 	_, err := io.WriteString(w, "ok")
 	if err != nil {
+		log.Println("Write OK error")
 		log.Fatal(err)
 	}
 }
@@ -137,8 +191,8 @@ func generateMetric(done <-chan bool) {
 				return
 			case <-ticker.C:
 				// Generation from last metric
-				// TODO get last from analog
-				last := CurrentModule.LastMetrics[len(CurrentModule.LastMetrics)-1]
+				//last := CurrentModule.LastMetrics[len(CurrentModule.LastMetrics)-1]
+				last, _ := readJSONMetric()
 
 				// We decrease fuel only if the module is running
 				var fuelVariation float32
@@ -146,7 +200,7 @@ func generateMetric(done <-chan bool) {
 					fuelVariation = -0.1 + rand.Float32()*(-0.5 - -0.1)
 				}
 
-				appendMetric(Metric{
+				newMetric := Metric{
 					// min + rand.Float64() * (max - min)
 					// rand.Intn(max - min) + min
 					Altitude:  last.Altitude + rand.Intn(100-5) + 5,
@@ -158,7 +212,8 @@ func generateMetric(done <-chan bool) {
 					Latitude:  last.Latitude + -0.5 + rand.Float32()*(-0.5 - -0.5),
 					Longitude: last.Longitude + -0.5 + rand.Float32()*(-0.5 - -0.5),
 					Timestamp: time.Now(),
-				})
+				}
+				appendMetric(newMetric)
 			}
 		}
 	}()
@@ -169,6 +224,7 @@ func main() {
 	if os.Getenv("SEED") != "" {
 		seed, err := strconv.ParseInt(os.Getenv("SEED"), 10, 64)
 		if err != nil {
+			log.Println("Seed error")
 			log.Fatal(err)
 		}
 		rand.Seed(seed)
@@ -182,20 +238,29 @@ func main() {
 		port = "3003"
 	}
 
-	// TODO Add backup / Restore for cache
+	defer Analog.Close()
 
 	CurrentModule = Module{LastMetrics: make([]Metric, 0, MaxCache)}
-	appendMetric(Metric{
-		Altitude:  100,
-		Fuel:      20.0,
-		Pressure:  1,
-		Attached:  true,
-		Running:   true,
-		Speed:     4000,
-		Latitude:  25.333,
-		Longitude: 52.666,
-		Timestamp: time.Now(),
-	})
+
+	lastMetricInAnalog, unmarshalError := readJSONMetric()
+	// If there is a previous existing metric
+	if unmarshalError == nil {
+		fmt.Println("Retrieve module metric...")
+		CurrentModule.LastMetrics = append(CurrentModule.LastMetrics, lastMetricInAnalog)
+	} else { // Else create a new one
+		fmt.Println("Generate 1st module metric...")
+		appendMetric(Metric{
+			Altitude:  100,
+			Fuel:      20.0,
+			Pressure:  1,
+			Attached:  true,
+			Running:   true,
+			Speed:     4000,
+			Latitude:  25.333,
+			Longitude: 52.666,
+			Timestamp: time.Now(),
+		})
+	}
 
 	// CRON to generate random metric every second
 	gene := make(chan bool, 1)
