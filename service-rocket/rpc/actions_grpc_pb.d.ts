@@ -11,6 +11,8 @@ interface IModuleActionsService extends grpc.ServiceDefinition<grpc.UntypedServi
     boom: IModuleActionsService_IBoom;
     detach: IModuleActionsService_IDetach;
     setThrustersSpeed: IModuleActionsService_ISetThrustersSpeed;
+    ok: IModuleActionsService_IOk;
+    toggleRunning: IModuleActionsService_IToggleRunning;
 }
 
 interface IModuleActionsService_IBoom extends grpc.MethodDefinition<actions_pb.Empty, actions_pb.BoomReply> {
@@ -40,6 +42,24 @@ interface IModuleActionsService_ISetThrustersSpeed extends grpc.MethodDefinition
     responseSerialize: grpc.serialize<actions_pb.SetThrustersSpeedReply>;
     responseDeserialize: grpc.deserialize<actions_pb.SetThrustersSpeedReply>;
 }
+interface IModuleActionsService_IOk extends grpc.MethodDefinition<actions_pb.Empty, actions_pb.OkReply> {
+    path: "/actions.ModuleActions/Ok";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<actions_pb.Empty>;
+    requestDeserialize: grpc.deserialize<actions_pb.Empty>;
+    responseSerialize: grpc.serialize<actions_pb.OkReply>;
+    responseDeserialize: grpc.deserialize<actions_pb.OkReply>;
+}
+interface IModuleActionsService_IToggleRunning extends grpc.MethodDefinition<actions_pb.Empty, actions_pb.RunningReply> {
+    path: "/actions.ModuleActions/ToggleRunning";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<actions_pb.Empty>;
+    requestDeserialize: grpc.deserialize<actions_pb.Empty>;
+    responseSerialize: grpc.serialize<actions_pb.RunningReply>;
+    responseDeserialize: grpc.deserialize<actions_pb.RunningReply>;
+}
 
 export const ModuleActionsService: IModuleActionsService;
 
@@ -47,6 +67,8 @@ export interface IModuleActionsServer {
     boom: grpc.handleUnaryCall<actions_pb.Empty, actions_pb.BoomReply>;
     detach: grpc.handleUnaryCall<actions_pb.Empty, actions_pb.Boolean>;
     setThrustersSpeed: grpc.handleUnaryCall<actions_pb.Double, actions_pb.SetThrustersSpeedReply>;
+    ok: grpc.handleUnaryCall<actions_pb.Empty, actions_pb.OkReply>;
+    toggleRunning: grpc.handleUnaryCall<actions_pb.Empty, actions_pb.RunningReply>;
 }
 
 export interface IModuleActionsClient {
@@ -59,6 +81,12 @@ export interface IModuleActionsClient {
     setThrustersSpeed(request: actions_pb.Double, callback: (error: grpc.ServiceError | null, response: actions_pb.SetThrustersSpeedReply) => void): grpc.ClientUnaryCall;
     setThrustersSpeed(request: actions_pb.Double, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: actions_pb.SetThrustersSpeedReply) => void): grpc.ClientUnaryCall;
     setThrustersSpeed(request: actions_pb.Double, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: actions_pb.SetThrustersSpeedReply) => void): grpc.ClientUnaryCall;
+    ok(request: actions_pb.Empty, callback: (error: grpc.ServiceError | null, response: actions_pb.OkReply) => void): grpc.ClientUnaryCall;
+    ok(request: actions_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: actions_pb.OkReply) => void): grpc.ClientUnaryCall;
+    ok(request: actions_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: actions_pb.OkReply) => void): grpc.ClientUnaryCall;
+    toggleRunning(request: actions_pb.Empty, callback: (error: grpc.ServiceError | null, response: actions_pb.RunningReply) => void): grpc.ClientUnaryCall;
+    toggleRunning(request: actions_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: actions_pb.RunningReply) => void): grpc.ClientUnaryCall;
+    toggleRunning(request: actions_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: actions_pb.RunningReply) => void): grpc.ClientUnaryCall;
 }
 
 export class ModuleActionsClient extends grpc.Client implements IModuleActionsClient {
@@ -72,4 +100,10 @@ export class ModuleActionsClient extends grpc.Client implements IModuleActionsCl
     public setThrustersSpeed(request: actions_pb.Double, callback: (error: grpc.ServiceError | null, response: actions_pb.SetThrustersSpeedReply) => void): grpc.ClientUnaryCall;
     public setThrustersSpeed(request: actions_pb.Double, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: actions_pb.SetThrustersSpeedReply) => void): grpc.ClientUnaryCall;
     public setThrustersSpeed(request: actions_pb.Double, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: actions_pb.SetThrustersSpeedReply) => void): grpc.ClientUnaryCall;
+    public ok(request: actions_pb.Empty, callback: (error: grpc.ServiceError | null, response: actions_pb.OkReply) => void): grpc.ClientUnaryCall;
+    public ok(request: actions_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: actions_pb.OkReply) => void): grpc.ClientUnaryCall;
+    public ok(request: actions_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: actions_pb.OkReply) => void): grpc.ClientUnaryCall;
+    public toggleRunning(request: actions_pb.Empty, callback: (error: grpc.ServiceError | null, response: actions_pb.RunningReply) => void): grpc.ClientUnaryCall;
+    public toggleRunning(request: actions_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: actions_pb.RunningReply) => void): grpc.ClientUnaryCall;
+    public toggleRunning(request: actions_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: actions_pb.RunningReply) => void): grpc.ClientUnaryCall;
 }

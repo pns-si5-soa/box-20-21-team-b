@@ -24,10 +24,7 @@ export namespace Empty {
 }
 
 export class Boolean extends jspb.Message { 
-
-    hasVal(): boolean;
-    clearVal(): void;
-    getVal(): boolean | undefined;
+    getVal(): boolean;
     setVal(value: boolean): Boolean;
 
 
@@ -43,15 +40,12 @@ export class Boolean extends jspb.Message {
 
 export namespace Boolean {
     export type AsObject = {
-        val?: boolean,
+        val: boolean,
     }
 }
 
 export class BoomReply extends jspb.Message { 
-
-    hasContent(): boolean;
-    clearContent(): void;
-    getContent(): string | undefined;
+    getContent(): string;
     setContent(value: string): BoomReply;
 
 
@@ -67,15 +61,12 @@ export class BoomReply extends jspb.Message {
 
 export namespace BoomReply {
     export type AsObject = {
-        content?: string,
+        content: string,
     }
 }
 
 export class SetThrustersSpeedReply extends jspb.Message { 
-
-    hasContent(): boolean;
-    clearContent(): void;
-    getContent(): string | undefined;
+    getContent(): string;
     setContent(value: string): SetThrustersSpeedReply;
 
 
@@ -91,15 +82,12 @@ export class SetThrustersSpeedReply extends jspb.Message {
 
 export namespace SetThrustersSpeedReply {
     export type AsObject = {
-        content?: string,
+        content: string,
     }
 }
 
 export class Double extends jspb.Message { 
-
-    hasVal(): boolean;
-    clearVal(): void;
-    getVal(): number | undefined;
+    getVal(): number;
     setVal(value: number): Double;
 
 
@@ -115,6 +103,48 @@ export class Double extends jspb.Message {
 
 export namespace Double {
     export type AsObject = {
-        val?: number,
+        val: number,
+    }
+}
+
+export class OkReply extends jspb.Message { 
+    getContent(): string;
+    setContent(value: string): OkReply;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): OkReply.AsObject;
+    static toObject(includeInstance: boolean, msg: OkReply): OkReply.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: OkReply, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): OkReply;
+    static deserializeBinaryFromReader(message: OkReply, reader: jspb.BinaryReader): OkReply;
+}
+
+export namespace OkReply {
+    export type AsObject = {
+        content: string,
+    }
+}
+
+export class RunningReply extends jspb.Message { 
+    getContent(): string;
+    setContent(value: string): RunningReply;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): RunningReply.AsObject;
+    static toObject(includeInstance: boolean, msg: RunningReply): RunningReply.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: RunningReply, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): RunningReply;
+    static deserializeBinaryFromReader(message: RunningReply, reader: jspb.BinaryReader): RunningReply;
+}
+
+export namespace RunningReply {
+    export type AsObject = {
+        content: string,
     }
 }

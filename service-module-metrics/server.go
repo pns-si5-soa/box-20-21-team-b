@@ -13,10 +13,6 @@ import (
 	"time"
 )
 
-const (
-	rpcaddress  = "localhost:3004"
-)
-
 // A module representation
 type Module struct {
 	LastMetrics []Metric // Cache of last 24 hours of log (1 per second)
@@ -28,6 +24,7 @@ type Metric struct {
 	Fuel      float32   `json:"fuel"`
 	Pressure  float32   `json:"pressure"`
 	Attached  bool      `json:"attached"`
+	Running   bool      `json:"running"`
 	Speed     int       `json:"speed"`
 	Latitude  float32   `json:"latitude"`
 	Longitude float32   `json:"longitude"`
@@ -54,6 +51,8 @@ func appendMetric(metric Metric) {
 
 	// Add the current metric at the first place (FIFO)
 	CurrentModule.LastMetrics = append([]Metric{metric}, CurrentModule.LastMetrics...)
+
+	// TODO add write in analog
 }
 
 // Return all the metrics newer than the timestamp
@@ -138,14 +137,23 @@ func generateMetric(done <-chan bool) {
 				return
 			case <-ticker.C:
 				// Generation from last metric
+				// TODO get last from analog
 				last := CurrentModule.LastMetrics[len(CurrentModule.LastMetrics)-1]
+
+				// We decrease fuel only if the module is running
+				var fuelVariation float32
+				if last.Running {
+					fuelVariation = -0.1 + rand.Float32()*(-0.5 - -0.1)
+				}
+
 				appendMetric(Metric{
 					// min + rand.Float64() * (max - min)
 					// rand.Intn(max - min) + min
 					Altitude:  last.Altitude + rand.Intn(100-5) + 5,
-					Fuel:      last.Fuel + -0.1 + rand.Float32()*(-0.5 - -0.1),
+					Fuel:      last.Fuel + fuelVariation,
 					Pressure:  last.Pressure + 0 + rand.Float32()*((7.2-last.Pressure)-0),
-					Attached:  true,
+					Attached:  last.Attached,
+					Running:   last.Running,
 					Speed:     last.Speed + rand.Intn(150 - -150) + -150,
 					Latitude:  last.Latitude + -0.5 + rand.Float32()*(-0.5 - -0.5),
 					Longitude: last.Longitude + -0.5 + rand.Float32()*(-0.5 - -0.5),
@@ -177,11 +185,12 @@ func main() {
 	// TODO Add backup / Restore for cache
 
 	CurrentModule = Module{LastMetrics: make([]Metric, 0, MaxCache)}
-	CurrentModule.LastMetrics = append(CurrentModule.LastMetrics, Metric{
+	appendMetric(Metric{
 		Altitude:  100,
 		Fuel:      20.0,
 		Pressure:  1,
 		Attached:  true,
+		Running:   true,
 		Speed:     4000,
 		Latitude:  25.333,
 		Longitude: 52.666,

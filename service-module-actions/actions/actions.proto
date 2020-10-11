@@ -1,3 +1,5 @@
+syntax = "proto3";
+
 package actions;
 
 service ModuleActions {
@@ -6,6 +8,10 @@ service ModuleActions {
   rpc Detach(Empty) returns(Boolean) {}
 
   rpc SetThrustersSpeed(Double) returns(SetThrustersSpeedReply) {}
+
+  rpc Ok(Empty) returns(OkReply) {}
+
+  rpc ToggleRunning(Empty) returns(RunningReply) {}
 }
 
 message Empty {
@@ -13,17 +19,25 @@ message Empty {
 }
 
 message Boolean {
-  required bool val = 1;
+  bool val = 1;
 }
 
 message BoomReply {
-  required string content = 1;
+  string content = 1;
 }
 
 message SetThrustersSpeedReply {
-  required string content = 1;
+  string content = 1;
 }
 
 message Double {
-  required double val = 1;
+  double val = 1;
+}
+
+message OkReply {
+  string content = 1;
+}
+
+message RunningReply {
+  string content = 1;
 }

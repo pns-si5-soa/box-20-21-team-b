@@ -20,6 +20,8 @@ type ModuleActionsClient interface {
 	Boom(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*BoomReply, error)
 	Detach(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Boolean, error)
 	SetThrustersSpeed(ctx context.Context, in *Double, opts ...grpc.CallOption) (*SetThrustersSpeedReply, error)
+	Ok(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*OkReply, error)
+	ToggleRunning(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*RunningReply, error)
 }
 
 type moduleActionsClient struct {
@@ -57,6 +59,24 @@ func (c *moduleActionsClient) SetThrustersSpeed(ctx context.Context, in *Double,
 	return out, nil
 }
 
+func (c *moduleActionsClient) Ok(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*OkReply, error) {
+	out := new(OkReply)
+	err := c.cc.Invoke(ctx, "/actions.ModuleActions/Ok", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *moduleActionsClient) ToggleRunning(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*RunningReply, error) {
+	out := new(RunningReply)
+	err := c.cc.Invoke(ctx, "/actions.ModuleActions/ToggleRunning", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ModuleActionsServer is the server API for ModuleActions service.
 // All implementations must embed UnimplementedModuleActionsServer
 // for forward compatibility
@@ -64,6 +84,8 @@ type ModuleActionsServer interface {
 	Boom(context.Context, *Empty) (*BoomReply, error)
 	Detach(context.Context, *Empty) (*Boolean, error)
 	SetThrustersSpeed(context.Context, *Double) (*SetThrustersSpeedReply, error)
+	Ok(context.Context, *Empty) (*OkReply, error)
+	ToggleRunning(context.Context, *Empty) (*RunningReply, error)
 	mustEmbedUnimplementedModuleActionsServer()
 }
 
@@ -79,6 +101,12 @@ func (UnimplementedModuleActionsServer) Detach(context.Context, *Empty) (*Boolea
 }
 func (UnimplementedModuleActionsServer) SetThrustersSpeed(context.Context, *Double) (*SetThrustersSpeedReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetThrustersSpeed not implemented")
+}
+func (UnimplementedModuleActionsServer) Ok(context.Context, *Empty) (*OkReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Ok not implemented")
+}
+func (UnimplementedModuleActionsServer) ToggleRunning(context.Context, *Empty) (*RunningReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ToggleRunning not implemented")
 }
 func (UnimplementedModuleActionsServer) mustEmbedUnimplementedModuleActionsServer() {}
 
@@ -147,6 +175,42 @@ func _ModuleActions_SetThrustersSpeed_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ModuleActions_Ok_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ModuleActionsServer).Ok(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/actions.ModuleActions/Ok",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ModuleActionsServer).Ok(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ModuleActions_ToggleRunning_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ModuleActionsServer).ToggleRunning(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/actions.ModuleActions/ToggleRunning",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ModuleActionsServer).ToggleRunning(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _ModuleActions_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "actions.ModuleActions",
 	HandlerType: (*ModuleActionsServer)(nil),
@@ -162,6 +226,14 @@ var _ModuleActions_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetThrustersSpeed",
 			Handler:    _ModuleActions_SetThrustersSpeed_Handler,
+		},
+		{
+			MethodName: "Ok",
+			Handler:    _ModuleActions_Ok_Handler,
+		},
+		{
+			MethodName: "ToggleRunning",
+			Handler:    _ModuleActions_ToggleRunning_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
