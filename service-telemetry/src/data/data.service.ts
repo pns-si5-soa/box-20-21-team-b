@@ -15,7 +15,9 @@ export class DataService {
   @Cron(CronExpression.EVERY_10_SECONDS, { name: 'metrics' })
   async getMetrics() {
     Logger.log("Metrics log");
+
     let date = new Date(new Date().getTime() - 10000).toISOString();
+
     this.httpService.get<RocketMetric[]>(`http://${PROBE_HOST}:${PROBE_PORT}/module-metrics/metrics/${date}`).subscribe(
       (val) => {
         let values = val.data.reverse();

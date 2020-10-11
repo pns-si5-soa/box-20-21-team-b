@@ -153,7 +153,7 @@ services:
     restart: unless-stopped
     container_name: module-metrics-probe
     environment:
-      - PORT=3003
+      - PORT=3013
 #      - MONGO_HOST=mongo
 #      - MONGO_PORT=27017
 #      - MONGO_DB=blue_origin
@@ -162,9 +162,9 @@ services:
     depends_on:
       - mongo
     expose:
-      - "3003"
+      - "3013"
     ports:
-      - 3013:3003
+      - 3013:3013
     networks:
       - modules
 
@@ -174,7 +174,7 @@ services:
       restart: unless-stopped
       container_name: module-metrics-stage
       environment:
-        - PORT=3003
+        - PORT=3023
   #      - MONGO_HOST=mongo
   #      - MONGO_PORT=27017
   #      - MONGO_DB=blue_origin
@@ -183,9 +183,9 @@ services:
       depends_on:
         - mongo
       expose:
-        - "3003"
+        - "3023"
       ports:
-        - 3023:3003
+        - 3023:3023
       networks:
         - modules
 
@@ -195,7 +195,7 @@ services:
       restart: unless-stopped
       container_name: module-metrics-booster
       environment:
-        - PORT=3003
+        - PORT=3033
   #      - MONGO_HOST=mongo
   #      - MONGO_PORT=27017
   #      - MONGO_DB=blue_origin
@@ -204,9 +204,9 @@ services:
       depends_on:
         - mongo
       expose:
-        - "3003"
+        - "3033"
       ports:
-        - 3033:3003
+        - 3033:3033
       networks:
         - modules
 
@@ -216,7 +216,7 @@ services:
     restart: unless-stopped
     container_name: module-actions-probe
     environment:
-      - PORT=3005
+      - PORT=3015
 #      - MONGO_HOST=mongo
 #      - MONGO_PORT=27017
 #      - MONGO_DB=blue_origin
@@ -225,9 +225,9 @@ services:
     depends_on:
       - mongo
     expose:
-      - "3005"
+      - "3015"
     ports:
-      - 3015:3005
+      - 3015:3015
     networks:
       - modules
 
@@ -237,7 +237,7 @@ services:
       restart: unless-stopped
       container_name: module-actions-stage
       environment:
-        - PORT=3005
+        - PORT=3025
   #      - MONGO_HOST=mongo
   #      - MONGO_PORT=27017
   #      - MONGO_DB=blue_origin
@@ -246,9 +246,9 @@ services:
       depends_on:
         - mongo
       expose:
-        - "3005"
+        - "3025"
       ports:
-        - 3025:3005
+        - 3025:3025
       networks:
         - modules
 
@@ -258,7 +258,7 @@ services:
       restart: unless-stopped
       container_name: module-actions-booster
       environment:
-        - PORT=3005
+        - PORT=3035
   #      - MONGO_HOST=mongo
   #      - MONGO_PORT=27017
   #      - MONGO_DB=blue_origin
@@ -267,9 +267,9 @@ services:
       depends_on:
         - mongo
       expose:
-        - "3005"
+        - "3035"
       ports:
-        - 3035:3005
+        - 3035:3035
       networks:
         - modules
 networks:
