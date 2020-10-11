@@ -1,7 +1,8 @@
 import {ModuleActionsClient} from "../rpc/actions_grpc_pb";
 import {credentials} from "grpc";
+import {MODULE_ACTIONS_HOST, MODULE_ACTIONS_PORT} from "./env_variables";
 
 export const client = new ModuleActionsClient(
-    'localhost:3005',
+    MODULE_ACTIONS_HOST+':'+MODULE_ACTIONS_PORT,
     credentials.createInsecure()
 );
