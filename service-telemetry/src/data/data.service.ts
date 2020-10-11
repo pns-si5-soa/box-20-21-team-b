@@ -15,15 +15,38 @@ export class DataService {
   @Cron(CronExpression.EVERY_10_SECONDS, { name: 'metrics' })
   async getMetrics() {
     Logger.log("Metrics log");
-    //Todo remove comments when services are ready
-    /*let metricProbe = new this.rocketMetric(this.httpService.get(`${PROBE_HOST}:${PROBE_PORT}/metrics`));
-    await metricProbe.save();
+    let date = new Date(new Date().getTime() - 10000).toISOString();
+    this.httpService.get<RocketMetric[]>(`http://${PROBE_HOST}:${PROBE_PORT}/module-metrics/metrics/${date}`).subscribe(
+      (val) => {
+        let values = val.data.reverse();
+        values.forEach(async (metric) => {
+          let metricProbe = new this.rocketMetric(metric);
+          await metricProbe.save();
+        })
+      }
+    )
 
-    let metricStage = new this.rocketMetric(this.httpService.get(`${STAGE_HOST}:${STAGE_PORT}/metrics`));
-    await metricStage.save();
+    this.httpService.get<RocketMetric[]>(`http://${BOOSTER_HOST}:${BOOSTER_PORT}/module-metrics/metrics/${date}`).subscribe(
+      (val) => {
+        let values = val.data.reverse();
+        values.forEach(async (metric) => {
+          let metricBooster = new this.rocketMetric(metric);
+          await metricBooster.save();
+        })
+      }
+    )
 
-    let metricBooster = new this.rocketMetric(this.httpService.get(`${BOOSTER_HOST}:${BOOSTER_PORT}/metrics`));
-    await metricBooster.save();*/
+    this.httpService.get<RocketMetric[]>(`http://${STAGE_HOST}:${STAGE_PORT}/module-metrics/metrics/${date}`).subscribe(
+      (val) => {
+        let values = val.data.reverse();
+        values.forEach(async (metric) => {
+          let metricStage = new this.rocketMetric(metric);
+          await metricStage.save();
+        })
+      }
+    )
+
+
   }
 
   async retrieveRocketMetrics(beginDate: number, endDate: number): Promise<RocketMetric[]> {
