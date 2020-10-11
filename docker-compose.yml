@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  ## WEATHER INFO SERVICE
   weather:
     build: ./service-weather
     image: boxb/weather
@@ -11,7 +12,7 @@ services:
       - MISSION_HOST=mission
       - MISSION_PORT=3002
     volumes:
-      - ./service-weather/src/:/app/src/
+      - ./service-weather/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
     expose:
@@ -22,43 +23,25 @@ services:
       - services
       - proxy
 
-  metrics:
-    build: ./service-module-metrics
-    image: boxb/module-metrics
+  ## COLLECT, STOCK & EXPOSE ALL TELEMETRICS
+  telemetry:
+    build: ./service-telemetry
+    image: boxb/telemetry
     restart: unless-stopped
-    container_name: module-metrics
-    environment:
-      - PORT=3003
-      - ROCKET_HOST=rocket
-      - ROCKET_PORT=3001
-      - ROCKET_SOCKET_PORT=30011
-      - MONGO_HOST=mongo
-      - MONGO_PORT=27017
-      - MONGO_DB=blue_origin
-    volumes:
-      - ./service-module-metrics/src/:/app/src/
-    depends_on:
-      - mongo
-    expose:
-      - "3003"
-    ports:
-      - 3003:3003
-    networks:
-      - services
-      - proxy
-
-  telemetry-sender:
-    build: ./service-telemetry-sender
-    image: boxb/telemetry-sender
-    restart: unless-stopped
-    container_name: telemetrysender
+    container_name: telemetry
     environment:
       - PORT=3004
+      - PROBE_HOST=metrics-probe # Todo : Change with proper service
+      - PROBE_PORT=3013 # Todo : Change with proper service
+      - STAGE_HOST=metrics-stage # Todo : Change with proper service
+      - STAGE_PORT=3023 # Todo : Change with proper service
+      - BOOSTER_HOST=metrics-booster # Todo : Change with proper service
+      - BOOSTER_PORT=3033 # Todo : Change with proper service
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=blue_origin
     volumes:
-      - ./service-telemetry-sender/src/:/app/src/
+      - ./service-telemetry/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
     expose:
@@ -68,7 +51,9 @@ services:
     networks:
       - services
       - proxy
+      - modules
 
+  ## ROCKET HQ
   rocket:
     build: ./service-rocket
     image: boxb/rocket
@@ -82,8 +67,14 @@ services:
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=blue_origin
+      - PROBE_HOST=actions-probe # Todo : Change with proper service
+      - PROBE_PORT=3015 # Todo : Change with proper service
+      - STAGE_HOST=actions-stage # Todo : Change with proper service
+      - STAGE_PORT=3025 # Todo : Change with proper service
+      - BOOSTER_HOST=actions-booster # Todo : Change with proper service
+      - BOOSTER_PORT=3035 # Todo : Change with proper service
     volumes:
-      - ./service-rocket/src/:/app/src/
+      - ./service-rocket/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
     expose:
@@ -93,7 +84,9 @@ services:
     networks:
       - services
       - proxy
+      - modules
 
+  ## SEND POOLS & START MISSION
   mission:
     build: ./service-mission
     image: boxb/mission
@@ -109,7 +102,7 @@ services:
       - MONGO_PORT=27017
       - MONGO_DB=blue_origin
     volumes:
-      - ./service-mission/src/:/app/src/
+      - ./service-mission/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
     expose:
@@ -120,6 +113,7 @@ services:
       - services
       - proxy
 
+  ## DATABASE FOR TELEMETRY, POLLS & ACTIONS HISTORY (WIP)
   mongo:
     image: mongo:latest
     container_name: boxb-mongo
@@ -135,6 +129,7 @@ services:
     networks:
       - services
 
+  ## REVERSE PROXY
   nginx:
     image: nginx:latest
     container_name: nginx
@@ -149,10 +144,136 @@ services:
       - rocket
       - mission
       - weather
-      - metrics
-      - telemetry-sender
+      - telemetry
 
+  ## MODULES
+  metrics-probe:
+    build: ./service-module-metrics
+    image: boxb/module-metrics
+    restart: unless-stopped
+    container_name: module-metrics-probe
+    environment:
+      - PORT=3013
+#      - MONGO_HOST=mongo
+#      - MONGO_PORT=27017
+#      - MONGO_DB=blue_origin
+    volumes:
+    - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
+    depends_on:
+      - mongo
+    expose:
+      - "3013"
+    ports:
+      - 3013:3013
+    networks:
+      - modules
+
+  metrics-stage:
+      build: ./service-module-metrics
+      image: boxb/module-metrics
+      restart: unless-stopped
+      container_name: module-metrics-stage
+      environment:
+        - PORT=3023
+  #      - MONGO_HOST=mongo
+  #      - MONGO_PORT=27017
+  #      - MONGO_DB=blue_origin
+      volumes:
+      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
+      depends_on:
+        - mongo
+      expose:
+        - "3023"
+      ports:
+        - 3023:3023
+      networks:
+        - modules
+
+  metrics-booster:
+      build: ./service-module-metrics
+      image: boxb/module-metrics
+      restart: unless-stopped
+      container_name: module-metrics-booster
+      environment:
+        - PORT=3033
+  #      - MONGO_HOST=mongo
+  #      - MONGO_PORT=27017
+  #      - MONGO_DB=blue_origin
+      volumes:
+      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
+      depends_on:
+        - mongo
+      expose:
+        - "3033"
+      ports:
+        - 3033:3033
+      networks:
+        - modules
+
+  actions-probe:
+    build: ./service-module-actions
+    image: boxb/module-actions
+    restart: unless-stopped
+    container_name: module-actions-probe
+    environment:
+      - PORT=3015
+#      - MONGO_HOST=mongo
+#      - MONGO_PORT=27017
+#      - MONGO_DB=blue_origin
+    volumes:
+      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
+    depends_on:
+      - mongo
+    expose:
+      - "3015"
+    ports:
+      - 3015:3015
+    networks:
+      - modules
+
+  actions-stage:
+      build: ./service-module-actions
+      image: boxb/module-actions
+      restart: unless-stopped
+      container_name: module-actions-stage
+      environment:
+        - PORT=3025
+  #      - MONGO_HOST=mongo
+  #      - MONGO_PORT=27017
+  #      - MONGO_DB=blue_origin
+      volumes:
+        - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
+      depends_on:
+        - mongo
+      expose:
+        - "3025"
+      ports:
+        - 3025:3025
+      networks:
+        - modules
+
+  actions-booster:
+      build: ./service-module-actions
+      image: boxb/module-actions
+      restart: unless-stopped
+      container_name: module-actions-booster
+      environment:
+        - PORT=3035
+  #      - MONGO_HOST=mongo
+  #      - MONGO_PORT=27017
+  #      - MONGO_DB=blue_origin
+      volumes:
+        - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
+      depends_on:
+        - mongo
+      expose:
+        - "3035"
+      ports:
+        - 3035:3035
+      networks:
+        - modules
 networks:
   services:
   proxy:
+  modules:
 
