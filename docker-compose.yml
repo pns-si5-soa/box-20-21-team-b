@@ -45,7 +45,7 @@ services:
     networks:
       - services
       - proxy
-      - modulesZ
+      - modules
 
   ## ROCKET HQ
   rocket:
