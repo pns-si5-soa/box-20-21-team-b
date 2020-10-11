@@ -49,6 +49,10 @@ export class DataService {
 
   }
 
+  async retrieveAllMetrics(): Promise<RocketMetric[]> {
+    return await this.rocketMetric.find().exec();
+  }
+
   async retrieveRocketMetrics(beginDate: number, endDate: number): Promise<RocketMetric[]> {
     return await this.rocketMetric.find({
       timestamp: { $gt: beginDate, $lt: endDate },

@@ -31,4 +31,9 @@ export class DataController {
         }
         return await this.dataService.retrieveRocketMetrics(beginDate, endDate);
     }
+
+    @Get('/rocket-metrics')
+    async getAllMetrics() {
+        return await this.dataService.retrieveAllMetrics();
+    }
 }
