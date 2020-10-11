@@ -109,6 +109,8 @@ func appendMetric(metric Metric) {
 // Return all the metrics newer than the timestamp
 func getMetricsFromTimestamp(timestamp time.Time) []Metric {
 	metricsFrom := make([]Metric, 0, MaxCache)
+	delta, _ := time.ParseDuration("-1s")
+	timestamp = timestamp.Add(delta)
 
 	for _, metric := range CurrentModule.LastMetrics {
 		if metric.Timestamp.After(timestamp) {
