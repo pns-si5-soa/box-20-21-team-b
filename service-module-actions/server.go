@@ -1,16 +1,13 @@
 package main
 
 import (
-	"./actions"
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
 	"log"
 	"net"
-)
-
-const (
-	port = ":3005"
+	"os"
+	"service-module-actions/v2/actions"
 )
 
 // A module representation
@@ -28,8 +25,13 @@ type moduleActionsServer struct {
 
 // Make the module go BOOM
 func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*actions.BoomReply, error) {
-	boomMessage := "Module went Boom !"
+	boomMessage := "Module Boom imminent !"
 	log.Println(boomMessage)
+	// TODO more actions...
+	// fmt.Println("Boom imminent")
+	// Write { boom: true } in analog to exit metrics
+	// /ok return ko
+	// defer os.Exit(0)
 	return &actions.BoomReply{Content: &boomMessage}, nil
 }
 
@@ -37,6 +39,7 @@ func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*
 func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) (*actions.Boolean, error) {
 	res := true
 	log.Println("Detaching module:")
+	// TODO Write { Attached: false } in analog
 	return &actions.Boolean{Val: &res}, nil
 }
 
@@ -44,10 +47,17 @@ func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) 
 func (s *moduleActionsServer) SetThrustersSpeed(ctx context.Context, value *actions.Double) (*actions.SetThrustersSpeedReply, error) {
 	res := "Thrusters speed is now " + fmt.Sprintf("%F", value.GetVal())
 	log.Println(res)
+	// TODO Write { Speed: XXX } in analog
 	return &actions.SetThrustersSpeedReply{Content: &res}, nil
 }
 
 func main() {
+	// If there is a port variable set in env
+	var port string
+	if port = os.Getenv("PORT"); port == "" {
+		port = "3005"
+	}
+
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
