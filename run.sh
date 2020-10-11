@@ -50,4 +50,4 @@ echo -e "\n\nWaiting for the telemetry to get every data from launch (~30secs)"
 sleep 30
 
 echo -e "${YELLOW}Telemetry Officer -> I want to check the telemetry of the launch${NC}"
-curl --silent http://localhost/telemetry-sender/rocket-metrics/null/null -X GET
+curl --silent http://localhost/telemetry/rocket-metrics/null/null -X GET

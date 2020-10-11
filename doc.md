@@ -28,4 +28,4 @@ Post `http://localhost/rocket/detach-payload/altitude` with the following body
 }
 `
 
-Get `http://localhost/telemetry-sender/rocket-metrics/null/null`
+Get `http://localhost/telemetry/rocket-metrics/null/null`

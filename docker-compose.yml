@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  ## WEATHER INFO SERVICE
   weather:
     build: ./service-weather
     image: boxb/weather
@@ -11,7 +12,7 @@ services:
       - MISSION_HOST=mission
       - MISSION_PORT=3002
     volumes:
-      - ./service-weather/src/:/app/src/
+      - ./service-weather/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
     expose:
@@ -22,58 +23,19 @@ services:
       - services
       - proxy
 
-  metrics:
-    build: ./service-module-metrics
-    image: boxb/module-metrics
+  ## COLLECT, STOCK & EXPOSE ALL TELEMETRICS
+  telemetry:
+    build: ./service-telemetry
+    image: boxb/telemetry
     restart: unless-stopped
-    container_name: module-metrics
-    environment:
-      - PORT=3003
-      - MONGO_HOST=mongo
-      - MONGO_PORT=27017
-      - MONGO_DB=blue_origin
-    depends_on:
-      - mongo
-    expose:
-      - "3003"
-    ports:
-      - 3003:3003
-    networks:
-      - services
-      - proxy
-
-  actions:
-    build: ./service-module-actions
-    image: boxb/module-actions
-    restart: unless-stopped
-    container_name: module-actions
-    environment:
-      - PORT=3005
-      - MONGO_HOST=mongo
-      - MONGO_PORT=27017
-      - MONGO_DB=blue_origin
-    depends_on:
-      - mongo
-    expose:
-      - "3005"
-    ports:
-      - 3005:3005
-    networks:
-      - services
-      - proxy
-
-  telemetry-sender:
-    build: ./service-telemetry-sender
-    image: boxb/telemetry-sender
-    restart: unless-stopped
-    container_name: telemetrysender
+    container_name: telemetry
     environment:
       - PORT=3004
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=blue_origin
     volumes:
-      - ./service-telemetry-sender/src/:/app/src/
+      - ./service-telemetry/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
     expose:
@@ -83,7 +45,9 @@ services:
     networks:
       - services
       - proxy
+      - modulesZ
 
+  ## ROCKET HQ
   rocket:
     build: ./service-rocket
     image: boxb/rocket
@@ -98,7 +62,7 @@ services:
       - MONGO_PORT=27017
       - MONGO_DB=blue_origin
     volumes:
-      - ./service-rocket/src/:/app/src/
+      - ./service-rocket/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
     expose:
@@ -108,7 +72,9 @@ services:
     networks:
       - services
       - proxy
+      - modules
 
+  ## SEND POOLS & START MISSION
   mission:
     build: ./service-mission
     image: boxb/mission
@@ -124,7 +90,7 @@ services:
       - MONGO_PORT=27017
       - MONGO_DB=blue_origin
     volumes:
-      - ./service-mission/src/:/app/src/
+      - ./service-mission/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
     expose:
@@ -135,6 +101,7 @@ services:
       - services
       - proxy
 
+  ## DATABASE FOR TELEMETRY, POLLS & ACTIONS HISTORY (WIP)
   mongo:
     image: mongo:latest
     container_name: boxb-mongo
@@ -150,6 +117,7 @@ services:
     networks:
       - services
 
+  ## REVERSE PROXY
   nginx:
     image: nginx:latest
     container_name: nginx
@@ -164,10 +132,49 @@ services:
       - rocket
       - mission
       - weather
-      - metrics
-      - telemetry-sender
+      - telemetry
+
+  ## MODULES
+  metrics:
+    build: ./service-module-metrics
+    image: boxb/module-metrics
+    restart: unless-stopped
+    container_name: module-metrics
+    environment:
+      - PORT=3003
+#      - MONGO_HOST=mongo
+#      - MONGO_PORT=27017
+#      - MONGO_DB=blue_origin
+    depends_on:
+      - mongo
+    expose:
+      - "3003"
+    ports:
+      - 3003:3003
+    networks:
+      - modules
+
+  actions:
+    build: ./service-module-actions
+    image: boxb/module-actions
+    restart: unless-stopped
+    container_name: module-actions
+    environment:
+      - PORT=3005
+#      - MONGO_HOST=mongo
+#      - MONGO_PORT=27017
+#      - MONGO_DB=blue_origin
+    depends_on:
+      - mongo
+    expose:
+      - "3005"
+    ports:
+      - 3005:3005
+    networks:
+      - modules
 
 networks:
   services:
   proxy:
+  modules:
 
