@@ -24,8 +24,7 @@ export class PollService {
             if (this.polling == 1) {
                 this.polling = 2;
                 this.sendPollToRocket().subscribe((val) => console.log(val.data));
-                Logger.log('Weather is ready! Polling rocket service...');
-                return 'Ok';
+                return 'Weather is ready! Waiting for rocket service...';
             } else {
                 return 'Poll not in progress !';
             }
@@ -40,15 +39,13 @@ export class PollService {
         if (ready) {
             if (this.polling == 2) {
                 this.polling = 3;
-                Logger.log('Rocket is ready! Send the Go to the rocket!');
-                return 'Ok';
+                return 'Rocket is ready! Mission will send the Go to the rocket!';
             } else {
                 return 'Poll not in progress !';
             }
         } else {
             this.polling = 0;
-            Logger.log('Rocket is not ready! Resetting poll state.');
-            return 'Not ok';
+            return 'Rocket is not ready! Resetting poll state.';
         }
     }
 
@@ -57,21 +54,18 @@ export class PollService {
             if (this.polling == 3) {
                 this.polling = 4;
                 this.sendLaunchRequest().subscribe((val) => console.log(val.data));
-                Logger.log('Everyone is now ready! A launch request has been sent to the rocket service.');
                 this.polling = 0;
-                return 'Ok';
+                return 'Everyone is now ready! Sending go to rocket chief.';
             } else {
                 return 'Poll not in progress !';
             }
         } else {
             this.polling = 0;
-            Logger.log('Mission is not ready! Resetting poll state.');
-            return 'Not ok';
+            return 'Mission is not ready! Resetting poll state';
         }
     }
 
     sendPollToWeather(): Observable<any> {
-        Logger.log('http://' + WEATHER_HOST + ':' + WEATHER_PORT + '/weather/poll/initiate');
         return this.httpService.post('http://' + WEATHER_HOST + ':' + WEATHER_PORT + '/weather/poll/initiate');
     }
 
@@ -80,7 +74,7 @@ export class PollService {
     }
 
     sendLaunchRequest(): Observable<any> {
-        return this.httpService.post('http://' + ROCKET_HOST + ':' + ROCKET_PORT + '/rocket/launch')
+        return this.httpService.post('http://' + ROCKET_HOST + ':' + ROCKET_PORT + '/rocket/allow-launch')
     }
 
     isReady(): boolean {

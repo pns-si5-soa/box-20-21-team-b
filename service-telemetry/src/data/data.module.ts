@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/common/http/http.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { RocketMetricSchema } from 'src/model/rocketmetric.model';
 import { DataController } from './data.controller';
 import { DataService } from './data.service';
-import { RocketMetricSchema } from './rocketmetric.model';
 
 @Module({
-  imports: [MongooseModule.forFeature([{name: 'RocketMetric', schema: RocketMetricSchema}])],
+  imports: [HttpModule, MongooseModule.forFeature([{ name: 'RocketMetric', schema: RocketMetricSchema }]),],
   controllers: [DataController],
   providers: [DataService]
 })
-export class DataModule {}
+export class DataModule { }
