@@ -71,6 +71,30 @@ export namespace BoomReply {
     }
 }
 
+export class SetThrustersSpeedReply extends jspb.Message { 
+
+    hasContent(): boolean;
+    clearContent(): void;
+    getContent(): string | undefined;
+    setContent(value: string): SetThrustersSpeedReply;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SetThrustersSpeedReply.AsObject;
+    static toObject(includeInstance: boolean, msg: SetThrustersSpeedReply): SetThrustersSpeedReply.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SetThrustersSpeedReply, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SetThrustersSpeedReply;
+    static deserializeBinaryFromReader(message: SetThrustersSpeedReply, reader: jspb.BinaryReader): SetThrustersSpeedReply;
+}
+
+export namespace SetThrustersSpeedReply {
+    export type AsObject = {
+        content?: string,
+    }
+}
+
 export class Double extends jspb.Message { 
 
     hasVal(): boolean;

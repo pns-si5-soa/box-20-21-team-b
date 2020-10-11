@@ -5,6 +5,8 @@ import {Rocket} from "./models/rocket/rocket";
 import {HeadModule} from "./models/rocket/headModule";
 import {Payload} from "./models/payload";
 import {FuelModule} from "./models/rocket/fuelModule";
+import {Double, Empty} from "../rpc/actions_pb";
+import {client} from "./actions.stub";
 
 @Injectable()
 export class AppService {
@@ -85,8 +87,37 @@ export class AppService {
     }
 
     public boom(): string {
-        Logger.log('Received request to make the rocket go BOOM');
-        return '';
+        let res = '';
+        client.boom(new Empty(), function(err, response) {
+            if(response !== undefined)
+                res = response.getContent();
+            else
+                res = 'Error: gRPC communication fail';
+        });
+        return res;
     }
 
+    detachModule() {
+        let res = '';
+        client.detach(new Empty(), function(err, response) {
+            if(response !== undefined)
+                res = response.getVal() ? 'Successfully detached module' : 'Error: could not detach module';
+            else
+                res = 'Error: gRPC communication fail';
+        });
+        return res;
+    }
+
+    setThrustersSpeed(value: number) {
+        let res = '';
+        const speed = new Double();
+        speed.setVal(value);
+        client.setThrustersSpeed(speed, function(err, response) {
+            if(response !== undefined)
+                res = response.getContent();
+            else
+                res = 'Error: gRPC communication fail';
+        });
+        return res;
+    }
 }

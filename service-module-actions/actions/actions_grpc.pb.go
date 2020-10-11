@@ -19,7 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 type ModuleActionsClient interface {
 	Boom(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*BoomReply, error)
 	Detach(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Boolean, error)
-	SetThrustersSPeed(ctx context.Context, in *Double, opts ...grpc.CallOption) (*Empty, error)
+	SetThrustersSpeed(ctx context.Context, in *Double, opts ...grpc.CallOption) (*SetThrustersSpeedReply, error)
 }
 
 type moduleActionsClient struct {
@@ -48,9 +48,9 @@ func (c *moduleActionsClient) Detach(ctx context.Context, in *Empty, opts ...grp
 	return out, nil
 }
 
-func (c *moduleActionsClient) SetThrustersSPeed(ctx context.Context, in *Double, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/actions.ModuleActions/SetThrustersSPeed", in, out, opts...)
+func (c *moduleActionsClient) SetThrustersSpeed(ctx context.Context, in *Double, opts ...grpc.CallOption) (*SetThrustersSpeedReply, error) {
+	out := new(SetThrustersSpeedReply)
+	err := c.cc.Invoke(ctx, "/actions.ModuleActions/SetThrustersSpeed", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (c *moduleActionsClient) SetThrustersSPeed(ctx context.Context, in *Double,
 type ModuleActionsServer interface {
 	Boom(context.Context, *Empty) (*BoomReply, error)
 	Detach(context.Context, *Empty) (*Boolean, error)
-	SetThrustersSPeed(context.Context, *Double) (*Empty, error)
+	SetThrustersSpeed(context.Context, *Double) (*SetThrustersSpeedReply, error)
 	mustEmbedUnimplementedModuleActionsServer()
 }
 
@@ -77,8 +77,8 @@ func (UnimplementedModuleActionsServer) Boom(context.Context, *Empty) (*BoomRepl
 func (UnimplementedModuleActionsServer) Detach(context.Context, *Empty) (*Boolean, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Detach not implemented")
 }
-func (UnimplementedModuleActionsServer) SetThrustersSPeed(context.Context, *Double) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetThrustersSPeed not implemented")
+func (UnimplementedModuleActionsServer) SetThrustersSpeed(context.Context, *Double) (*SetThrustersSpeedReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetThrustersSpeed not implemented")
 }
 func (UnimplementedModuleActionsServer) mustEmbedUnimplementedModuleActionsServer() {}
 
@@ -129,20 +129,20 @@ func _ModuleActions_Detach_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ModuleActions_SetThrustersSPeed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ModuleActions_SetThrustersSpeed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Double)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ModuleActionsServer).SetThrustersSPeed(ctx, in)
+		return srv.(ModuleActionsServer).SetThrustersSpeed(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/actions.ModuleActions/SetThrustersSPeed",
+		FullMethod: "/actions.ModuleActions/SetThrustersSpeed",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ModuleActionsServer).SetThrustersSPeed(ctx, req.(*Double))
+		return srv.(ModuleActionsServer).SetThrustersSpeed(ctx, req.(*Double))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -160,8 +160,8 @@ var _ModuleActions_serviceDesc = grpc.ServiceDesc{
 			Handler:    _ModuleActions_Detach_Handler,
 		},
 		{
-			MethodName: "SetThrustersSPeed",
-			Handler:    _ModuleActions_SetThrustersSPeed_Handler,
+			MethodName: "SetThrustersSpeed",
+			Handler:    _ModuleActions_SetThrustersSpeed_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

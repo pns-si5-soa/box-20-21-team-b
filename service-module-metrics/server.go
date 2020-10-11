@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"google.golang.org/grpc"
 	"io"
 	"log"
 	"math/rand"
@@ -13,7 +11,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-	actions "./actions"
 )
 
 const (
@@ -202,22 +199,6 @@ func main() {
 	router.HandleFunc("/module-metrics/ok", ok).Methods("GET")
 	router.HandleFunc("/module-metrics/metrics", allMetrics).Methods("GET")
 	router.HandleFunc("/module-metrics/metrics/{timestamp}", metrics).Methods("GET")
-
-	// Send RPC request
-	conn, err := grpc.Dial(rpcaddress, grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-	defer conn.Close()
-	c := actions.NewModuleActionsClient(conn)
-	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := c.Boom(ctx, &actions.Empty{})
-	if err != nil {
-		log.Fatalf("could not send: %v", err)
-	}
-	log.Printf("Sending: %s", r.GetContent())
 
 	fmt.Println("Server is running on port " + port)
 

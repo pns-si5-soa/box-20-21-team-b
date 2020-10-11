@@ -1,6 +1,7 @@
 import {Body, Controller, Get, Post} from '@nestjs/common';
 import {AppService} from './app.service';
 import {AltitudePayloadDTODto} from "./dto/AltitudePayloadDTO.dto";
+import {ThrustersSpeedPayloadDTODto} from "./dto/ThrustersSpeedPayloadDTO.dto";
 
 @Controller('rocket')
 export class AppController {
@@ -40,8 +41,18 @@ export class AppController {
         return this.appService.setPayloadAltitudeToDetach(message.altitude);
     }
 
-    @Post('/boom')
+    @Post('/actions/boom')
     boom(): string{
         return this.appService.boom();
+    }
+
+    @Post('/actions/detach-module')
+    detachModule(): string{
+        return this.appService.detachModule();
+    }
+
+    @Post('/actions/set-thrusters-speed')
+    setThrustersSpeed(@Body() message: ThrustersSpeedPayloadDTODto): string{
+        return this.appService.setThrustersSpeed(message.value)
     }
 }

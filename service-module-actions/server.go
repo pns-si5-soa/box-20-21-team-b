@@ -1,15 +1,16 @@
 package main
 
 import (
-	actions "./actions"
+	"./actions"
 	"context"
+	"fmt"
 	"google.golang.org/grpc"
 	"log"
 	"net"
 )
 
 const (
-	port = ":3004"
+	port = ":3005"
 )
 
 // A module representation
@@ -30,6 +31,20 @@ func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*
 	boomMessage := "Module went Boom !"
 	log.Println(boomMessage)
 	return &actions.BoomReply{Content: &boomMessage}, nil
+}
+
+// Detach the module from its predecessor
+func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) (*actions.Boolean, error) {
+	res := true
+	log.Println("Detaching module:")
+	return &actions.Boolean{Val: &res}, nil
+}
+
+// Set thrusters so that the rocket goes to a certain speed
+func (s *moduleActionsServer) SetThrustersSpeed(ctx context.Context, value *actions.Double) (*actions.SetThrustersSpeedReply, error) {
+	res := "Thrusters speed is now " + fmt.Sprintf("%F", value.GetVal())
+	log.Println(res)
+	return &actions.SetThrustersSpeedReply{Content: &res}, nil
 }
 
 func main() {

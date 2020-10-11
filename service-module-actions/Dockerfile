@@ -10,7 +10,7 @@ COPY . .
 RUN go build
 
 # This container exposes port 8080 to the outside world
-EXPOSE 3004
+EXPOSE 3005
 
 RUN ls
 

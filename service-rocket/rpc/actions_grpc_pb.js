@@ -48,6 +48,17 @@ function deserialize_actions_Empty(buffer_arg) {
   return rpc_actions_pb.Empty.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_actions_SetThrustersSpeedReply(arg) {
+  if (!(arg instanceof rpc_actions_pb.SetThrustersSpeedReply)) {
+    throw new Error('Expected argument of type actions.SetThrustersSpeedReply');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_actions_SetThrustersSpeedReply(buffer_arg) {
+  return rpc_actions_pb.SetThrustersSpeedReply.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 
 var ModuleActionsService = exports.ModuleActionsService = {
   boom: {
@@ -72,16 +83,16 @@ var ModuleActionsService = exports.ModuleActionsService = {
     responseSerialize: serialize_actions_Boolean,
     responseDeserialize: deserialize_actions_Boolean,
   },
-  setThrustersSPeed: {
-    path: '/actions.ModuleActions/SetThrustersSPeed',
+  setThrustersSpeed: {
+    path: '/actions.ModuleActions/SetThrustersSpeed',
     requestStream: false,
     responseStream: false,
     requestType: rpc_actions_pb.Double,
-    responseType: rpc_actions_pb.Empty,
+    responseType: rpc_actions_pb.SetThrustersSpeedReply,
     requestSerialize: serialize_actions_Double,
     requestDeserialize: deserialize_actions_Double,
-    responseSerialize: serialize_actions_Empty,
-    responseDeserialize: deserialize_actions_Empty,
+    responseSerialize: serialize_actions_SetThrustersSpeedReply,
+    responseDeserialize: deserialize_actions_SetThrustersSpeedReply,
   },
 };
 
