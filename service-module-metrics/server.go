@@ -203,6 +203,7 @@ func main() {
 	router.HandleFunc("/module-metrics/metrics", allMetrics).Methods("GET")
 	router.HandleFunc("/module-metrics/metrics/{timestamp}", metrics).Methods("GET")
 
+	// Send RPC request
 	conn, err := grpc.Dial(rpcaddress, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)

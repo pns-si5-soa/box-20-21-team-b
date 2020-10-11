@@ -39,4 +39,9 @@ export class AppController {
     setPayloadAltitudeToDetach(@Body() message: AltitudePayloadDTODto): string{
         return this.appService.setPayloadAltitudeToDetach(message.altitude);
     }
+
+    @Post('/boom')
+    boom(): string{
+        return this.appService.boom();
+    }
 }

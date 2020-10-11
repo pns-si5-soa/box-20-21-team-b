@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.25.0-devel
 // 	protoc        v3.13.0
-// source: service-module-actions/actions.proto
+// source: actions/actions.proto
 
 package actions
 
@@ -29,7 +29,7 @@ type Empty struct {
 func (x *Empty) Reset() {
 	*x = Empty{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_service_module_actions_actions_proto_msgTypes[0]
+		mi := &file_actions_actions_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -42,7 +42,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_service_module_actions_actions_proto_msgTypes[0]
+	mi := &file_actions_actions_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,7 +55,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_service_module_actions_actions_proto_rawDescGZIP(), []int{0}
+	return file_actions_actions_proto_rawDescGZIP(), []int{0}
 }
 
 type Boolean struct {
@@ -69,7 +69,7 @@ type Boolean struct {
 func (x *Boolean) Reset() {
 	*x = Boolean{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_service_module_actions_actions_proto_msgTypes[1]
+		mi := &file_actions_actions_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -82,7 +82,7 @@ func (x *Boolean) String() string {
 func (*Boolean) ProtoMessage() {}
 
 func (x *Boolean) ProtoReflect() protoreflect.Message {
-	mi := &file_service_module_actions_actions_proto_msgTypes[1]
+	mi := &file_actions_actions_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -95,7 +95,7 @@ func (x *Boolean) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Boolean.ProtoReflect.Descriptor instead.
 func (*Boolean) Descriptor() ([]byte, []int) {
-	return file_service_module_actions_actions_proto_rawDescGZIP(), []int{1}
+	return file_actions_actions_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Boolean) GetVal() bool {
@@ -116,7 +116,7 @@ type BoomReply struct {
 func (x *BoomReply) Reset() {
 	*x = BoomReply{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_service_module_actions_actions_proto_msgTypes[2]
+		mi := &file_actions_actions_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -129,7 +129,7 @@ func (x *BoomReply) String() string {
 func (*BoomReply) ProtoMessage() {}
 
 func (x *BoomReply) ProtoReflect() protoreflect.Message {
-	mi := &file_service_module_actions_actions_proto_msgTypes[2]
+	mi := &file_actions_actions_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -142,7 +142,7 @@ func (x *BoomReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BoomReply.ProtoReflect.Descriptor instead.
 func (*BoomReply) Descriptor() ([]byte, []int) {
-	return file_service_module_actions_actions_proto_rawDescGZIP(), []int{2}
+	return file_actions_actions_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *BoomReply) GetContent() string {
@@ -163,7 +163,7 @@ type Double struct {
 func (x *Double) Reset() {
 	*x = Double{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_service_module_actions_actions_proto_msgTypes[3]
+		mi := &file_actions_actions_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -176,7 +176,7 @@ func (x *Double) String() string {
 func (*Double) ProtoMessage() {}
 
 func (x *Double) ProtoReflect() protoreflect.Message {
-	mi := &file_service_module_actions_actions_proto_msgTypes[3]
+	mi := &file_actions_actions_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -189,7 +189,7 @@ func (x *Double) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Double.ProtoReflect.Descriptor instead.
 func (*Double) Descriptor() ([]byte, []int) {
-	return file_service_module_actions_actions_proto_rawDescGZIP(), []int{3}
+	return file_actions_actions_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Double) GetVal() float64 {
@@ -199,54 +199,56 @@ func (x *Double) GetVal() float64 {
 	return 0
 }
 
-var File_service_module_actions_actions_proto protoreflect.FileDescriptor
+var File_actions_actions_proto protoreflect.FileDescriptor
 
-var file_service_module_actions_actions_proto_rawDesc = []byte{
-	0x0a, 0x24, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2d, 0x6d, 0x6f, 0x64, 0x75, 0x6c, 0x65,
-	0x2d, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2f, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22,
-	0x1b, 0x0a, 0x07, 0x42, 0x6f, 0x6f, 0x6c, 0x65, 0x61, 0x6e, 0x12, 0x10, 0x0a, 0x03, 0x76, 0x61,
-	0x6c, 0x18, 0x01, 0x20, 0x02, 0x28, 0x08, 0x52, 0x03, 0x76, 0x61, 0x6c, 0x22, 0x25, 0x0a, 0x09,
-	0x42, 0x6f, 0x6f, 0x6d, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x6f, 0x6e,
-	0x74, 0x65, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x02, 0x28, 0x09, 0x52, 0x07, 0x63, 0x6f, 0x6e, 0x74,
-	0x65, 0x6e, 0x74, 0x22, 0x1a, 0x0a, 0x06, 0x44, 0x6f, 0x75, 0x62, 0x6c, 0x65, 0x12, 0x10, 0x0a,
-	0x03, 0x76, 0x61, 0x6c, 0x18, 0x01, 0x20, 0x02, 0x28, 0x01, 0x52, 0x03, 0x76, 0x61, 0x6c, 0x32,
-	0x73, 0x0a, 0x0d, 0x4d, 0x6f, 0x64, 0x75, 0x6c, 0x65, 0x41, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73,
-	0x12, 0x1c, 0x0a, 0x04, 0x42, 0x6f, 0x6f, 0x6d, 0x12, 0x06, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79,
-	0x1a, 0x0a, 0x2e, 0x42, 0x6f, 0x6f, 0x6d, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x12, 0x1c,
-	0x0a, 0x06, 0x44, 0x65, 0x74, 0x61, 0x63, 0x68, 0x12, 0x06, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79,
-	0x1a, 0x08, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x65, 0x61, 0x6e, 0x22, 0x00, 0x12, 0x26, 0x0a, 0x11,
-	0x53, 0x65, 0x74, 0x54, 0x68, 0x72, 0x75, 0x73, 0x74, 0x65, 0x72, 0x73, 0x53, 0x50, 0x65, 0x65,
-	0x64, 0x12, 0x07, 0x2e, 0x44, 0x6f, 0x75, 0x62, 0x6c, 0x65, 0x1a, 0x06, 0x2e, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x22, 0x00,
+var file_actions_actions_proto_rawDesc = []byte{
+	0x0a, 0x15, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2f, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e,
+	0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x07, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73,
+	0x22, 0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x1b, 0x0a, 0x07, 0x42, 0x6f, 0x6f,
+	0x6c, 0x65, 0x61, 0x6e, 0x12, 0x10, 0x0a, 0x03, 0x76, 0x61, 0x6c, 0x18, 0x01, 0x20, 0x02, 0x28,
+	0x08, 0x52, 0x03, 0x76, 0x61, 0x6c, 0x22, 0x25, 0x0a, 0x09, 0x42, 0x6f, 0x6f, 0x6d, 0x52, 0x65,
+	0x70, 0x6c, 0x79, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x18, 0x01,
+	0x20, 0x02, 0x28, 0x09, 0x52, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x22, 0x1a, 0x0a,
+	0x06, 0x44, 0x6f, 0x75, 0x62, 0x6c, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x76, 0x61, 0x6c, 0x18, 0x01,
+	0x20, 0x02, 0x28, 0x01, 0x52, 0x03, 0x76, 0x61, 0x6c, 0x32, 0xa3, 0x01, 0x0a, 0x0d, 0x4d, 0x6f,
+	0x64, 0x75, 0x6c, 0x65, 0x41, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x2c, 0x0a, 0x04, 0x42,
+	0x6f, 0x6f, 0x6d, 0x12, 0x0e, 0x2e, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x45, 0x6d,
+	0x70, 0x74, 0x79, 0x1a, 0x12, 0x2e, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x42, 0x6f,
+	0x6f, 0x6d, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x12, 0x2c, 0x0a, 0x06, 0x44, 0x65, 0x74,
+	0x61, 0x63, 0x68, 0x12, 0x0e, 0x2e, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x45, 0x6d,
+	0x70, 0x74, 0x79, 0x1a, 0x10, 0x2e, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x42, 0x6f,
+	0x6f, 0x6c, 0x65, 0x61, 0x6e, 0x22, 0x00, 0x12, 0x36, 0x0a, 0x11, 0x53, 0x65, 0x74, 0x54, 0x68,
+	0x72, 0x75, 0x73, 0x74, 0x65, 0x72, 0x73, 0x53, 0x50, 0x65, 0x65, 0x64, 0x12, 0x0f, 0x2e, 0x61,
+	0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x44, 0x6f, 0x75, 0x62, 0x6c, 0x65, 0x1a, 0x0e, 0x2e,
+	0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00,
 }
 
 var (
-	file_service_module_actions_actions_proto_rawDescOnce sync.Once
-	file_service_module_actions_actions_proto_rawDescData = file_service_module_actions_actions_proto_rawDesc
+	file_actions_actions_proto_rawDescOnce sync.Once
+	file_actions_actions_proto_rawDescData = file_actions_actions_proto_rawDesc
 )
 
-func file_service_module_actions_actions_proto_rawDescGZIP() []byte {
-	file_service_module_actions_actions_proto_rawDescOnce.Do(func() {
-		file_service_module_actions_actions_proto_rawDescData = protoimpl.X.CompressGZIP(file_service_module_actions_actions_proto_rawDescData)
+func file_actions_actions_proto_rawDescGZIP() []byte {
+	file_actions_actions_proto_rawDescOnce.Do(func() {
+		file_actions_actions_proto_rawDescData = protoimpl.X.CompressGZIP(file_actions_actions_proto_rawDescData)
 	})
-	return file_service_module_actions_actions_proto_rawDescData
+	return file_actions_actions_proto_rawDescData
 }
 
-var file_service_module_actions_actions_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
-var file_service_module_actions_actions_proto_goTypes = []interface{}{
-	(*Empty)(nil),     // 0: Empty
-	(*Boolean)(nil),   // 1: Boolean
-	(*BoomReply)(nil), // 2: BoomReply
-	(*Double)(nil),    // 3: Double
+var file_actions_actions_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_actions_actions_proto_goTypes = []interface{}{
+	(*Empty)(nil),     // 0: actions.Empty
+	(*Boolean)(nil),   // 1: actions.Boolean
+	(*BoomReply)(nil), // 2: actions.BoomReply
+	(*Double)(nil),    // 3: actions.Double
 }
-var file_service_module_actions_actions_proto_depIdxs = []int32{
-	0, // 0: ModuleActions.Boom:input_type -> Empty
-	0, // 1: ModuleActions.Detach:input_type -> Empty
-	3, // 2: ModuleActions.SetThrustersSPeed:input_type -> Double
-	2, // 3: ModuleActions.Boom:output_type -> BoomReply
-	1, // 4: ModuleActions.Detach:output_type -> Boolean
-	0, // 5: ModuleActions.SetThrustersSPeed:output_type -> Empty
+var file_actions_actions_proto_depIdxs = []int32{
+	0, // 0: actions.ModuleActions.Boom:input_type -> actions.Empty
+	0, // 1: actions.ModuleActions.Detach:input_type -> actions.Empty
+	3, // 2: actions.ModuleActions.SetThrustersSPeed:input_type -> actions.Double
+	2, // 3: actions.ModuleActions.Boom:output_type -> actions.BoomReply
+	1, // 4: actions.ModuleActions.Detach:output_type -> actions.Boolean
+	0, // 5: actions.ModuleActions.SetThrustersSPeed:output_type -> actions.Empty
 	3, // [3:6] is the sub-list for method output_type
 	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -254,13 +256,13 @@ var file_service_module_actions_actions_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_service_module_actions_actions_proto_init() }
-func file_service_module_actions_actions_proto_init() {
-	if File_service_module_actions_actions_proto != nil {
+func init() { file_actions_actions_proto_init() }
+func file_actions_actions_proto_init() {
+	if File_actions_actions_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_service_module_actions_actions_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_actions_actions_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Empty); i {
 			case 0:
 				return &v.state
@@ -272,7 +274,7 @@ func file_service_module_actions_actions_proto_init() {
 				return nil
 			}
 		}
-		file_service_module_actions_actions_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_actions_actions_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Boolean); i {
 			case 0:
 				return &v.state
@@ -284,7 +286,7 @@ func file_service_module_actions_actions_proto_init() {
 				return nil
 			}
 		}
-		file_service_module_actions_actions_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_actions_actions_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BoomReply); i {
 			case 0:
 				return &v.state
@@ -296,7 +298,7 @@ func file_service_module_actions_actions_proto_init() {
 				return nil
 			}
 		}
-		file_service_module_actions_actions_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_actions_actions_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Double); i {
 			case 0:
 				return &v.state
@@ -313,18 +315,18 @@ func file_service_module_actions_actions_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_service_module_actions_actions_proto_rawDesc,
+			RawDescriptor: file_actions_actions_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_service_module_actions_actions_proto_goTypes,
-		DependencyIndexes: file_service_module_actions_actions_proto_depIdxs,
-		MessageInfos:      file_service_module_actions_actions_proto_msgTypes,
+		GoTypes:           file_actions_actions_proto_goTypes,
+		DependencyIndexes: file_actions_actions_proto_depIdxs,
+		MessageInfos:      file_actions_actions_proto_msgTypes,
 	}.Build()
-	File_service_module_actions_actions_proto = out.File
-	file_service_module_actions_actions_proto_rawDesc = nil
-	file_service_module_actions_actions_proto_goTypes = nil
-	file_service_module_actions_actions_proto_depIdxs = nil
+	File_actions_actions_proto = out.File
+	file_actions_actions_proto_rawDesc = nil
+	file_actions_actions_proto_goTypes = nil
+	file_actions_actions_proto_depIdxs = nil
 }

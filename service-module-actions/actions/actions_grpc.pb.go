@@ -32,7 +32,7 @@ func NewModuleActionsClient(cc grpc.ClientConnInterface) ModuleActionsClient {
 
 func (c *moduleActionsClient) Boom(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*BoomReply, error) {
 	out := new(BoomReply)
-	err := c.cc.Invoke(ctx, "/ModuleActions/Boom", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/actions.ModuleActions/Boom", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (c *moduleActionsClient) Boom(ctx context.Context, in *Empty, opts ...grpc.
 
 func (c *moduleActionsClient) Detach(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Boolean, error) {
 	out := new(Boolean)
-	err := c.cc.Invoke(ctx, "/ModuleActions/Detach", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/actions.ModuleActions/Detach", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *moduleActionsClient) Detach(ctx context.Context, in *Empty, opts ...grp
 
 func (c *moduleActionsClient) SetThrustersSPeed(ctx context.Context, in *Double, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/ModuleActions/SetThrustersSPeed", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/actions.ModuleActions/SetThrustersSPeed", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func _ModuleActions_Boom_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ModuleActions/Boom",
+		FullMethod: "/actions.ModuleActions/Boom",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ModuleActionsServer).Boom(ctx, req.(*Empty))
@@ -121,7 +121,7 @@ func _ModuleActions_Detach_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ModuleActions/Detach",
+		FullMethod: "/actions.ModuleActions/Detach",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ModuleActionsServer).Detach(ctx, req.(*Empty))
@@ -139,7 +139,7 @@ func _ModuleActions_SetThrustersSPeed_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ModuleActions/SetThrustersSPeed",
+		FullMethod: "/actions.ModuleActions/SetThrustersSPeed",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ModuleActionsServer).SetThrustersSPeed(ctx, req.(*Double))
@@ -148,7 +148,7 @@ func _ModuleActions_SetThrustersSPeed_Handler(srv interface{}, ctx context.Conte
 }
 
 var _ModuleActions_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "ModuleActions",
+	ServiceName: "actions.ModuleActions",
 	HandlerType: (*ModuleActionsServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -165,5 +165,5 @@ var _ModuleActions_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "service-module-actions/actions.proto",
+	Metadata: "actions/actions.proto",
 }

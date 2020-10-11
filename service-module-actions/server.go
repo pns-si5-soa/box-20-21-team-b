@@ -37,7 +37,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	} else {
-		log.Println("Server up on localhost" + port)
+		log.Println("Server is running on port" + port)
 	}
 	s := grpc.NewServer()
 	actions.RegisterModuleActionsServer(s, &moduleActionsServer{})

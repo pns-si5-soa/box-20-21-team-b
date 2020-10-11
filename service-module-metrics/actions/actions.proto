@@ -1,3 +1,5 @@
+package actions;
+
 service ModuleActions {
   rpc Boom(Empty) returns(BoomReply) {}
 

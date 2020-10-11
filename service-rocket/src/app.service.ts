@@ -84,4 +84,9 @@ export class AppService {
         this.telemetryGateway.sendProcess(status);
     }
 
+    public boom(): string {
+        Logger.log('Received request to make the rocket go BOOM');
+        return '';
+    }
+
 }
