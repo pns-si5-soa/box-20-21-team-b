@@ -2,21 +2,85 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"google.golang.org/grpc"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
 	"service-module-actions/v2/actions"
+	"sync"
+	"time"
 )
 
 // A module representation
 type Module struct {
 }
 
+// A simple metric for telemetry
+type Metric struct {
+	Altitude  int       `json:"altitude"`
+	Fuel      float32   `json:"fuel"`
+	Pressure  float32   `json:"pressure"`
+	Attached  bool      `json:"attached"`
+	Running   bool      `json:"running"`
+	Speed     int       `json:"speed"`
+	Latitude  float32   `json:"latitude"`
+	Longitude float32   `json:"longitude"`
+	Timestamp time.Time `json:"timestamp"`
+	Boom      bool      `json:"boom"`
+}
+
+// Path of the mocked analog system
+const AnalogFilePath = "/etc/analog-mock.json"
+
+//const AnalogFilePath = "../analog-mock.json"
+
+var Analog, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
+var mu sync.Mutex // Its mutex for read / write
+
+// Read the analog file & unmarchal metric (or return the error)
+func readJSONMetric() (Metric, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	Analog.Sync()
+
+	metric := Metric{}
+
+	byteValue, _ := ioutil.ReadFile(AnalogFilePath)
+	parseErr := json.Unmarshal(byteValue, &metric)
+	if parseErr != nil {
+		log.Println("Error Unmarshal : ")
+		log.Println(parseErr)
+		//log.Fatal(parseErr)
+	}
+
+	return metric, parseErr
+}
+
 // Custom error to return in case of a JSON parsing error
 type JSONError struct {
 	Message string `json:"Message"`
+}
+
+// Write into the Analog json file
+func writeJSONMetric(jsonObj interface{}) (err error) {
+	// Write Boom into analog
+	mu.Lock()
+	defer mu.Unlock()
+	// Write metrics in mocked analog (https://medium.com/eaciit-engineering/better-way-to-read-and-write-json-file-in-golang-9d575b7254f2)
+	Analog.Sync()
+	Analog.Truncate(0)
+	Analog.Seek(0, 0)
+	encoder := json.NewEncoder(Analog)
+	err = encoder.Encode(jsonObj)
+	if err != nil {
+		log.Println("Write JSON error")
+		//log.Fatal(err)
+	}
+	return
 }
 
 type moduleActionsServer struct {
@@ -27,11 +91,16 @@ type moduleActionsServer struct {
 func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*actions.BoomReply, error) {
 	boomMessage := "Module Boom imminent !"
 	log.Println(boomMessage)
-	// TODO more actions...
-	// fmt.Println("Boom imminent")
-	// Write { boom: true } in analog to exit metrics
-	// /ok return ko
-	// defer os.Exit(0)
+
+	tempMetric, _ := readJSONMetric()
+	tempMetric.Boom = true
+	writeJSONMetric(tempMetric)
+
+	// TODO /ok return ko ?
+
+	// Exit system to simulate boom
+	defer os.Exit(0)
+
 	return &actions.BoomReply{Content: &boomMessage}, nil
 }
 
@@ -39,7 +108,11 @@ func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*
 func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) (*actions.Boolean, error) {
 	res := true
 	log.Println("Detaching module:")
-	// TODO Write { Attached: false } in analog
+
+	tempMetric, _ := readJSONMetric()
+	tempMetric.Attached = false
+	writeJSONMetric(tempMetric)
+
 	return &actions.Boolean{Val: &res}, nil
 }
 
@@ -47,7 +120,11 @@ func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) 
 func (s *moduleActionsServer) SetThrustersSpeed(ctx context.Context, value *actions.Double) (*actions.SetThrustersSpeedReply, error) {
 	res := "Thrusters speed is now " + fmt.Sprintf("%F", value.GetVal())
 	log.Println(res)
-	// TODO Write { Speed: XXX } in analog
+
+	tempMetric, _ := readJSONMetric()
+	tempMetric.Speed = int(value.GetVal())
+	writeJSONMetric(tempMetric)
+
 	return &actions.SetThrustersSpeedReply{Content: &res}, nil
 }
 
@@ -58,7 +135,7 @@ func main() {
 		port = "3005"
 	}
 
-	lis, err := net.Listen("tcp", ":" + port)
+	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	} else {

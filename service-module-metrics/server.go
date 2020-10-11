@@ -31,6 +31,7 @@ type Metric struct {
 	Latitude  float32   `json:"latitude"`
 	Longitude float32   `json:"longitude"`
 	Timestamp time.Time `json:"timestamp"`
+	Boom      bool      `json:"boom"`
 }
 
 // Custom error to return in case of a JSON parsing error
@@ -45,22 +46,37 @@ var CurrentModule Module
 const MaxCache int = 86400
 
 // Path of the mocked analog system
-var Analog, _ = os.OpenFile("/etc/analog-mock.json", os.O_CREATE, os.ModePerm)
-//var Analog, _ = os.OpenFile("../analog-mock.json", os.O_CREATE | os.O_SYNC, os.ModePerm)
+const AnalogFilePath = "/etc/analog-mock.json"
+//const AnalogFilePath = "../analog-mock.json"
+
+var Analog, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
 var mu sync.Mutex // Its mutex for read / write
 
 // Read the analog file & unmarchal metric (or return the error)
 func readJSONMetric() (Metric, error) {
 	mu.Lock()
 	defer mu.Unlock()
+
 	Analog.Sync()
-	byteValue, _ := ioutil.ReadAll(Analog)
+
 	metric := Metric{}
+
+	byteValue, _ := ioutil.ReadFile(AnalogFilePath)
 	parseErr := json.Unmarshal(byteValue, &metric)
 	if parseErr != nil {
-		//log.Println("Error Unmarshal : ")
-		//log.Println(parseErr)
+		log.Println("Error Unmarshal : ")
+		log.Println(parseErr)
 		//log.Fatal(parseErr)
+	}
+
+	// boom detected
+	if metric.Boom && len(CurrentModule.LastMetrics) > 1 {
+		log.Println("Boom initiated")
+		mu.Lock()
+		defer mu.Unlock()
+		encoder := json.NewEncoder(Analog)
+		encoder.Encode("{}")
+		os.Exit(0)
 	}
 
 	return metric, parseErr
