@@ -72,11 +72,11 @@ func main() {
 		port = "3005"
 	}
 
-	lis, err := net.Listen("tcp", port)
+	lis, err := net.Listen("tcp", ":" + port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	} else {
-		log.Println("Server is running on port" + port)
+		log.Println("Server is running on port " + port)
 	}
 	s := grpc.NewServer()
 	actions.RegisterModuleActionsServer(s, &moduleActionsServer{})
