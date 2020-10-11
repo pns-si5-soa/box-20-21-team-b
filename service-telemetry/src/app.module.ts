@@ -8,7 +8,7 @@ import { DataModule } from './data/data.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [HttpModule, MongooseModule.forRoot('mongodb://' + MONGO_HOST + ':' + MONGO_PORT + '/' + MONGO_DB), MongooseModule.forFeature([{name: 'RocketMetric', schema: RocketMetricSchema}]), DataModule, ScheduleModule.forRoot()],
+  imports: [HttpModule, MongooseModule.forRoot('mongodb://' + MONGO_HOST + ':' + MONGO_PORT + '/' + MONGO_DB), DataModule, ScheduleModule.forRoot()],
   controllers: [AppController],
   providers: [AppService],
 })
