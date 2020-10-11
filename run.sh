@@ -55,6 +55,9 @@ curl --silent http://localhost/telemetry/rocket-metrics -X GET
 echo -e "\n\n${YELLOW}Chief Rocket Department -> I want to set the speed of the rocket a bit lower so that it can go through max Q harmlessly${NC}"
 curl --silent http://localhost/rocket/actions/set-thrusters-speed -H "Content-type:application/json" -X POST -d "{\"value\": 100}"
 
-echo -e "\n\n${YELLOW}Chief Rocket Department -> The rocket has encountered a system failure, I need to make it go BOOM !${NC}"
+echo -e "\n\n${YELLOW}Chief Rocket Department -> The rocket has encountered a system failure, with the booster, I need to detach it !${NC}"
+curl --silent http://localhost/rocket/actions/detach/booster -X POST
+
+echo -e "\n\n${YELLOW}Chief Rocket Department -> I need to make it go BOOM !${NC}"
 echo -e "${YELLOW}There will be a gRPC error since the module will blow up as soon as the message is sent to it, thus the gRPC server in the module will not respond (simulated with exit 0, see docker log)${NC}"
-curl --silent http://localhost/rocket/actions/boom -X POST
+curl --silent http://localhost/rocket/actions/boom/booster -X POST

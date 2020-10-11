@@ -39,25 +39,7 @@ export class AppService {
         return "Launching the rocket!";
     }
 
-    public detachFuelPart(): string {
-        if (this.rocket.numberOfStages() == 1) {
-            return 'Rocket fuel already separated';
-        }
-        this.telemetryGateway.sendProcess('Separate rocket at ' + this.rocket.altitude + 'km and fuel was ' + this.rocket.getFuelAtLastModule());
-        this.rocket.detachLastModule();
-        return 'Rocket fuel part separated';
-    }
-
-    public detachPayloadPart(): string {
-        if (!this.rocket.head.payload) {
-            return 'Rocket payload already separated';
-        }
-        this.telemetryGateway.sendProcess('Separate payload at ' + this.rocket.altitude + 'km and fuel was ' + this.rocket.getFuelAtLastModule());
-        this.rocket.detachPayload();
-        clearInterval(this.calculateAltitude);
-        return 'Rocket payload part separated';
-    }
-
+    //TODO remove in next release
     private altitudeInterval(): void {
         Logger.log("Calculating altitude... " + this.rocket.altitude + "km");
         this.telemetryGateway.sendPosition(this.rocket.altitude);
@@ -69,26 +51,30 @@ export class AppService {
 
 
         if (this.rocket.getFuelAtLastModule() == 0) {
-            this.detachFuelPart();
+            //this.detachFuelPart();
         }
 
         if (this.rocket.altitude >= this.payloadAltitudeToDetach) {
-            this.detachPayloadPart();
+            //this.detachPayloadPart();
         }
     }
 
+    //TODO remove in next release
     public setPayloadAltitudeToDetach(altitudeToDetach: number): string {
         this.payloadAltitudeToDetach = altitudeToDetach;
         this.telemetryGateway.sendProcess('Altitude to detach payload : ' + this.payloadAltitudeToDetach);
         return 'Altitude to detach payload is now ' + this.payloadAltitudeToDetach + 'km';
     }
 
-    public sendStatusToTelemetry(status: string): void {
-        this.telemetryGateway.sendProcess(status);
-    }
-
-    public boom(res: Response): void {
-        clientBooster.boom(new Empty(), function (err, response) {
+    public boom(res: Response, module: string): void {
+        let moduleToRemove;
+        if(module === 'payload')
+            moduleToRemove = clientProbe;
+        else if(module === 'stage')
+            moduleToRemove = clientStage;
+        else
+            moduleToRemove = clientBooster;
+        moduleToRemove.boom(new Empty(), function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());
             else
@@ -96,8 +82,13 @@ export class AppService {
         });
     }
 
-    detachModule(res: Response) {
-        clientBooster.detach(new Empty(), function (err, response) {
+    detachModule(res: Response, module: string) {
+        let moduleToRemove;
+        if(module === 'payload')
+            moduleToRemove = clientProbe;
+        else
+            moduleToRemove = clientBooster;
+        moduleToRemove.detach(new Empty(), function (err, response) {
             if (response !== undefined) {
                 if (response.getVal() === true) {
                     res.status(200).send('Successfully detached module');

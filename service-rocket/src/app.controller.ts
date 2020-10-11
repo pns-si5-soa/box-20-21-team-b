@@ -1,5 +1,5 @@
 import {Body, Controller, Get, Post, Res} from '@nestjs/common';
-import { Response } from 'express';
+import {Response} from 'express';
 import {AppService} from './app.service';
 import {AltitudePayloadDTODto} from "./dto/AltitudePayloadDTO.dto";
 import {ThrustersSpeedPayloadDTODto} from "./dto/ThrustersSpeedPayloadDTO.dto";
@@ -12,9 +12,7 @@ export class AppController {
 
     @Get('/status')
     getRocketStatus(): string {
-        const status = this.appService.getStatus();
-        this.appService.sendStatusToTelemetry(status);
-        return status;
+        return this.appService.getStatus();
     }
 
     @Post('/launch')
@@ -27,29 +25,34 @@ export class AppController {
         return this.appService.allowLaunch();
     }
 
-    @Post('/detach-stage')
-    detachFuelPart(): string{
-        return this.appService.detachFuelPart();
-    }
-
-    @Post('/detach-payload')
-    detachPayloadPart(): string{
-        return this.appService.detachPayloadPart();
-    }
-
     @Post('/detach-payload/altitude')
     setPayloadAltitudeToDetach(@Body() message: AltitudePayloadDTODto): string{
         return this.appService.setPayloadAltitudeToDetach(message.altitude);
     }
 
-    @Post('/actions/boom')
-    boom(@Res() res: Response): void{
-        this.appService.boom(res);
+    @Post('/actions/boom/payload')
+    boomPayload(@Res() res: Response): void{
+        this.appService.boom(res, 'payload');
     }
 
-    @Post('/actions/detach-module')
-    detachModule(@Res() res: Response): void{
-        this.appService.detachModule(res);
+    @Post('/actions/boom/booster')
+    boomBooster(@Res() res: Response): void{
+        this.appService.boom(res, 'booster');
+    }
+
+    @Post('/actions/boom/stage')
+    boomStage(@Res() res: Response): void{
+        this.appService.boom(res, 'stage');
+    }
+
+    @Post('/actions/detach/payload')
+    detachModulePayload(@Res() res: Response): void{
+        this.appService.detachModule(res, 'payload');
+    }
+
+    @Post('/actions/detach/booster')
+    detachModuleBooster(@Res() res: Response): void{
+        this.appService.detachModule(res, 'booster');
     }
 
     @Post('/actions/set-thrusters-speed')
