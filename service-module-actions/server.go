@@ -58,7 +58,7 @@ func (s *moduleActionsServer) Ok(ctx context.Context, empty *actions.Empty) (*ac
 }
 
 // Detach the module from its predecessor
-func (s *moduleActionsServer) Running(ctx context.Context, empty *actions.Empty) (*actions.RunningReply, error) {
+func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.Empty) (*actions.RunningReply, error) {
 	// TODO Write { Running: true | false } in analog
 	// TODO actually use toggled state to write messages and reply
 	log.Println("Toggling running state")
