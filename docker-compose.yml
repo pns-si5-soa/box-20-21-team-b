@@ -15,8 +15,9 @@ services:
       - ./service-weather/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
+      - kafka
     expose:
-      - "3000"
+      - 3000
     ports:
       - 3000:3000
     networks:
@@ -44,8 +45,9 @@ services:
       - ./service-telemetry/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
+      - kafka
     expose:
-      - "3004"
+      - 3004
     ports:
       - 3004:3004
     networks:
@@ -77,8 +79,9 @@ services:
       - ./service-rocket/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
+      - kafka
     expose:
-      - "3001"
+      - 3001
     ports:
       - 3001:3001
     networks:
@@ -105,46 +108,14 @@ services:
       - ./service-mission/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
+      - kafka
     expose:
-      - "3002"
+      - 3002
     ports:
       - 3002:3002
     networks:
       - services
       - proxy
-
-  ## DATABASE FOR TELEMETRY, POLLS & ACTIONS HISTORY (WIP)
-  mongo:
-    image: mongo:latest
-    container_name: boxb-mongo
-    restart: unless-stopped
-    environment:
-      # MONGO_INITDB_ROOT_USERNAME: root
-      # MONGO_INITDB_ROOT_PASSWORD: toor
-      - MONGODB_DATABASE="blue_origin"
-    expose:
-      - 27017
-    ports:
-      - 27017:27017
-    networks:
-      - services
-
-  ## REVERSE PROXY
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    volumes:
-      - ./reverse_proxy.conf:/etc/nginx/nginx.conf
-    networks:
-      - proxy
-    ports:
-      - 80:80
-    depends_on:
-      - mongo
-      - rocket
-      - mission
-      - weather
-      - telemetry
 
   ## MODULES
   metrics-probe:
@@ -267,11 +238,80 @@ services:
       depends_on:
         - mongo
       expose:
-        - "3035"
+        - 3035
       ports:
         - 3035:3035
       networks:
         - modules
+
+  zookeeper:
+    container_name: boxb-zookeeper
+    image: wurstmeister/zookeeper:latest
+    ports:
+      - 2181:2181
+    expose:
+      - 9092
+    networks:
+      - services
+
+  kafka:
+    container_name: boxb-kafka
+    image: wurstmeister/kafka:latest
+    ports:
+      - 9092:9092
+    expose:
+      - 9092
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: 172.17.0.1
+      KAFKA_ZOOKEEPER_CONNECT: boxb-zookeeper:2181
+      KAFKA_LISTENERS: LISTENER_DOCKER_INTERNAL://:19092,LISTENER_DOCKER_EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka:19092,LISTENER_DOCKER_EXTERNAL://127.0.0.1:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_BROKER_ID: 1
+      KAFKA_CREATE_TOPICS: "topic-poll:1:1,topic-poll-response:1:1,topic-rocket-event:1:1,topic-launch-event:1:1"
+      #topic 1 partition 1 replica
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - zookeeper
+    networks:
+      - services
+
+  ## DATABASE FOR TELEMETRY, POLLS & ACTIONS HISTORY (WIP)
+  mongo:
+    image: mongo:latest
+    container_name: boxb-mongo
+    restart: unless-stopped
+    environment:
+      # MONGO_INITDB_ROOT_USERNAME: root
+      # MONGO_INITDB_ROOT_PASSWORD: toor
+      - MONGODB_DATABASE="blue_origin"
+    expose:
+      - 27017
+    ports:
+      - 27017:27017
+    networks:
+      - services
+
+  ## REVERSE PROXY
+  nginx:
+    image: nginx:latest
+    container_name: boxb-nginx
+    volumes:
+      - ./reverse_proxy.conf:/etc/nginx/nginx.conf
+    networks:
+      - proxy
+    ports:
+      - 80:80
+    depends_on:
+      - mongo
+      - rocket
+      - mission
+      - weather
+      - telemetry
+
 networks:
   services:
   proxy:

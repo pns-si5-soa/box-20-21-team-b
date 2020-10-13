@@ -1,18 +1,28 @@
 import {HttpService, Injectable, Logger} from '@nestjs/common';
 import {Observable} from "rxjs";
 import {ROCKET_HOST, ROCKET_PORT, WEATHER_HOST, WEATHER_PORT} from "../env_variables";
+import {KafkaService} from "./kafka/kafka.service";
+import {TOPIC_POLL} from "./kafka/topics";
 
 @Injectable()
 export class PollService {
     private polling = 0;
 
-    constructor(private httpService: HttpService) {
+    constructor(private httpService: HttpService, private readonly kafkaService: KafkaService) {
     }
 
     launchPoll(): string {
         if (this.polling == 0) {
             this.polling = 1;
             this.sendPollToWeather().subscribe((val) => console.log(val.data));
+            this.kafkaService.sendMessage(TOPIC_POLL, {
+                messageId: '' + new Date().valueOf(),
+                body: {
+                    value: 'Launching poll'
+                },
+                messageType: 'info',
+                topicName: TOPIC_POLL
+            });
             return 'Launching poll: Sending poll to weather';
         } else {
             return 'Poll already in progress !';
