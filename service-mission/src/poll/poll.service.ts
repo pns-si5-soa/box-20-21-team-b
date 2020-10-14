@@ -18,7 +18,7 @@ export class PollService {
             this.kafkaService.sendMessage(TOPIC_POLL, {
                 messageId: '' + new Date().valueOf(),
                 body: {
-                    value: 'Launching poll'
+                    value: 'LAUNCH_POLL'
                 },
                 messageType: 'info',
                 topicName: TOPIC_POLL

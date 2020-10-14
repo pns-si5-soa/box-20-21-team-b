@@ -12,10 +12,9 @@ import {ConsumerModule} from "./poll/kafka/consumer/consumer.module";
         PollModule,
         KafkaModule.register({
             clientId: 'mission-service',
-            brokers: ['localhost:19092'],
+            brokers: ['kafka:9092'],
             groupId: 'box-b',
         }),
-
         ConsumerModule,],
     providers: [AppService],
 })
