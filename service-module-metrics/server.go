@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"sync"
 	"time"
 )
 
@@ -49,17 +48,13 @@ const MaxCache int = 86400
 const AnalogFilePath = "/etc/analog-mock.json"
 //const AnalogFilePath = "../analog-mock.json"
 
-var Analog, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
-var mu sync.Mutex // Its mutex for read / write
+var Analog, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_RDONLY, os.ModePerm)
 
 // Read the analog file & unmarchal metric (or return the error)
-func readJSONMetric() (Metric, error) {
-	mu.Lock()
-	defer mu.Unlock()
-
+func readJSONMetric() (metric Metric) {
 	Analog.Sync()
 
-	metric := Metric{}
+	metric = Metric{}
 
 	byteValue, _ := ioutil.ReadFile(AnalogFilePath)
 	parseErr := json.Unmarshal(byteValue, &metric)
@@ -69,21 +64,26 @@ func readJSONMetric() (Metric, error) {
 		//log.Fatal(parseErr)
 	}
 
+	return
+}
+
+// Add a metric to the current module's cache
+func appendMetric(metric Metric) {
+
+	// if metric is the same
+	if metric.Timestamp.Equal(CurrentModule.LastMetrics[0].Timestamp) {
+		return
+	}
+
 	// boom detected
-	if metric.Boom && len(CurrentModule.LastMetrics) > 1 {
+	if metric.Boom {
 		log.Println("Boom initiated")
-		mu.Lock()
-		defer mu.Unlock()
+		// Write empty JSON {} to simulate explosion (useful in case of a reload)
 		encoder := json.NewEncoder(Analog)
 		encoder.Encode("{}")
 		os.Exit(0)
 	}
 
-	return metric, parseErr
-}
-
-// Add a metric to the current module's cache
-func appendMetric(metric Metric) {
 	// If the cache is full (24 hours of logs with 1 log / second), pop the last entry (FIFO)
 	if len(CurrentModule.LastMetrics) == MaxCache {
 		CurrentModule.LastMetrics = CurrentModule.LastMetrics[:len(CurrentModule.LastMetrics)-1]
@@ -91,19 +91,6 @@ func appendMetric(metric Metric) {
 
 	// Add the current metric at the first place (FIFO)
 	CurrentModule.LastMetrics = append([]Metric{metric}, CurrentModule.LastMetrics...)
-
-	mu.Lock()
-	defer mu.Unlock()
-	// Write metrics in mocked analog (https://medium.com/eaciit-engineering/better-way-to-read-and-write-json-file-in-golang-9d575b7254f2)
-	Analog.Sync()
-	Analog.Truncate(0)
-	Analog.Seek(0, 0)
-	encoder := json.NewEncoder(Analog)
-	err := encoder.Encode(metric)
-	if err != nil {
-		log.Println("Write JSON error")
-		log.Fatal(err)
-	}
 }
 
 // Return all the metrics newer than the timestamp
@@ -181,7 +168,7 @@ func allMetrics(w http.ResponseWriter, req *http.Request) {
 }
 
 // Generate & add a random metric every 1 second
-func generateMetric(done <-chan bool) {
+func getLastMetricRoutine(done <-chan bool) {
 	ticker := time.NewTicker(1 * time.Second)
 	go func() {
 		for {
@@ -190,34 +177,15 @@ func generateMetric(done <-chan bool) {
 				ticker.Stop()
 				return
 			case <-ticker.C:
-				// Generation from last metric
-				//last := CurrentModule.LastMetrics[len(CurrentModule.LastMetrics)-1]
-				last, _ := readJSONMetric()
 
-				// We decrease fuel only if the module is running
-				var fuelVariation float32
-				if last.Running {
-					fuelVariation = -0.1 + rand.Float32()*(-0.5 - -0.1)
-				}
-
-				newMetric := Metric{
-					// min + rand.Float64() * (max - min)
-					// rand.Intn(max - min) + min
-					Altitude:  last.Altitude + rand.Intn(100-5) + 5,
-					Fuel:      last.Fuel + fuelVariation,
-					Pressure:  last.Pressure + 0 + rand.Float32()*((7.2-last.Pressure)-0),
-					Attached:  last.Attached,
-					Running:   last.Running,
-					Speed:     last.Speed + rand.Intn(150 - -150) + -150,
-					Latitude:  last.Latitude + -0.5 + rand.Float32()*(-0.5 - -0.5),
-					Longitude: last.Longitude + -0.5 + rand.Float32()*(-0.5 - -0.5),
-					Timestamp: time.Now(),
-				}
-				appendMetric(newMetric)
+				// Get last metric writes
+				last := readJSONMetric()
+				appendMetric(last)
 			}
 		}
 	}()
 }
+
 
 func main() {
 	// If there is a seed variable set in env
@@ -242,29 +210,9 @@ func main() {
 
 	CurrentModule = Module{LastMetrics: make([]Metric, 0, MaxCache)}
 
-	lastMetricInAnalog, unmarshalError := readJSONMetric()
-	// If there is a previous existing metric
-	if unmarshalError == nil {
-		fmt.Println("Retrieve module metric...")
-		CurrentModule.LastMetrics = append(CurrentModule.LastMetrics, lastMetricInAnalog)
-	} else { // Else create a new one
-		fmt.Println("Generate 1st module metric...")
-		appendMetric(Metric{
-			Altitude:  100,
-			Fuel:      20.0,
-			Pressure:  1,
-			Attached:  true,
-			Running:   true,
-			Speed:     4000,
-			Latitude:  25.333,
-			Longitude: 52.666,
-			Timestamp: time.Now(),
-		})
-	}
-
-	// CRON to generate random metric every second
-	gene := make(chan bool, 1)
-	generateMetric(gene)
+	// CRON to read metric every second
+	analogTicker := make(chan bool, 1)
+	getLastMetricRoutine(analogTicker)
 
 	// Create a new router to serve routes
 	router := mux.NewRouter()
