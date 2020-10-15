@@ -3,7 +3,7 @@ import {AppController} from './app.controller';
 import {AppService} from './app.service';
 import {PollModule} from './poll/poll.module';
 import {KafkaModule} from './poll/kafka/kafka.module';
-import {ConsumerModule} from "./poll/kafka/consumer/consumer.module";
+import {ConsumerModule} from './poll/kafka/consumer/consumer.module';
 
 @Module({
     imports: [PollModule,

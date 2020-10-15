@@ -28,6 +28,7 @@ export class AppService {
         return 'Rocket can now be launched';
     }
 
+    //TODO refactor module management
     requestLaunch(): string {
         this.rocket = new Rocket();
         this.rocket.setHeadModule(new HeadModule(20.0, new Payload('210 avenue de la grande ours', 150.5)));

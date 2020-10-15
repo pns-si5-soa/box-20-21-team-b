@@ -1,8 +1,8 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {AbstractKafkaConsumer} from '../kafka.abstract.consumer';
 import {SubscribeTo} from '../kafka.decorator';
-import {TOPIC_POLL_RESPONSE} from "../topics";
-import {PollService} from "../../poll.service";
+import {TOPIC_POLL} from '../topics';
+import {PollService} from '../../poll.service';
 
 @Injectable()
 export class ConsumerService extends AbstractKafkaConsumer {
@@ -12,17 +12,17 @@ export class ConsumerService extends AbstractKafkaConsumer {
     }
 
     protected registerTopic() {
-        this.addTopic(TOPIC_POLL_RESPONSE);
+        this.addTopic(TOPIC_POLL);
     }
 
     /**
      * When group id is unique for every container.
      * @param payload
      */
-    @SubscribeTo(TOPIC_POLL_RESPONSE)
+    @SubscribeTo(TOPIC_POLL)
     helloSubscriber(payload: string) {
         Logger.log('[KAFKA] Received : ' + payload);
-        this.pollService.managePollResponse(JSON.parse(payload));
+        this.pollService.pollInitiated(JSON.parse(payload));
     }
 
     /**
@@ -30,9 +30,9 @@ export class ConsumerService extends AbstractKafkaConsumer {
      * consumer group id is same for application
      * @param payload
      */
-    // @SubscribeToFixedGroup(TOPIC_POLL_RESPONSE)
+    // @SubscribeToFixedGroup(TOPIC_POLL)
     // pollSubscriber(payload: string) {
     //     Logger.log('[KAFKA_FIXED] Received : ' + payload);
-    //     this.pollService.managePollResponse(JSON.parse(payload));
+    //     this.pollService.pollInitiated(JSON.parse(payload));
     // }
 }

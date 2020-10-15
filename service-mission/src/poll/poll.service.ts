@@ -3,20 +3,20 @@ import {Observable} from "rxjs";
 import {ROCKET_HOST, ROCKET_PORT} from "../env_variables";
 import {KafkaService} from "./kafka/kafka.service";
 import {TOPIC_POLL} from "./kafka/topics";
-import {KafkaPayload} from "./kafka/kafka.message";
 
 @Injectable()
 export class PollService {
-    private isPolling = false;
-    private weatherOk = false;
-    private rocketOk = false;
+    private static isPolling = false; //static is used to persist polling across injection from kafka consummer
+    private static weatherOk = false;
+    private static rocketOk = false;
 
     constructor(private httpService: HttpService, private readonly kafkaService: KafkaService) {
     }
 
     public async launchPoll(): Promise<string> {
-        if (!this.isPolling) {
-            this.isPolling = true;
+        if (!PollService.isPolling) {
+            PollService.isPolling = true;
+            Logger.log('Polling : ' + PollService.isPolling);
             await this.kafkaService.sendMessage(TOPIC_POLL, {
                 messageId: '' + new Date().valueOf(),
                 body: {
@@ -33,7 +33,7 @@ export class PollService {
 
     public managePollResponse(payload: any){
         Logger.log('[POLL_SERVICE] Received : ' + payload.body.value);
-        if(!this.isPolling)
+        if(!PollService.isPolling)
             return;
 
         if(payload.body.client === 'weather')
@@ -42,16 +42,16 @@ export class PollService {
         if(payload.body.client === 'rocket')
             this.progressPollRocket(payload.body.value);
 
-        if(this.weatherOk && this.rocketOk){
+        if(PollService.weatherOk && PollService.rocketOk){
             Logger.log('Everyone is ready you can send the go to rocket')
         }
     }
 
-    private progressPollWeather(response: any): void {
+    private progressPollWeather(response: boolean): void {
         if(response){
-            this.weatherOk = true;
-            Logger.log('Weather is ready! Resetting poll state.');
-        }else if(response){
+            PollService.weatherOk = true;
+            Logger.log('Weather is ready!');
+        }else if(!response){
             Logger.log('Weather is not ready! Resetting poll state.');
             this.resetPoll();
         }
@@ -59,9 +59,9 @@ export class PollService {
 
     private progressPollRocket(response: boolean): void {
         if(response){
-            this.rocketOk = true;
-            Logger.log('Rocket is ready! Resetting poll state.');
-        }else if(response){
+            PollService.rocketOk = true;
+            Logger.log('Rocket is ready!');
+        }else if(!response){
             Logger.log('Rocket is not ready! Resetting poll state.');
             this.resetPoll();
         }
@@ -74,10 +74,10 @@ export class PollService {
                 this.resetPoll();
                 return 'Everyone is now ready! Sending go to rocket chief.';
             } else {
-                return 'Poll not in progress !';
+                return 'Rocket ready : ' + PollService.rocketOk + ' - weather ready : ' + PollService.weatherOk;
             }
         } else {
-            this.isPolling = false;
+            PollService.isPolling = false;
             return 'Mission is not ready! Resetting poll state';
         }
     }
@@ -87,12 +87,12 @@ export class PollService {
     }
 
     private isReady(): boolean{
-        return this.isPolling && this.weatherOk && this.rocketOk;
+        return PollService.isPolling && PollService.weatherOk && PollService.rocketOk;
     }
 
     private resetPoll(): void{
-        this.isPolling = false;
-        this.weatherOk = false;
-        this.rocketOk = false;
+        PollService.isPolling = false;
+        PollService.weatherOk = false;
+        PollService.rocketOk = false;
     }
 }
