@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 15s
+  external_labels:
+    env: 'boxb'
+
+# alerting:
+  # alertmanagers:
+  # - static_configs:
+    # - targets:
+      # - localhost:9093
+    # scheme: http
+    # timeout: 10s
+
+# rule_files:
+  # - "/alertmanager/alert.rules/alerts.rules.yml"
+
+scrape_configs:
+  - job_name: 'module-metrics'
+    static_configs:
+      - targets: ['localhost:3023']
+    scrape_interval: 5s

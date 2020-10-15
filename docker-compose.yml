@@ -129,6 +129,36 @@ services:
     networks:
       - services
 
+  ## PROMETHEUS SERVER FOR RETREIVING DATA FROM ROCKET MODULES
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: boxb-prometheus
+    restart: unless-stopped
+    volumes:
+      - prometheus-data:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      # - ./alertmanager/alert.rules/alerts.rules.yml:/alertmanager/alert.rules/alerts.rules.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=365d'
+    ports:
+      - 9090:9090
+    networks:
+      - services
+
+  ## ALERTMANAGER FOR PROMETHEUS
+  # alertmanager:
+    # image: prom/alertmanager:latest
+    # container_name: alertmanager
+    # deploy:
+      # replicas: 1
+    # volumes:
+      # - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      # - ./alertmanager/templates/default.tmpl:/etc/alertmanager/templates/default.tmpl
+    # command:
+      # - '--config.file=/etc/alertmanager/alertmanager.yml'
+
   ## REVERSE PROXY
   nginx:
     image: nginx:latest
@@ -276,4 +306,7 @@ networks:
   services:
   proxy:
   modules:
+
+volumes:
+  prometheus-data:
 
