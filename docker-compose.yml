@@ -146,64 +146,64 @@ services:
       - weather
       - telemetry
 
-      ## MODULES
-    module-actions:
-      build: ./service-module-actions
-      image: boxb/module-actions
-      restart: unless-stopped
-      #        container_name: module-actions-booster
-      environment:
-        - PORT=4000
-        - ID_MODULE=1
-      volumes:
-        - ./event-mock.json:/etc/event-mock.json # FOR ANALOG MODULE STATUS ONLY
-        - ./analog-mock.json:/etc/analog-mock.json # FOR EVENT MODULE STATUS ONLY
-      depends_on:
-        - mongo
-      expose:
-        - "4000"
-      ports:
-        - 4000:4000
-      networks:
-        - modules
+  ## MODULES
+  module-actions:
+    build: ./service-module-actions
+    image: boxb/module-actions
+    restart: unless-stopped
+    #        container_name: module-actions-booster
+    environment:
+      - PORT=4000
+      - ID_MODULE=1
+    volumes:
+      - ./event-mock.json:/etc/event-mock.json # FOR ANALOG MODULE STATUS ONLY
+      - ./analog-mock.json:/etc/analog-mock.json # FOR EVENT MODULE STATUS ONLY
+    depends_on:
+      - mongo
+    expose:
+      - "4000"
+    ports:
+      - 4000:4000
+    networks:
+      - modules
 
-      module-metrics:
-        build: ./service-module-metrics
-        image: boxb/module-metrics
-        restart: unless-stopped
-        #        container_name: module-actions-booster
-        environment:
-          - PORT=4001
-          - ID_MODULE=1
-        volumes:
-          - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE STATUS ONLY
-        depends_on:
-          - mongo
-        expose:
-          - "4001"
-        ports:
-          - 4001:4001
-        networks:
-          - modules
+  module-metrics:
+    build: ./service-module-metrics
+    image: boxb/module-metrics
+    restart: unless-stopped
+    #        container_name: module-actions-booster
+    environment:
+      - PORT=4001
+      - ID_MODULE=1
+    volumes:
+      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE STATUS ONLY
+    depends_on:
+      - mongo
+    expose:
+      - "4001"
+    ports:
+      - 4001:4001
+    networks:
+      - modules
 
-      module-events:
-        build: ./service-module-events
-        image: boxb/module-events
-        restart: unless-stopped
-        #        container_name: module-actions-booster
-        environment:
-          - PORT=4002
-          - ID_MODULE=1
-        volumes:
-          - ./event-mock.json:/etc/event-mock.json # FOR EVENT MODULE STATUS ONLY
-        depends_on:
-          - mongo
-        expose:
-          - "4002"
-        ports:
-          - 4002:4002
-        networks:
-          - modules
+  module-events:
+    build: ./service-module-events
+    image: boxb/module-events
+    restart: unless-stopped
+    #        container_name: module-actions-booster
+    environment:
+      - PORT=4002
+      - ID_MODULE=1
+    volumes:
+      - ./event-mock.json:/etc/event-mock.json # FOR EVENT MODULE STATUS ONLY
+    depends_on:
+      - mongo
+    expose:
+      - "4002"
+    ports:
+      - 4002:4002
+    networks:
+      - modules
 
       #  metrics-probe:
       #    build: ./service-module-metrics

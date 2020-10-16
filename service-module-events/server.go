@@ -179,8 +179,8 @@ func main() {
 	CurrentModule = Module{LastEvents: make([]Event, 0)}
 
 	// CRON to read event every second
-	analogTicker := make(chan bool, 1)
-	getLastEventsRoutine(analogTicker)
+	eventTicker := make(chan bool, 1)
+	getLastEventsRoutine(eventTicker)
 
 	// Create a new router to serve routes
 	router := mux.NewRouter()
