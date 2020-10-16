@@ -16,21 +16,33 @@ import (
 
 // A module representation
 type Module struct {
+	Id          int
 	LastMetrics []Metric // Cache of last 24 hours of log (1 per second)
 }
 
+// A event representation
+type Event struct {
+	Timestamp   time.Time `json:"timestamp"`
+	IdModule    int       `json:"idModule"`
+	Label       string    `json:"label"`
+	Initiator   string    `json:"initiator"`
+	Description string    `json:"description"`
+}
+// TODO display events
+
 // A simple metric for telemetry
 type Metric struct {
-	Altitude  int       `json:"altitude"`
-	Fuel      float32   `json:"fuel"`
-	Pressure  float32   `json:"pressure"`
-	Attached  bool      `json:"attached"`
-	Running   bool      `json:"running"`
-	Speed     int       `json:"speed"`
-	Latitude  float32   `json:"latitude"`
-	Longitude float32   `json:"longitude"`
-	Timestamp time.Time `json:"timestamp"`
-	Boom      bool      `json:"boom"`
+	Timestamp  time.Time `json:"timestamp"`
+	IdModule   int       `json:"int"`
+	Altitude   int       `json:"altitude"`
+	Fuel       float32   `json:"fuel"`
+	Pressure   float32   `json:"pressure"`
+	Speed      int       `json:"speed"`
+	Latitude   float32   `json:"latitude"`
+	Longitude  float32   `json:"longitude"`
+	IsAttached bool      `json:"isAttached"`
+	IsRunning  bool      `json:"isRunning"`
+	IsBoom     bool      `json:"isBoom"`
 }
 
 // Custom error to return in case of a JSON parsing error
@@ -46,13 +58,14 @@ const MaxCache int = 86400
 
 // Path of the mocked analog system
 const AnalogFilePath = "/etc/analog-mock.json"
+
 //const AnalogFilePath = "../analog-mock.json"
 
-var Analog, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_RDONLY, os.ModePerm)
+var AnalogFile, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_RDONLY, os.ModePerm)
 
 // Read the analog file & unmarchal metric (or return the error)
 func readJSONMetric() (metric Metric) {
-	Analog.Sync()
+	AnalogFile.Sync()
 
 	metric = Metric{}
 
@@ -76,10 +89,10 @@ func appendMetric(metric Metric) {
 	}
 
 	// boom detected
-	if metric.Boom {
+	if metric.IsBoom {
 		log.Println("Boom initiated")
 		// Write empty JSON {} to simulate explosion (useful in case of a reload)
-		encoder := json.NewEncoder(Analog)
+		encoder := json.NewEncoder(AnalogFile)
 		encoder.Encode("{}")
 		os.Exit(0)
 	}
@@ -186,7 +199,6 @@ func getLastMetricRoutine(done <-chan bool) {
 	}()
 }
 
-
 func main() {
 	// If there is a seed variable set in env
 	if os.Getenv("SEED") != "" {
@@ -206,7 +218,15 @@ func main() {
 		port = "3003"
 	}
 
-	defer Analog.Close()
+	// Retrieve the ID of the Module
+	var idModule int
+	if idModule, _ = strconv.Atoi(os.Getenv("ID_MODULE")); idModule == 0 {
+		log.Println("Error : no IdModule provided. Exit")
+		os.Exit(-1)
+	}
+	CurrentModule.Id = idModule
+
+	defer AnalogFile.Close()
 
 	CurrentModule = Module{LastMetrics: make([]Metric, 0, MaxCache)}
 
