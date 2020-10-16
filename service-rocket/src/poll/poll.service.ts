@@ -8,7 +8,7 @@ export class PollService {
     }
 
     public pollInitiated(payload: any){
-        Logger.log('Le poll a démarré');
+        Logger.log('Le poll a démarré, merci d\'envoyer une réponse!');
         Logger.log(payload.body.value);
     }
 

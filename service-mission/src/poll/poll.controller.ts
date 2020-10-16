@@ -14,7 +14,7 @@ export class PollController {
     }
 
     @Post('mission')
-    finalizePoll(@Body() message: PollDTO): string {
+    async finalizePoll(@Body() message: PollDTO): Promise<string> {
         return this.pollService.finalizePoll(message.ready);
     }
 }

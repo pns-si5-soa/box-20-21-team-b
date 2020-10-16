@@ -11,10 +11,10 @@ import { Response } from 'express'
 
 @Injectable()
 export class AppService {
-    private payloadAltitudeToDetach = 200;
-    private calculateAltitude: any;
-    private rocket: Rocket;
-    private canLaunch = false;
+    private static payloadAltitudeToDetach = 200;
+    private static calculateAltitude: any;
+    private static rocket: Rocket;
+    private static canLaunch = false;
 
     constructor(private readonly telemetryGateway: TelemetryGateway) { }
 
@@ -23,48 +23,48 @@ export class AppService {
     }
 
     allowLaunch(): string {
-        this.canLaunch = true;
+        AppService.canLaunch = true;
         Logger.log('Mission commander sent a go. You can now launch the rocket')
         return 'Rocket can now be launched';
     }
 
     //TODO refactor module management
     requestLaunch(): string {
-        this.rocket = new Rocket();
-        this.rocket.setHeadModule(new HeadModule(20.0, new Payload('210 avenue de la grande ours', 150.5)));
-        this.rocket.addModule(new FuelModule(100.0));
-        this.rocket.setNumberInitialStages();
+        AppService.rocket = new Rocket();
+        AppService.rocket.setHeadModule(new HeadModule(20.0, new Payload('210 avenue de la grande ours', 150.5)));
+        AppService.rocket.addModule(new FuelModule(100.0));
+        AppService.rocket.setNumberInitialStages();
 
-        this.calculateAltitude = setInterval(this.altitudeInterval.bind(this), 1500);
+        AppService.calculateAltitude = setInterval(this.altitudeInterval.bind(this), 1500);
         this.telemetryGateway.sendProcess("Rocket Launched");
         return "Launching the rocket!";
     }
 
     //TODO remove in next release
     private altitudeInterval(): void {
-        Logger.log("Calculating altitude... " + this.rocket.altitude + "km");
-        this.telemetryGateway.sendPosition(this.rocket.altitude);
-        this.rocket.altitude += 10;
-        if (this.rocket.numberOfStages() > 1)
-            this.rocket.removeFuel(8);
+        Logger.log("Calculating altitude... " + AppService.rocket.altitude + "km");
+        this.telemetryGateway.sendPosition(AppService.rocket.altitude);
+        AppService.rocket.altitude += 10;
+        if (AppService.rocket.numberOfStages() > 1)
+            AppService.rocket.removeFuel(8);
         else
-            this.rocket.removeFuel(1); //head consomme moins
+            AppService.rocket.removeFuel(1); //head consomme moins
 
 
-        if (this.rocket.getFuelAtLastModule() == 0) {
+        if (AppService.rocket.getFuelAtLastModule() == 0) {
             //this.detachFuelPart();
         }
 
-        if (this.rocket.altitude >= this.payloadAltitudeToDetach) {
+        if (AppService.rocket.altitude >= AppService.payloadAltitudeToDetach) {
             //this.detachPayloadPart();
         }
     }
 
     //TODO remove in next release
     public setPayloadAltitudeToDetach(altitudeToDetach: number): string {
-        this.payloadAltitudeToDetach = altitudeToDetach;
-        this.telemetryGateway.sendProcess('Altitude to detach payload : ' + this.payloadAltitudeToDetach);
-        return 'Altitude to detach payload is now ' + this.payloadAltitudeToDetach + 'km';
+        AppService.payloadAltitudeToDetach = altitudeToDetach;
+        this.telemetryGateway.sendProcess('Altitude to detach payload : ' + AppService.payloadAltitudeToDetach);
+        return 'Altitude to detach payload is now ' + AppService.payloadAltitudeToDetach + 'km';
     }
 
     public boom(res: Response, module: string): void {
@@ -83,7 +83,7 @@ export class AppService {
         });
     }
 
-    detachModule(res: Response, module: string) {
+    public detachModule(res: Response, module: string) {
         let moduleToRemove;
         if(module === 'payload')
             moduleToRemove = clientProbe;
@@ -104,7 +104,7 @@ export class AppService {
         return res;
     }
 
-    setThrustersSpeed(value: number, res: Response) {
+    public setThrustersSpeed(value: number, res: Response) {
         const speed = new Double();
         speed.setVal(value);
         clientBooster.setThrustersSpeed(speed, function (err, response) {
@@ -115,7 +115,7 @@ export class AppService {
         });
     }
 
-    okActions(res: Response) {
+    public okActions(res: Response) {
         clientBooster.ok(new Empty(), function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());
@@ -124,7 +124,7 @@ export class AppService {
         });
     }
 
-    toggleRunning(res: Response) {
+    public toggleRunning(res: Response) {
         clientBooster.toggleRunning(new Empty(), function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());

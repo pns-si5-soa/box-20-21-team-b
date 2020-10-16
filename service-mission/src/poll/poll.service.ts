@@ -1,8 +1,6 @@
 import {HttpService, Injectable, Logger} from '@nestjs/common';
-import {Observable} from "rxjs";
-import {ROCKET_HOST, ROCKET_PORT} from "../env_variables";
 import {KafkaService} from "./kafka/kafka.service";
-import {TOPIC_POLL} from "./kafka/topics";
+import {TOPIC_POLL, TOPIC_LAUNCH_ORDER} from "./kafka/topics";
 
 @Injectable()
 export class PollService {
@@ -67,10 +65,10 @@ export class PollService {
         }
     }
 
-    public finalizePoll(ready: boolean): string {
+    public async finalizePoll(ready: boolean): Promise<string> {
         if (ready) {
             if (this.isReady()) {
-                this.sendLaunchRequest().subscribe((val) => console.log(val.data));
+                await this.sendLaunchRequest();
                 this.resetPoll();
                 return 'Everyone is now ready! Sending go to rocket chief.';
             } else {
@@ -82,8 +80,15 @@ export class PollService {
         }
     }
 
-    private sendLaunchRequest(): Observable<any> {
-        return this.httpService.post('http://' + ROCKET_HOST + ':' + ROCKET_PORT + '/rocket/allow-launch')
+    private async sendLaunchRequest(): Promise<void> {
+        await this.kafkaService.sendMessage(TOPIC_LAUNCH_ORDER, {
+            messageId: '' + new Date().valueOf(),
+            body: {
+                value: 'allow_launch'
+            },
+            messageType: 'info',
+            topicName: TOPIC_POLL
+        });
     }
 
     private isReady(): boolean{

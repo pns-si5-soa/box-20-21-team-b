@@ -20,11 +20,6 @@ export class AppController {
         return this.appService.requestLaunch();
     }
 
-    @Post('/allow-launch')
-    allowLaunch(): string{
-        return this.appService.allowLaunch();
-    }
-
     @Post('/detach-payload/altitude')
     setPayloadAltitudeToDetach(@Body() message: AltitudePayloadDTODto): string{
         return this.appService.setPayloadAltitudeToDetach(message.altitude);
