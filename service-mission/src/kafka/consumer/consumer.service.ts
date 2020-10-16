@@ -1,8 +1,8 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {AbstractKafkaConsumer} from '../kafka.abstract.consumer';
 import {SubscribeTo} from '../kafka.decorator';
-import {TOPIC_POLL_RESPONSE} from "../topics";
-import {PollService} from "../../poll.service";
+import {TOPIC_POLL_RESPONSE, TOPIC_LAUNCH_EVENT} from "../topics";
+import {PollService} from "../../poll/poll.service";
 
 @Injectable()
 export class ConsumerService extends AbstractKafkaConsumer {
@@ -20,9 +20,14 @@ export class ConsumerService extends AbstractKafkaConsumer {
      * @param payload
      */
     @SubscribeTo(TOPIC_POLL_RESPONSE)
-    helloSubscriber(payload: string) {
-        Logger.log('[KAFKA] Received : ' + payload);
+    pollSubscriber(payload: string) {
+        Logger.log('[KAFKA_' + TOPIC_POLL_RESPONSE + '] ' + payload);
         this.pollService.managePollResponse(JSON.parse(payload));
+    }
+
+    @SubscribeTo(TOPIC_LAUNCH_EVENT)
+    helloSubscriber(payload: string) {
+        Logger.log('[KAFKA_' + TOPIC_LAUNCH_EVENT + '] ' + payload);
     }
 
     /**

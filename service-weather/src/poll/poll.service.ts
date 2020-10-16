@@ -1,6 +1,6 @@
 import {Injectable, Logger} from '@nestjs/common';
-import {KafkaService} from './kafka/kafka.service';
-import {TOPIC_POLL_RESPONSE} from './kafka/topics';
+import {KafkaService} from '../kafka/kafka.service';
+import {TOPIC_POLL_RESPONSE} from '../kafka/topics';
 
 @Injectable()
 export class PollService {

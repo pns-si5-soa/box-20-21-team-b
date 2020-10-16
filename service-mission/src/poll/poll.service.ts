@@ -1,6 +1,6 @@
 import {HttpService, Injectable, Logger} from '@nestjs/common';
-import {KafkaService} from "./kafka/kafka.service";
-import {TOPIC_POLL, TOPIC_LAUNCH_ORDER} from "./kafka/topics";
+import {KafkaService} from "../kafka/kafka.service";
+import {TOPIC_POLL, TOPIC_LAUNCH_ORDER} from "../kafka/topics";
 
 @Injectable()
 export class PollService {
@@ -30,7 +30,7 @@ export class PollService {
     }
 
     public managePollResponse(payload: any){
-        Logger.log('[POLL_SERVICE] Received : ' + payload.body.value);
+        Logger.log('[POLL_SERVICE] ' + payload.body.value);
         if(!PollService.isPolling)
             return;
 
@@ -87,7 +87,7 @@ export class PollService {
                 value: 'allow_launch'
             },
             messageType: 'info',
-            topicName: TOPIC_POLL
+            topicName: TOPIC_LAUNCH_ORDER
         });
     }
 

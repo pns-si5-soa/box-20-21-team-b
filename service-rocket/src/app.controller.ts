@@ -11,13 +11,13 @@ export class AppController {
     }
 
     @Get('/status')
-    getRocketStatus(): string {
-        return this.appService.getStatus();
+    async getRocketStatus(): Promise<string> {
+        return await this.appService.getStatus();
     }
 
     @Post('/launch')
-    launching(): string {
-        return this.appService.requestLaunch();
+    async launching(): Promise<string> {
+        return await this.appService.requestLaunch();
     }
 
     @Post('/detach-payload/altitude')

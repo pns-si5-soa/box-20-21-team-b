@@ -1,6 +1,6 @@
 import {HttpModule, Module} from '@nestjs/common';
 import { ConsumerService } from './consumer.service';
-import {PollService} from "../../poll.service";
+import {PollService} from "../../poll/poll.service";
 
 @Module({
   imports: [HttpModule],
