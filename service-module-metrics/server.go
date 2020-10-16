@@ -20,16 +20,6 @@ type Module struct {
 	LastMetrics []Metric // Cache of last 24 hours of log (1 per second)
 }
 
-// A event representation
-type Event struct {
-	Timestamp   time.Time `json:"timestamp"`
-	IdModule    int       `json:"idModule"`
-	Label       string    `json:"label"`
-	Initiator   string    `json:"initiator"`
-	Description string    `json:"description"`
-}
-// TODO display events
-
 // A simple metric for telemetry
 type Metric struct {
 	Timestamp  time.Time `json:"timestamp"`
