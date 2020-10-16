@@ -156,10 +156,8 @@ services:
       - PORT=4000
       - ID_MODULE=1
     volumes:
-      - ./event-mock.json:/etc/event-mock.json # FOR ANALOG MODULE STATUS ONLY
-      - ./analog-mock.json:/etc/analog-mock.json # FOR EVENT MODULE STATUS ONLY
-    depends_on:
-      - mongo
+      - ./event-mock.json:/etc/event-mock.json # FOR EVENT MODULE STATUS ONLY
+      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "4000"
     ports:
@@ -177,8 +175,6 @@ services:
       - ID_MODULE=1
     volumes:
       - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE STATUS ONLY
-    depends_on:
-      - mongo
     expose:
       - "4001"
     ports:
@@ -196,8 +192,6 @@ services:
       - ID_MODULE=1
     volumes:
       - ./event-mock.json:/etc/event-mock.json # FOR EVENT MODULE STATUS ONLY
-    depends_on:
-      - mongo
     expose:
       - "4002"
     ports:

@@ -46,6 +46,8 @@ func readJSONEvents() (events []Event) {
 
 	events = make([]Event, 0)
 
+	// TODO fix reading
+
 	byteValue, _ := ioutil.ReadFile(EventFilePath)
 	parseErr := json.Unmarshal(byteValue, &events)
 	if parseErr != nil {
@@ -65,6 +67,8 @@ func appendEvents(events []Event) {
 	}
 
 	CurrentModule.LastEvents = events
+	log.Println("New event(s)")
+	log.Println(events)
 }
 
 // Return all the events newer than the timestamp

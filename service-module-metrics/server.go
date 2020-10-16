@@ -74,9 +74,11 @@ func readJSONMetric() (metric Metric) {
 func appendMetric(metric Metric) {
 
 	// if metric is the same
-	if metric.Timestamp.Equal(CurrentModule.LastMetrics[0].Timestamp) {
+	if len(CurrentModule.LastMetrics) != 0 && metric.Timestamp.Equal(CurrentModule.LastMetrics[0].Timestamp) {
 		return
 	}
+
+	log.Println(metric)
 
 	// boom detected
 	if metric.IsBoom {
@@ -125,6 +127,11 @@ func ok(w http.ResponseWriter, req *http.Request) {
 // List the metrics after a given timestamp
 func metrics(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	if len(CurrentModule.LastMetrics) == 0 {
+		json.NewEncoder(w).Encode("{}")
+		return
+	}
+
 	params := mux.Vars(req)
 	var listMetrics []Metric // List of metrics to return
 

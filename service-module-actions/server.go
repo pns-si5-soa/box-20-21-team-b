@@ -39,12 +39,21 @@ type Metric struct {
 	IsBoom     bool      `json:"isBoom"`
 }
 
+// A event representation
+type Event struct {
+	Timestamp   time.Time `json:"timestamp"`
+	IdModule    int       `json:"idModule"`
+	Label       string    `json:"label"`
+	Initiator   string    `json:"initiator"`
+	Description string    `json:"description"`
+}
+
 // Path of the mocked analog system
 const AnalogFilePath = "/etc/analog-mock.json"
 
 // Path of the mocked event system
 const EventFilePath = "/etc/event-mock.json"
-var EventFile, _ = os.OpenFile(EventFilePath, os.O_CREATE|os.O_SYNC|os.O_RDONLY, os.ModePerm)
+var EventFile, _ = os.OpenFile(EventFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
 
 var AnalogFile, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
 var mu sync.Mutex     // Its mutex for read / write analog
@@ -84,6 +93,13 @@ func generateMetric(done <-chan bool) {
 					Timestamp:  time.Now(),
 				}
 				writeJSONMetric(newMetric)
+				writeJSONEvent(Event{
+					Timestamp:   time.Now(),
+					IdModule:    CurrentModule.Id,
+					Label:       "labelrouge",
+					Initiator:   "torinitia",
+					Description: "desc",
+				})
 			}
 		}
 	}()
@@ -103,7 +119,7 @@ func writeJSONMetric(jsonObj interface{}) (err error) {
 	encoder := json.NewEncoder(AnalogFile)
 	err = encoder.Encode(jsonObj)
 	if err != nil {
-		log.Println("Write JSON error")
+		log.Println("Write JSON Metric error")
 		//log.Fatal(err)
 	}
 	return
@@ -119,8 +135,8 @@ func writeJSONEvent(jsonObj interface{}) (err error) {
 	encoder := json.NewEncoder(EventFile)
 	err = encoder.Encode(jsonObj)
 	if err != nil {
-		log.Println("Write JSON error")
-		//log.Fatal(err)
+		log.Println("Write JSON Event error")
+		log.Fatal(err)
 	}
 	return
 }
