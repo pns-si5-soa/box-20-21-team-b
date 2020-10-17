@@ -19,7 +19,7 @@ jobs:
             npm install
             npm run test
             
-   go-test:
+  go-test:
     docker:
         - image : cimg/go:1.15
     parameters:
