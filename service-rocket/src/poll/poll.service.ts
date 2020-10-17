@@ -1,13 +1,26 @@
-import {HttpService, Injectable} from '@nestjs/common';
-import {Observable} from "rxjs";
-import {MISSION_HOST, MISSION_PORT} from "../env_variables";
+import {Injectable, Logger} from '@nestjs/common';
+import {KafkaService} from '../kafka/kafka.service';
+import {TOPIC_POLL_RESPONSE} from '../kafka/topics';
 
 @Injectable()
 export class PollService {
-    constructor(private httpService: HttpService) {
+    constructor(private readonly kafkaService: KafkaService) {
     }
 
-    sendAnswerToMission(go: boolean): Observable<any> {
-        return this.httpService.post('http://' + MISSION_HOST + ':' + MISSION_PORT + '/mission/poll/rocket', {ready: go});
+    public pollInitiated(payload: any){
+        Logger.log('Le poll a démarré, merci d\'envoyer une réponse!');
+        Logger.log(payload.body.value);
+    }
+
+    async sendAnswerToMission(go: boolean): Promise<void> {
+        await this.kafkaService.sendMessage(TOPIC_POLL_RESPONSE, {
+            messageId: '' + new Date().valueOf(),
+            body: {
+                client: 'rocket',
+                value: go
+            },
+            messageType: 'info',
+            topicName: TOPIC_POLL_RESPONSE
+        });
     }
 }

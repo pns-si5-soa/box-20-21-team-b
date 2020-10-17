@@ -13,7 +13,7 @@ Get `http://localhost/weather/status`
 
 Post `http://localhost/weather/poll/respond`
 
-**Get `http://localhost/rocket/status**`
+Get `http://localhost/rocket/status**`
 
 Post `http://localhost/rocket/poll/respond`
 

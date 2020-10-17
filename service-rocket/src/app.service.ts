@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { setInterval } from "timers";
-import { TelemetryGateway } from "./telemetry/telemetry.gateway";
 import { Rocket } from "./models/rocket/rocket";
 import { HeadModule } from "./models/rocket/headModule";
 import { Payload } from "./models/payload";
@@ -8,62 +7,112 @@ import { FuelModule } from "./models/rocket/fuelModule";
 import { Double, Empty } from "../rpc/actions_pb";
 import { clientBooster, clientProbe, clientStage } from "./actions.stub";
 import { Response } from 'express'
+import {KafkaService} from "./kafka/kafka.service";
+import {TOPIC_LAUNCH_EVENT} from "./kafka/topics";
 
 @Injectable()
 export class AppService {
-    private payloadAltitudeToDetach = 200;
-    private calculateAltitude: any;
-    private rocket: Rocket;
-    private canLaunch = false;
+    private static payloadAltitudeToDetach = 200;
+    private static calculateAltitude: any;
+    private static rocket: Rocket;
+    private static canLaunch = false;
 
-    constructor(private readonly telemetryGateway: TelemetryGateway) { }
+    constructor(private readonly kafkaService: KafkaService) { }
 
-    getStatus(): string {
+    async getStatus(): Promise<string> {
+        await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
+            messageId: '' + new Date().valueOf(),
+            body: {
+                value: 'Rocket preparation : (fueling ok, status ready)'
+            },
+            messageType: 'info',
+            topicName: TOPIC_LAUNCH_EVENT
+        });
         return 'Rocket status : ready';
     }
 
-    allowLaunch(): string {
-        this.canLaunch = true;
+    public allowLaunch(): string {
+        AppService.canLaunch = true;
         Logger.log('Mission commander sent a go. You can now launch the rocket')
         return 'Rocket can now be launched';
     }
 
-    requestLaunch(): string {
-        this.rocket = new Rocket();
-        this.rocket.setHeadModule(new HeadModule(20.0, new Payload('210 avenue de la grande ours', 150.5)));
-        this.rocket.addModule(new FuelModule(100.0));
-        this.rocket.setNumberInitialStages();
+    //TODO refactor module management
+    public async requestLaunch(): Promise<string> {
+        AppService.rocket = new Rocket();
+        AppService.rocket.setHeadModule(new HeadModule(20.0, new Payload('210 avenue de la grande ours', 150.5)));
+        AppService.rocket.addModule(new FuelModule(100.0));
+        AppService.rocket.setNumberInitialStages();
+        this.launchingSequence();
+        return "Rocket launching sequence started";
+    }
 
-        this.calculateAltitude = setInterval(this.altitudeInterval.bind(this), 1500);
-        this.telemetryGateway.sendProcess("Rocket Launched");
-        return "Launching the rocket!";
+    private async launchingSequence(): Promise<void>{
+        await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
+            messageId: '' + new Date().valueOf(),
+            body: {
+                value: 'Rocket on internal power'
+            },
+            messageType: 'info',
+            topicName: TOPIC_LAUNCH_EVENT
+        });
+
+        setTimeout(async function(){
+            await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
+                messageId: '' + new Date().valueOf(),
+                body: {
+                    value: 'Startup (T-00:01:00)'
+                },
+                messageType: 'info',
+                topicName: TOPIC_LAUNCH_EVENT
+            });
+            setTimeout(async function(){
+                await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
+                    messageId: '' + new Date().valueOf(),
+                    body: {
+                        value: 'Main engine start (T-00:00:03)'
+                    },
+                    messageType: 'info',
+                    topicName: TOPIC_LAUNCH_EVENT
+                });
+                setTimeout(async function(){
+                    await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
+                        messageId: '' + new Date().valueOf(),
+                        body: {
+                            value: 'Liftoff/Launch (T+00:00:00)'
+                        },
+                        messageType: 'info',
+                        topicName: TOPIC_LAUNCH_EVENT
+                    });
+                    AppService.calculateAltitude = setInterval(this.altitudeInterval.bind(this), 1500);
+                }.bind(this), 1000)
+            }.bind(this), 1000)
+        }.bind(this), 1000)
     }
 
     //TODO remove in next release
     private altitudeInterval(): void {
-        Logger.log("Calculating altitude... " + this.rocket.altitude + "km");
-        this.telemetryGateway.sendPosition(this.rocket.altitude);
-        this.rocket.altitude += 10;
-        if (this.rocket.numberOfStages() > 1)
-            this.rocket.removeFuel(8);
+        Logger.log("Calculating altitude... " + AppService.rocket.altitude + "km");
+        AppService.rocket.altitude += 10;
+        if (AppService.rocket.numberOfStages() > 1)
+            AppService.rocket.removeFuel(8);
         else
-            this.rocket.removeFuel(1); //head consomme moins
+            AppService.rocket.removeFuel(1); //head consomme moins
 
 
-        if (this.rocket.getFuelAtLastModule() == 0) {
+        if (AppService.rocket.getFuelAtLastModule() == 0) {
             //this.detachFuelPart();
         }
 
-        if (this.rocket.altitude >= this.payloadAltitudeToDetach) {
+        if (AppService.rocket.altitude >= AppService.payloadAltitudeToDetach) {
             //this.detachPayloadPart();
         }
     }
 
     //TODO remove in next release
     public setPayloadAltitudeToDetach(altitudeToDetach: number): string {
-        this.payloadAltitudeToDetach = altitudeToDetach;
-        this.telemetryGateway.sendProcess('Altitude to detach payload : ' + this.payloadAltitudeToDetach);
-        return 'Altitude to detach payload is now ' + this.payloadAltitudeToDetach + 'km';
+        AppService.payloadAltitudeToDetach = altitudeToDetach;
+        return 'Altitude to detach payload is now ' + AppService.payloadAltitudeToDetach + 'km';
     }
 
     public boom(res: Response, module: string): void {
@@ -82,7 +131,7 @@ export class AppService {
         });
     }
 
-    detachModule(res: Response, module: string) {
+    public detachModule(res: Response, module: string) {
         let moduleToRemove;
         if(module === 'payload')
             moduleToRemove = clientProbe;
@@ -103,7 +152,7 @@ export class AppService {
         return res;
     }
 
-    setThrustersSpeed(value: number, res: Response) {
+    public setThrustersSpeed(value: number, res: Response) {
         const speed = new Double();
         speed.setVal(value);
         clientBooster.setThrustersSpeed(speed, function (err, response) {
@@ -114,7 +163,7 @@ export class AppService {
         });
     }
 
-    okActions(res: Response) {
+    public okActions(res: Response) {
         clientBooster.ok(new Empty(), function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());
@@ -123,7 +172,7 @@ export class AppService {
         });
     }
 
-    toggleRunning(res: Response) {
+    public toggleRunning(res: Response) {
         clientBooster.toggleRunning(new Empty(), function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());
