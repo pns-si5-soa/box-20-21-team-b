@@ -29,11 +29,11 @@ export class DataController {
         } else {
             endDate = Date.parse(endDate + '+02:00');
         }
-        return await this.dataService.retrieveLaunchEvents(beginDate, endDate);
+        return await this.dataService.retrieveRocketEvents(beginDate, endDate);
     }
 
     @Get('/launch-process')
     async getAllMetrics() {
-        return await this.dataService.retrieveAllLaunchEvents();
+        return await this.dataService.retrieveAllRocketEvents();
     }
 }

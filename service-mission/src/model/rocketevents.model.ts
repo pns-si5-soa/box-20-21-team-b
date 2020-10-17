@@ -1,12 +1,12 @@
 import * as mongoose from 'mongoose'
 
-export const LaunchProcessSchema = new mongoose.Schema({
+export const RocketEventSchema = new mongoose.Schema({
     process: { type: String, required: true },
     timestamp: { type: String, required: true },
 
 });
 
-export interface LaunchProcessModel {
+export interface RocketEventModel {
     process: string;
     timestamp: number;
 }

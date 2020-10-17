@@ -1,7 +1,7 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {AbstractKafkaConsumer} from '../kafka.abstract.consumer';
 import {SubscribeTo} from '../kafka.decorator';
-import {TOPIC_POLL_RESPONSE, TOPIC_LAUNCH_EVENT} from "../topics";
+import {TOPIC_POLL_RESPONSE, TOPIC_LAUNCH_EVENT, TOPIC_ROCKET_EVENT} from "../topics";
 import {PollService} from "../../poll/poll.service";
 import {DataService} from "../../data/data.service";
 
@@ -28,10 +28,17 @@ export class ConsumerService extends AbstractKafkaConsumer {
     }
 
     @SubscribeTo(TOPIC_LAUNCH_EVENT)
-    async launchProcessSubscriber(payload: string) {
+    async launchEventsSubscriber(payload: string) {
         Logger.log('[KAFKA_' + TOPIC_LAUNCH_EVENT + '] ' + payload);
         const body = JSON.parse(payload).body;
-        await this.dataService.saveLaunchEvent(body.value, body.timestamp);
+        await this.dataService.saveRocketEvent(body.value, body.timestamp);
+    }
+
+    @SubscribeTo(TOPIC_ROCKET_EVENT)
+    async rocketEventsSubscriber(payload: string) {
+        Logger.log('[KAFKA_' + TOPIC_ROCKET_EVENT + '] ' + payload);
+        const body = JSON.parse(payload).body;
+        await this.dataService.saveRocketEvent(body.value, body.timestamp);
     }
 
     /**

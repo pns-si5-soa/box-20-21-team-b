@@ -4,10 +4,10 @@ import {PollService} from "../../poll/poll.service";
 import {DataModule} from "../../data/data.module";
 import {DataService} from "../../data/data.service";
 import {MongooseModule} from "@nestjs/mongoose";
-import {LaunchProcessSchema} from "../../model/launchprocess.model";
+import {RocketEventSchema} from "../../model/rocketevents.model";
 
 @Module({
-  imports: [HttpModule, DataModule, MongooseModule.forFeature([{ name: 'LaunchProcess', schema: LaunchProcessSchema }]),],
+  imports: [HttpModule, DataModule, MongooseModule.forFeature([{ name: 'LaunchProcess', schema: RocketEventSchema }]),],
   providers: [ConsumerService, PollService, DataService],
 })
 export class ConsumerModule {}
