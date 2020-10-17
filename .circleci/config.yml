@@ -19,6 +19,22 @@ jobs:
             npm install
             npm run test
             
+   go-test:
+    docker:
+        - image : cimg/go:1.15
+    parameters:
+      folder:
+        type: string
+        default: '.'
+    steps:
+      - checkout
+      - run:
+          name: "Go test"
+          command: |
+            cd << parameters.folder >>
+            ls -l
+            go test *
+            
 workflows:
   version : 2
   mission_service_tests:
@@ -29,3 +45,7 @@ workflows:
     jobs:
       - jest-node:
             folder: './service-rocket'
+  module_metrics_tests:
+    jobs:
+      - go-test:
+            folder: './service-module-actions'
