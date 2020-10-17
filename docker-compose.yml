@@ -187,6 +187,11 @@ services:
     container_name: grafana
     environment:
       - GF_PATHS_CONFIG=/etc/grafana/grafana.ini
+      - GF_INSTALL_PLUGINS=grafana-worldmap-panel,pr0ps-trackmap-panel
+    ports:
+    - 2999:3000
+    expose:
+      - 3000
     depends_on:
       - prometheus
     volumes:
@@ -195,6 +200,8 @@ services:
       - ./service-rocket-monitoring/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
       - ./service-rocket-monitoring/grafana/grafana.ini:/etc/grafana/grafana.ini
       - ./service-rocket-monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    labels:
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
 
   ## REVERSE PROXY
   traefik:
@@ -230,8 +237,8 @@ services:
       - PORT=4000
       - ID_MODULE=1
     volumes:
-      - ./event-mock.json:/etc/event-mock.json # FOR EVENT MODULE DEBUG ONLY
-      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE DEBUG ONLY
+      - ./service-modules/event-mock.json:/etc/event-mock.json # FOR EVENT MODULE DEBUG ONLY
+      - ./service-modules/analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "4000"
     ports:
@@ -246,7 +253,7 @@ services:
       - PORT=4001
       - ID_MODULE=1
     volumes:
-      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE STATUS ONLY
+      - ./service-modules/analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "4001"
     ports:
@@ -261,7 +268,7 @@ services:
       - PORT=4002
       - ID_MODULE=1
     volumes:
-      - ./event-mock.json:/etc/event-mock.json # FOR EVENT MODULE STATUS ONLY
+      - ./service-modules/event-mock.json:/etc/event-mock.json # FOR EVENT MODULE STATUS ONLY
     expose:
       - "4002"
     ports:

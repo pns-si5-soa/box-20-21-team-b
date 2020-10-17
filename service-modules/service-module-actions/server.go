@@ -17,11 +17,11 @@ import (
 
 // A module representation
 type Module struct {
-	Id int
+	Id             int
 	DetachAltitude int
-	MaxPressure float32
-	MinFuelToLand float32
-	LastMetric Metric
+	MaxPressure    float32
+	MinFuelToLand  float32
+	LastMetric     Metric
 }
 
 // A simple metric for telemetry
@@ -53,11 +53,12 @@ const AnalogFilePath = "/etc/analog-mock.json"
 
 // Path of the mocked event system
 const EventFilePath = "/etc/event-mock.json"
+
 var EventFile, _ = os.OpenFile(EventFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
 
 var AnalogFile, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
-var mu sync.Mutex     // Its mutex for read / write analog
-var mumu sync.Mutex     // Its mutex for read / write event
+var mu sync.Mutex   // Its mutex for read / write analog
+var mumu sync.Mutex // Its mutex for read / write event
 var CurrentModule Module
 
 // Generate & add a random metric every 1 second
@@ -74,8 +75,25 @@ func generateMetric(done <-chan bool) {
 
 				// We decrease fuel only if the module is running
 				var fuelVariation float32
-				if CurrentModule.LastMetric.IsRunning {
+				if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
 					fuelVariation = -0.1 + rand.Float32()*(-0.5 - -0.1)
+					// Avoid negative fuel
+					if CurrentModule.LastMetric.Fuel+fuelVariation < 0 {
+						fuelVariation = CurrentModule.LastMetric.Fuel
+					}
+				}
+
+				// Avoid negative pressure
+				pressureVariation := -0.5 + rand.Float32()*(-0.5 - -0.5)
+				// Avoid negative fuel
+				if CurrentModule.LastMetric.Pressure+fuelVariation < 0 {
+					pressureVariation = CurrentModule.LastMetric.Pressure
+				}
+
+				// Avoid negative speed
+				speedVariation := rand.Intn(300 - -150) + -150
+				if CurrentModule.LastMetric.Speed < 150 && speedVariation < 0 {
+					speedVariation = -speedVariation
 				}
 
 				newMetric := Metric{
@@ -83,13 +101,13 @@ func generateMetric(done <-chan bool) {
 					// rand.Intn(max - min) + min
 					Altitude:   CurrentModule.LastMetric.Altitude + rand.Intn(100-5) + 5,
 					Fuel:       CurrentModule.LastMetric.Fuel + fuelVariation,
-					Pressure:   CurrentModule.LastMetric.Pressure + 0 + rand.Float32()*((7.2-CurrentModule.LastMetric.Pressure)-0),
+					Pressure:   CurrentModule.LastMetric.Pressure + pressureVariation,
 					IsAttached: CurrentModule.LastMetric.IsAttached,
 					IsRunning:  CurrentModule.LastMetric.IsRunning,
-					Speed:      CurrentModule.LastMetric.Speed + rand.Intn(150 - -150) + -150,
-					Latitude:   CurrentModule.LastMetric.Latitude + -0.5 + rand.Float32()*(-0.5 - -0.5),
-					Longitude:  CurrentModule.LastMetric.Longitude + -0.5 + rand.Float32()*(-0.5 - -0.5),
-					IdModule: CurrentModule.Id,
+					Speed:      CurrentModule.LastMetric.Speed + speedVariation,
+					Latitude:   CurrentModule.LastMetric.Latitude + -0.05 + rand.Float32()*(0.05 - -0.05),
+					Longitude:  CurrentModule.LastMetric.Longitude + -0.05 + rand.Float32()*(0.05 - -0.05),
+					IdModule:   CurrentModule.Id,
 					Timestamp:  time.Now(),
 				}
 				writeJSONMetric(newMetric)
@@ -100,6 +118,8 @@ func generateMetric(done <-chan bool) {
 					Initiator:   "torinitia",
 					Description: "desc",
 				})
+
+				CurrentModule.LastMetric = newMetric
 			}
 		}
 	}()
@@ -220,6 +240,23 @@ func main() {
 		os.Exit(-1)
 	}
 	CurrentModule.Id = idModule
+
+	// Generte first metric
+
+	CurrentModule.LastMetric = Metric{
+		Timestamp:  time.Now(),
+		IdModule:   CurrentModule.Id,
+		Altitude:   15,
+		Fuel:       1000,
+		Pressure:   1,
+		Speed:      342,
+		Latitude:   43.6656112,
+		Longitude:  7.0701789,
+		IsAttached: false,
+		IsRunning:  true,
+		IsBoom:     false,
+	}
+	writeJSONMetric(CurrentModule.LastMetric)
 
 	// CRON to generate random metric every second
 	gene := make(chan bool, 1)

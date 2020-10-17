@@ -18,58 +18,46 @@ import (
 )
 
 var (
-	_ = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+	altitudeGauge = promauto.NewGauge(prometheus.GaugeOpts{
 		Namespace:   "boxb",
 		Subsystem:   "module_metrics",
 		Name:        "altitude",
 		Help:        "Altitude metric",
-	}, func() float64 {
-		return float64(readJSONMetric().Altitude)
 	})
 
-	_ = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+	fuelGauge = promauto.NewGauge(prometheus.GaugeOpts{
 		Namespace:   "boxb",
 		Subsystem:   "module_metrics",
 		Name:        "fuel",
 		Help:        "Fuel metric",
-	}, func() float64 {
-		return float64(readJSONMetric().Fuel)
 	})
 
-	_ = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+	pressureGauge = promauto.NewGauge(prometheus.GaugeOpts{
 		Namespace:   "boxb",
 		Subsystem:   "module_metrics",
 		Name:        "pressure",
 		Help:        "Pressure metric",
-	}, func() float64 {
-		return float64(readJSONMetric().Pressure)
 	})
 
-	_ = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+	speedGauge = promauto.NewGauge(prometheus.GaugeOpts{
 		Namespace:   "boxb",
 		Subsystem:   "module_metrics",
 		Name:        "speed",
 		Help:        "Speed metric",
-	}, func() float64 {
-		return float64(readJSONMetric().Speed)
 	})
 
-	_ = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+	latitudeGauge = promauto.NewGauge(prometheus.GaugeOpts{
 		Namespace:   "boxb",
 		Subsystem:   "module_metrics",
 		Name:        "latitude",
 		Help:        "Latitude metric",
-	}, func() float64 {
-		return float64(readJSONMetric().Latitude)
 	})
 
-	_ = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+	longitudeGauge = promauto.NewGauge(prometheus.GaugeOpts{
 		Namespace:   "boxb",
 		Subsystem:   "module_metrics",
 		Name:        "longitude",
 		Help:        "Longitude metric",
-	}, func() float64 {
-		return float64(readJSONMetric().Longitude)
 	})
 )
 
@@ -82,7 +70,7 @@ type Module struct {
 // A simple metric for telemetry
 type Metric struct {
 	Timestamp  time.Time `json:"timestamp"`
-	IdModule   int       `json:"int"`
+	IdModule   int       `json:"idModule"`
 	Altitude   int       `json:"altitude"`
 	Fuel       float32   `json:"fuel"`
 	Pressure   float32   `json:"pressure"`
@@ -121,8 +109,8 @@ func readJSONMetric() (metric Metric) {
 	byteValue, _ := ioutil.ReadFile(AnalogFilePath)
 	parseErr := json.Unmarshal(byteValue, &metric)
 	if parseErr != nil {
-		log.Println("Error Unmarshal : ")
-		log.Println(parseErr)
+		//log.Println("Error Unmarshal : ")
+		//log.Println(parseErr)
 		//log.Fatal(parseErr)
 	}
 
@@ -133,12 +121,15 @@ func readJSONMetric() (metric Metric) {
 
 // Add a metric to the current module's cache
 func appendMetric(metric Metric) {
+	//log.Println(metric)
 
 	// if metric is the same
 	if len(CurrentModule.LastMetrics) != 0 && metric.Timestamp.Equal(CurrentModule.LastMetrics[0].Timestamp) {
+		//log.Println("No new Metric")
 		return
 	}
 
+	log.Print("New Metric reads : ")
 	log.Println(metric)
 
 	// boom detected
@@ -157,6 +148,14 @@ func appendMetric(metric Metric) {
 
 	// Add the current metric at the first place (FIFO)
 	CurrentModule.LastMetrics = append([]Metric{metric}, CurrentModule.LastMetrics...)
+
+	// Publish metrics
+	altitudeGauge.Set(float64(metric.Altitude))
+	fuelGauge.Set(float64(metric.Fuel))
+	pressureGauge.Set(float64(metric.Pressure))
+	speedGauge.Set(float64(metric.Speed))
+	latitudeGauge.Set(float64(metric.Latitude))
+	longitudeGauge.Set(float64(metric.Longitude))
 }
 
 // Return all the metrics newer than the timestamp
