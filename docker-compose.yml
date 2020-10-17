@@ -5,6 +5,8 @@ services:
   weather:
     build: ./service-weather
     image: boxb/weather
+    labels:
+      - "traefik.http.routers.weather.rule=PathPrefix(`/weather`)"
     restart: unless-stopped
     container_name: weather
     environment:
@@ -27,6 +29,8 @@ services:
   telemetry:
     build: ./service-telemetry
     image: boxb/telemetry
+    labels:
+      - "traefik.http.routers.telemetry.rule=PathPrefix(`/telemetry`)"
     restart: unless-stopped
     container_name: telemetry
     environment:
@@ -57,6 +61,8 @@ services:
   rocket:
     build: ./service-rocket
     image: boxb/rocket
+    labels:
+      - "traefik.http.routers.rocket.rule=PathPrefix(`/rocket`)"
     restart: unless-stopped
     container_name: rocket
     environment:
@@ -90,6 +96,8 @@ services:
   mission:
     build: ./service-mission
     image: boxb/mission
+    labels:
+      - "traefik.http.routers.mission.rule=PathPrefix(`/mission`)"
     container_name: mission
     restart: unless-stopped
     environment:
@@ -160,21 +168,27 @@ services:
       # - '--config.file=/etc/alertmanager/alertmanager.yml'
 
   ## REVERSE PROXY
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    volumes:
-      - ./reverse_proxy.conf:/etc/nginx/nginx.conf
-    networks:
-      - proxy
+  traefik:
+    # The official v2 Traefik docker image
+    image: traefik:v2.3
+    container_name: boxb-traefik
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --api.insecure=true --providers.docker
     ports:
-      - 80:80
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
     depends_on:
-      - mongo
       - rocket
       - mission
       - weather
       - telemetry
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - proxy
 
   ## MODULES
   metrics-probe:
@@ -308,5 +322,5 @@ networks:
   modules:
 
 volumes:
-  prometheus-data:
+  prometheus-data: {}
 
