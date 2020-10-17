@@ -292,9 +292,6 @@ services:
     networks:
       - services
 
-
-
-
   ## DATABASE FOR TELEMETRY, POLLS & ACTIONS HISTORY (WIP)
   mongo:
     image: mongo:latest
