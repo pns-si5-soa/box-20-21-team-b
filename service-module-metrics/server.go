@@ -12,6 +12,20 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+)
+
+var (
+	altitudeGauge = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+		Namespace:   "boxb",
+		Subsystem:   "module_metrics",
+		Name:        "altitude",
+		Help:        "Altitude metric",
+	}, func() float64 {
+		return float64(readJSONMetric().Altitude)
+	})
 )
 
 // A module representation
@@ -69,6 +83,8 @@ func readJSONMetric() (metric Metric) {
 
 	return
 }
+
+
 
 // Add a metric to the current module's cache
 func appendMetric(metric Metric) {
@@ -238,6 +254,8 @@ func main() {
 	router.HandleFunc("/module-metrics/ok", ok).Methods("GET")
 	router.HandleFunc("/module-metrics/metrics", allMetrics).Methods("GET")
 	router.HandleFunc("/module-metrics/metrics/{timestamp}", metrics).Methods("GET")
+
+	router.Handle("/metrics", promhttp.Handler())
 
 	fmt.Println("Server is running on port " + port)
 
