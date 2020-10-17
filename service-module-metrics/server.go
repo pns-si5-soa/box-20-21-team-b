@@ -18,13 +18,58 @@ import (
 )
 
 var (
-	altitudeGauge = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+	_ = promauto.NewGaugeFunc(prometheus.GaugeOpts{
 		Namespace:   "boxb",
 		Subsystem:   "module_metrics",
 		Name:        "altitude",
 		Help:        "Altitude metric",
 	}, func() float64 {
 		return float64(readJSONMetric().Altitude)
+	})
+
+	_ = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+		Namespace:   "boxb",
+		Subsystem:   "module_metrics",
+		Name:        "fuel",
+		Help:        "Fuel metric",
+	}, func() float64 {
+		return float64(readJSONMetric().Fuel)
+	})
+
+	_ = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+		Namespace:   "boxb",
+		Subsystem:   "module_metrics",
+		Name:        "pressure",
+		Help:        "Pressure metric",
+	}, func() float64 {
+		return float64(readJSONMetric().Pressure)
+	})
+
+	_ = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+		Namespace:   "boxb",
+		Subsystem:   "module_metrics",
+		Name:        "speed",
+		Help:        "Speed metric",
+	}, func() float64 {
+		return float64(readJSONMetric().Speed)
+	})
+
+	_ = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+		Namespace:   "boxb",
+		Subsystem:   "module_metrics",
+		Name:        "latitude",
+		Help:        "Latitude metric",
+	}, func() float64 {
+		return float64(readJSONMetric().Latitude)
+	})
+
+	_ = promauto.NewGaugeFunc(prometheus.GaugeOpts{
+		Namespace:   "boxb",
+		Subsystem:   "module_metrics",
+		Name:        "longitude",
+		Help:        "Longitude metric",
+	}, func() float64 {
+		return float64(readJSONMetric().Longitude)
 	})
 )
 
