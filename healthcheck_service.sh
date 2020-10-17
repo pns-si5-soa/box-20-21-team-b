@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 tries=0
-host=http://localhost/rocket/status
+host=http://localhost
+
 if [[ "$1" != "" ]]; then
     host=$1
 fi
