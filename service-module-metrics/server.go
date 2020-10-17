@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io"
 	"io/ioutil"
 	"log"
@@ -12,9 +15,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -252,10 +252,8 @@ func main() {
 
 	// All the routes of the app
 	router.HandleFunc("/module-metrics/ok", ok).Methods("GET")
-	router.HandleFunc("/module-metrics/metrics", allMetrics).Methods("GET")
+	router.Handle("/module-metrics/metrics", promhttp.Handler())
 	router.HandleFunc("/module-metrics/metrics/{timestamp}", metrics).Methods("GET")
-
-	router.Handle("/metrics", promhttp.Handler())
 
 	fmt.Println("Server is running on port " + port)
 
