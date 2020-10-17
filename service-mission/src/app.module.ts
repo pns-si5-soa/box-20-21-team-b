@@ -5,6 +5,7 @@ import {MONGO_DB, MONGO_HOST, MONGO_PORT} from './env_variables';
 import {PollModule} from './poll/poll.module';
 import {KafkaModule} from './kafka/kafka.module';
 import {ConsumerModule} from './kafka/consumer/consumer.module';
+import {AppController} from "./app.controller";
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import {ConsumerModule} from './kafka/consumer/consumer.module';
             groupId: 'box-b',
         }),
         ConsumerModule,],
+    controllers: [AppController],
     providers: [AppService],
 })
 export class AppModule {

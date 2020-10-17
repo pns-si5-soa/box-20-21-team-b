@@ -17,5 +17,7 @@ global:
 scrape_configs:
   - job_name: 'module-metrics'
     static_configs:
-      - targets: ['localhost:3023']
-    scrape_interval: 5s
+      - targets: ['module-metrics:4001']
+#      - labels: [ id: id]
+    metrics_path: "/module-metrics/metrics"
+    scrape_interval: 1s

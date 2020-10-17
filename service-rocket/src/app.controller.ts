@@ -10,6 +10,11 @@ export class AppController {
     constructor(private readonly appService: AppService) {
     }
 
+    @Get('/ok')
+    ok(): string {
+        return "ok";
+    }
+
     @Get('/status')
     async getRocketStatus(): Promise<string> {
         return await this.appService.getStatus();
@@ -56,7 +61,7 @@ export class AppController {
     }
 
     @Post('/actions/ok')
-    ok(@Res() res: Response): void{
+    okActions(@Res() res: Response): void{
         this.appService.okActions(res);
     }
 
