@@ -1,6 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
+import {Controller, Get} from "@nestjs/common";
 
-@Controller('/telemetry')
+@Controller('mission')
 export class AppController {
 
     @Get('/ok')
@@ -8,5 +8,3 @@ export class AppController {
         return 'ok';
     }
 }
-
-

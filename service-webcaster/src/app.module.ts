@@ -1,6 +1,7 @@
 import {Module} from '@nestjs/common';
 import {KafkaModule} from './kafka/kafka.module';
 import {ConsumerModule} from './kafka/consumer/consumer.module';
+import {AppController} from "./app.controller";
 
 @Module({
     imports: [
@@ -10,7 +11,7 @@ import {ConsumerModule} from './kafka/consumer/consumer.module';
             groupId: 'box-b',
         }),
         ConsumerModule,],
-    providers: [],
+    controllers: [AppController],
 })
 export class AppModule {
 }

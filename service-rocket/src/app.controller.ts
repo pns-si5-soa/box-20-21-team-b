@@ -10,6 +10,11 @@ export class AppController {
     constructor(private readonly appService: AppService) {
     }
 
+    @Get('/ok')
+    healthCheck(): string{
+        return 'ok';
+    }
+
     @Get('/status')
     async getRocketStatus(): Promise<string> {
         return await this.appService.getStatus();

@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 tries=0
-host=http://localhost/rocket/status
+default_service=rocket
 if [[ "$1" != "" ]]; then
-    host=$1
+    default_service=$1
 fi
+
+host=http://localhost/$default_service/ok
 
 echo "Backend server $host healthcheck..."
 
