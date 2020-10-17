@@ -111,13 +111,6 @@ func generateMetric(done <-chan bool) {
 					Timestamp:  time.Now(),
 				}
 				writeJSONMetric(newMetric)
-				writeJSONEvent(Event{
-					Timestamp:   time.Now(),
-					IdModule:    CurrentModule.Id,
-					Label:       "labelrouge",
-					Initiator:   "torinitia",
-					Description: "desc",
-				})
 
 				CurrentModule.LastMetric = newMetric
 			}
@@ -171,7 +164,13 @@ func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*
 	log.Println(boomMessage)
 
 	CurrentModule.LastMetric.IsBoom = true
-	// TODO add log event
+	writeJSONEvent(Event{
+		Timestamp:   time.Time{},
+		IdModule:    CurrentModule.Id,
+		Label:       "boom",
+		Initiator:   "manual",
+		Description: "Module exploded",
+	})
 
 	// TODO /ok return ko ?
 
@@ -186,7 +185,13 @@ func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) 
 	log.Println("Detaching module:")
 
 	CurrentModule.LastMetric.IsAttached = false
-	// TODO add log event
+	writeJSONEvent(Event{
+		Timestamp:   time.Time{},
+		IdModule:    CurrentModule.Id,
+		Label:       "detach",
+		Initiator:   "manual",
+		Description: "Module detached from its predecessor",
+	})
 
 	return &actions.Boolean{Val: true}, nil
 }
@@ -196,13 +201,19 @@ func (s *moduleActionsServer) SetThrustersSpeed(ctx context.Context, value *acti
 	res := "Thrusters speed is now " + fmt.Sprintf("%F", value.GetVal())
 	log.Println(res)
 
-	// TODO add log event
+	writeJSONEvent(Event{
+		Timestamp:   time.Time{},
+		IdModule:    CurrentModule.Id,
+		Label:       "set_thrusters_speed",
+		Initiator:   "manual",
+		Description: "Set thrusters speed to " + fmt.Sprintf("%F", value.GetVal()),
+	})
 	CurrentModule.LastMetric.Speed = int(value.GetVal())
 
 	return &actions.SetThrustersSpeedReply{Content: res}, nil
 }
 
-// Detach the module from its predecessor
+// Ok route for healthcheck
 func (s *moduleActionsServer) Ok(ctx context.Context, empty *actions.Empty) (*actions.OkReply, error) {
 	log.Println("Ok")
 	return &actions.OkReply{Content: "Ok"}, nil
@@ -220,7 +231,13 @@ func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.
 	}
 
 	log.Println(message)
-	// TODO add log event
+	writeJSONEvent(Event{
+		Timestamp:   time.Time{},
+		IdModule:    CurrentModule.Id,
+		Label:       "toggle_running",
+		Initiator:   "manual",
+		Description: message,
+	})
 	CurrentModule.LastMetric.IsAttached = !CurrentModule.LastMetric.IsAttached
 
 	return &actions.RunningReply{Content: message}, nil
@@ -241,7 +258,7 @@ func main() {
 	}
 	CurrentModule.Id = idModule
 
-	// Generte first metric
+	// Generate first metric
 
 	CurrentModule.LastMetric = Metric{
 		Timestamp:  time.Now(),
