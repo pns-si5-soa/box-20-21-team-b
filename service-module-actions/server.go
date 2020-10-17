@@ -5,80 +5,138 @@ import (
 	"encoding/json"
 	"fmt"
 	"google.golang.org/grpc"
-	"io/ioutil"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 	"service-module-actions/v2/actions"
+	"strconv"
 	"sync"
 	"time"
 )
 
 // A module representation
 type Module struct {
+	Id int
+	DetachAltitude int
+	MaxPressure float32
+	MinFuelToLand float32
+	LastMetric Metric
 }
 
 // A simple metric for telemetry
 type Metric struct {
-	Altitude  int       `json:"altitude"`
-	Fuel      float32   `json:"fuel"`
-	Pressure  float32   `json:"pressure"`
-	Attached  bool      `json:"attached"`
-	Running   bool      `json:"running"`
-	Speed     int       `json:"speed"`
-	Latitude  float32   `json:"latitude"`
-	Longitude float32   `json:"longitude"`
-	Timestamp time.Time `json:"timestamp"`
-	Boom      bool      `json:"boom"`
+	Timestamp  time.Time `json:"timestamp"`
+	IdModule   int       `json:"idModule"`
+	Altitude   int       `json:"altitude"`
+	Fuel       float32   `json:"fuel"`
+	Pressure   float32   `json:"pressure"`
+	Speed      int       `json:"speed"`
+	Latitude   float32   `json:"latitude"`
+	Longitude  float32   `json:"longitude"`
+	IsAttached bool      `json:"isAttached"`
+	IsRunning  bool      `json:"isRunning"`
+	IsBoom     bool      `json:"isBoom"`
+}
+
+// A event representation
+type Event struct {
+	Timestamp   time.Time `json:"timestamp"`
+	IdModule    int       `json:"idModule"`
+	Label       string    `json:"label"`
+	Initiator   string    `json:"initiator"`
+	Description string    `json:"description"`
 }
 
 // Path of the mocked analog system
 const AnalogFilePath = "/etc/analog-mock.json"
 
-//const AnalogFilePath = "../analog-mock.json"
+// Path of the mocked event system
+const EventFilePath = "/etc/event-mock.json"
+var EventFile, _ = os.OpenFile(EventFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
 
-var Analog, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
-var mu sync.Mutex // Its mutex for read / write
+var AnalogFile, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
+var mu sync.Mutex     // Its mutex for read / write analog
+var mumu sync.Mutex     // Its mutex for read / write event
+var CurrentModule Module
 
-// Read the analog file & unmarchal metric (or return the error)
-func readJSONMetric() (Metric, error) {
-	mu.Lock()
-	defer mu.Unlock()
+// Generate & add a random metric every 1 second
+func generateMetric(done <-chan bool) {
+	ticker := time.NewTicker(1 * time.Second)
+	go func() {
+		for {
+			select {
+			case <-done:
+				ticker.Stop()
+				return
+			case <-ticker.C:
+				// Generation from last metric
 
-	Analog.Sync()
+				// We decrease fuel only if the module is running
+				var fuelVariation float32
+				if CurrentModule.LastMetric.IsRunning {
+					fuelVariation = -0.1 + rand.Float32()*(-0.5 - -0.1)
+				}
 
-	metric := Metric{}
-
-	byteValue, _ := ioutil.ReadFile(AnalogFilePath)
-	parseErr := json.Unmarshal(byteValue, &metric)
-	if parseErr != nil {
-		log.Println("Error Unmarshal : ")
-		log.Println(parseErr)
-		//log.Fatal(parseErr)
-	}
-
-	return metric, parseErr
+				newMetric := Metric{
+					// min + rand.Float64() * (max - min)
+					// rand.Intn(max - min) + min
+					Altitude:   CurrentModule.LastMetric.Altitude + rand.Intn(100-5) + 5,
+					Fuel:       CurrentModule.LastMetric.Fuel + fuelVariation,
+					Pressure:   CurrentModule.LastMetric.Pressure + 0 + rand.Float32()*((7.2-CurrentModule.LastMetric.Pressure)-0),
+					IsAttached: CurrentModule.LastMetric.IsAttached,
+					IsRunning:  CurrentModule.LastMetric.IsRunning,
+					Speed:      CurrentModule.LastMetric.Speed + rand.Intn(150 - -150) + -150,
+					Latitude:   CurrentModule.LastMetric.Latitude + -0.5 + rand.Float32()*(-0.5 - -0.5),
+					Longitude:  CurrentModule.LastMetric.Longitude + -0.5 + rand.Float32()*(-0.5 - -0.5),
+					IdModule: CurrentModule.Id,
+					Timestamp:  time.Now(),
+				}
+				writeJSONMetric(newMetric)
+				writeJSONEvent(Event{
+					Timestamp:   time.Now(),
+					IdModule:    CurrentModule.Id,
+					Label:       "labelrouge",
+					Initiator:   "torinitia",
+					Description: "desc",
+				})
+			}
+		}
+	}()
 }
 
-// Custom error to return in case of a JSON parsing error
-type JSONError struct {
-	Message string `json:"Message"`
-}
-
-// Write into the Analog json file
+// Write into the AnalogFile json file
 func writeJSONMetric(jsonObj interface{}) (err error) {
 	// Write Boom into analog
 	mu.Lock()
 	defer mu.Unlock()
 	// Write metrics in mocked analog (https://medium.com/eaciit-engineering/better-way-to-read-and-write-json-file-in-golang-9d575b7254f2)
-	Analog.Sync()
-	Analog.Truncate(0)
-	Analog.Seek(0, 0)
-	encoder := json.NewEncoder(Analog)
+	AnalogFile.Sync()
+	// Clean the file before writing
+	AnalogFile.Truncate(0)
+	AnalogFile.Seek(0, 0)
+
+	encoder := json.NewEncoder(AnalogFile)
 	err = encoder.Encode(jsonObj)
 	if err != nil {
-		log.Println("Write JSON error")
+		log.Println("Write JSON Metric error")
 		//log.Fatal(err)
+	}
+	return
+}
+
+// Write into the EventFile json file
+func writeJSONEvent(jsonObj interface{}) (err error) {
+	mumu.Lock()
+	defer mumu.Unlock()
+
+	EventFile.Sync()
+
+	encoder := json.NewEncoder(EventFile)
+	err = encoder.Encode(jsonObj)
+	if err != nil {
+		log.Println("Write JSON Event error")
+		log.Fatal(err)
 	}
 	return
 }
@@ -89,17 +147,16 @@ type moduleActionsServer struct {
 
 // Make the module go BOOM
 func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*actions.BoomReply, error) {
-	boomMessage := "Module Boom imminent !"
+	boomMessage := "Module Boom in 5 seconds"
 	log.Println(boomMessage)
 
-	tempMetric, _ := readJSONMetric()
-	tempMetric.Boom = true
-	writeJSONMetric(tempMetric)
+	CurrentModule.LastMetric.IsBoom = true
+	// TODO add log event
 
 	// TODO /ok return ko ?
 
-	// Exit system to simulate boom
-	defer os.Exit(0)
+	// Exit system in 5 seconds to simulate boom
+	time.AfterFunc(5*time.Second, func() { os.Exit(0) })
 
 	return &actions.BoomReply{Content: boomMessage}, nil
 }
@@ -108,9 +165,8 @@ func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*
 func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) (*actions.Boolean, error) {
 	log.Println("Detaching module:")
 
-	tempMetric, _ := readJSONMetric()
-	tempMetric.Attached = false
-	writeJSONMetric(tempMetric)
+	CurrentModule.LastMetric.IsAttached = false
+	// TODO add log event
 
 	return &actions.Boolean{Val: true}, nil
 }
@@ -120,9 +176,8 @@ func (s *moduleActionsServer) SetThrustersSpeed(ctx context.Context, value *acti
 	res := "Thrusters speed is now " + fmt.Sprintf("%F", value.GetVal())
 	log.Println(res)
 
-	tempMetric, _ := readJSONMetric()
-	tempMetric.Speed = int(value.GetVal())
-	writeJSONMetric(tempMetric)
+	// TODO add log event
+	CurrentModule.LastMetric.Speed = int(value.GetVal())
 
 	return &actions.SetThrustersSpeedReply{Content: res}, nil
 }
@@ -135,19 +190,18 @@ func (s *moduleActionsServer) Ok(ctx context.Context, empty *actions.Empty) (*ac
 
 // Start or stop the engine
 func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.Empty) (*actions.RunningReply, error) {
-	tempMetric, _ := readJSONMetric()
 	var message string
 
 	// If the module is currently on
-	if tempMetric.Running {
+	if CurrentModule.LastMetric.IsRunning {
 		message = "Stop the engine"
 	} else {
 		message = "Start the engine"
 	}
 
 	log.Println(message)
-	tempMetric.Attached = !tempMetric.Attached
-	writeJSONMetric(tempMetric)
+	// TODO add log event
+	CurrentModule.LastMetric.IsAttached = !CurrentModule.LastMetric.IsAttached
 
 	return &actions.RunningReply{Content: message}, nil
 }
@@ -158,6 +212,18 @@ func main() {
 	if port = os.Getenv("PORT"); port == "" {
 		port = "3005"
 	}
+
+	// Retrieve the ID of the Module
+	var idModule int
+	if idModule, _ = strconv.Atoi(os.Getenv("ID_MODULE")); idModule == 0 {
+		log.Println("Error : no IdModule provided. Exit")
+		os.Exit(-1)
+	}
+	CurrentModule.Id = idModule
+
+	// CRON to generate random metric every second
+	gene := make(chan bool, 1)
+	generateMetric(gene)
 
 	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {

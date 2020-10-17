@@ -191,131 +191,184 @@ services:
       - proxy
 
   ## MODULES
-  metrics-probe:
-    build: ./service-module-metrics
-    image: boxb/module-metrics
-    restart: unless-stopped
-    container_name: module-metrics-probe
-    environment:
-      - PORT=3013
-#      - MONGO_HOST=mongo
-#      - MONGO_PORT=27017
-#      - MONGO_DB=blue_origin
-    volumes:
-    - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
-    depends_on:
-      - mongo
-    expose:
-      - "3013"
-    ports:
-      - 3013:3013
-    networks:
-      - modules
-
-  metrics-stage:
-      build: ./service-module-metrics
-      image: boxb/module-metrics
-      restart: unless-stopped
-      container_name: module-metrics-stage
-      environment:
-        - PORT=3023
-  #      - MONGO_HOST=mongo
-  #      - MONGO_PORT=27017
-  #      - MONGO_DB=blue_origin
-      volumes:
-      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
-      depends_on:
-        - mongo
-      expose:
-        - "3023"
-      ports:
-        - 3023:3023
-      networks:
-        - modules
-
-  metrics-booster:
-      build: ./service-module-metrics
-      image: boxb/module-metrics
-      restart: unless-stopped
-      container_name: module-metrics-booster
-      environment:
-        - PORT=3033
-  #      - MONGO_HOST=mongo
-  #      - MONGO_PORT=27017
-  #      - MONGO_DB=blue_origin
-      volumes:
-      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
-      depends_on:
-        - mongo
-      expose:
-        - "3033"
-      ports:
-        - 3033:3033
-      networks:
-        - modules
-
-  actions-probe:
+  module-actions:
     build: ./service-module-actions
     image: boxb/module-actions
     restart: unless-stopped
-    container_name: module-actions-probe
+    #        container_name: module-actions-booster
     environment:
-      - PORT=3015
-#      - MONGO_HOST=mongo
-#      - MONGO_PORT=27017
-#      - MONGO_DB=blue_origin
+      - PORT=4000
+      - ID_MODULE=1
     volumes:
-      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
-    depends_on:
-      - mongo
+      - ./event-mock.json:/etc/event-mock.json # FOR EVENT MODULE STATUS ONLY
+      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE STATUS ONLY
     expose:
-      - "3015"
+      - "4000"
     ports:
-      - 3015:3015
+      - 4000:4000
     networks:
       - modules
 
-  actions-stage:
-      build: ./service-module-actions
-      image: boxb/module-actions
-      restart: unless-stopped
-      container_name: module-actions-stage
-      environment:
-        - PORT=3025
-  #      - MONGO_HOST=mongo
-  #      - MONGO_PORT=27017
-  #      - MONGO_DB=blue_origin
-      volumes:
-        - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
-      depends_on:
-        - mongo
-      expose:
-        - "3025"
-      ports:
-        - 3025:3025
-      networks:
-        - modules
+  module-metrics:
+    build: ./service-module-metrics
+    image: boxb/module-metrics
+    restart: unless-stopped
+    #        container_name: module-actions-booster
+    environment:
+      - PORT=4001
+      - ID_MODULE=1
+    volumes:
+      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE STATUS ONLY
+    expose:
+      - "4001"
+    ports:
+      - 4001:4001
+    networks:
+      - modules
 
-  actions-booster:
-      build: ./service-module-actions
-      image: boxb/module-actions
-      restart: unless-stopped
-      container_name: module-actions-booster
-      environment:
-        - PORT=3035
-  #      - MONGO_HOST=mongo
-  #      - MONGO_PORT=27017
-  #      - MONGO_DB=blue_origin
-      volumes:
-        - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
-      depends_on:
-        - mongo
-      expose:
-        - "3035"
-      ports:
-        - 3035:3035
-      networks:
-        - modules
+  module-events:
+    build: ./service-module-events
+    image: boxb/module-events
+    restart: unless-stopped
+    #        container_name: module-actions-booster
+    environment:
+      - PORT=4002
+      - ID_MODULE=1
+    volumes:
+      - ./event-mock.json:/etc/event-mock.json # FOR EVENT MODULE STATUS ONLY
+    expose:
+      - "4002"
+    ports:
+      - 4002:4002
+    networks:
+      - modules
+
+      #  metrics-probe:
+      #    build: ./service-module-metrics
+      #    image: boxb/module-metrics
+      #    restart: unless-stopped
+      #    container_name: module-metrics-probe
+      #    environment:
+      #      - PORT=3013
+      ##      - MONGO_HOST=mongo
+      ##      - MONGO_PORT=27017
+      ##      - MONGO_DB=blue_origin
+      #    volumes:
+      #    - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
+      #    depends_on:
+      #      - mongo
+      #    expose:
+      #      - "3013"
+      #    ports:
+      #      - 3013:3013
+      #    networks:
+      #      - modules
+      #
+      #  metrics-stage:
+      #      build: ./service-module-metrics
+      #      image: boxb/module-metrics
+      #      restart: unless-stopped
+      #      container_name: module-metrics-stage
+      #      environment:
+      #        - PORT=3023
+      #  #      - MONGO_HOST=mongo
+      #  #      - MONGO_PORT=27017
+      #  #      - MONGO_DB=blue_origin
+      #      volumes:
+      #      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
+      #      depends_on:
+      #        - mongo
+      #      expose:
+      #        - "3023"
+      #      ports:
+      #        - 3023:3023
+      #      networks:
+      #        - modules
+      #
+      #  metrics-booster:
+      #      build: ./service-module-metrics
+      #      image: boxb/module-metrics
+      #      restart: unless-stopped
+      #      container_name: module-metrics-booster
+      #      environment:
+      #        - PORT=3033
+      #  #      - MONGO_HOST=mongo
+      #  #      - MONGO_PORT=27017
+      #  #      - MONGO_DB=blue_origin
+      #      volumes:
+      #      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
+      #      depends_on:
+      #        - mongo
+      #      expose:
+      #        - "3033"
+      #      ports:
+      #        - 3033:3033
+      #      networks:
+      #        - modules
+      #
+      #  actions-probe:
+      #    build: ./service-module-actions
+      #    image: boxb/module-actions
+      #    restart: unless-stopped
+      #    container_name: module-actions-probe
+      #    environment:
+      #      - PORT=3015
+      ##      - MONGO_HOST=mongo
+      ##      - MONGO_PORT=27017
+      ##      - MONGO_DB=blue_origin
+      #    volumes:
+      #      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
+      #    depends_on:
+      #      - mongo
+      #    expose:
+      #      - "3015"
+      #    ports:
+      #      - 3015:3015
+      #    networks:
+      #      - modules
+      #
+      #  actions-stage:
+      #      build: ./service-module-actions
+      #      image: boxb/module-actions
+      #      restart: unless-stopped
+      #      container_name: module-actions-stage
+      #      environment:
+      #        - PORT=3025
+      #  #      - MONGO_HOST=mongo
+      #  #      - MONGO_PORT=27017
+      #  #      - MONGO_DB=blue_origin
+      #      volumes:
+      #        - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
+      #      depends_on:
+      #        - mongo
+      #      expose:
+      #        - "3025"
+      #      ports:
+      #        - 3025:3025
+      #      networks:
+      #        - modules
+      #
+      #  actions-booster:
+      #      build: ./service-module-actions
+      #      image: boxb/module-actions
+      #      restart: unless-stopped
+      #      container_name: module-actions-booster
+      #      environment:
+      #        - PORT=3035
+      #  #      - MONGO_HOST=mongo
+      #  #      - MONGO_PORT=27017
+      #  #      - MONGO_DB=blue_origin
+      #      volumes:
+      #        - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
+      #      depends_on:
+      #        - mongo
+      #      expose:
+      #        - "3035"
+      #      ports:
+      #        - 3035:3035
+      #      networks:
+      #        - modules
+
 networks:
   services:
   proxy:
