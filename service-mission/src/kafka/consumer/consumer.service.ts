@@ -3,16 +3,18 @@ import {AbstractKafkaConsumer} from '../kafka.abstract.consumer';
 import {SubscribeTo} from '../kafka.decorator';
 import {TOPIC_POLL_RESPONSE, TOPIC_LAUNCH_EVENT} from "../topics";
 import {PollService} from "../../poll/poll.service";
+import {DataService} from "../../data/data.service";
 
 @Injectable()
 export class ConsumerService extends AbstractKafkaConsumer {
 
-    constructor(private readonly pollService: PollService) {
+    constructor(private readonly pollService: PollService, private readonly dataService: DataService) {
         super();
     }
 
     protected registerTopic() {
         this.addTopic(TOPIC_POLL_RESPONSE);
+        this.addTopic(TOPIC_LAUNCH_EVENT);
     }
 
     /**
@@ -26,8 +28,10 @@ export class ConsumerService extends AbstractKafkaConsumer {
     }
 
     @SubscribeTo(TOPIC_LAUNCH_EVENT)
-    helloSubscriber(payload: string) {
+    async launchProcessSubscriber(payload: string) {
         Logger.log('[KAFKA_' + TOPIC_LAUNCH_EVENT + '] ' + payload);
+        const body = JSON.parse(payload).body;
+        await this.dataService.saveLaunchEvent(body.value, body.timestamp);
     }
 
     /**

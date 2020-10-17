@@ -51,7 +51,8 @@ export class AppService {
         await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
             messageId: '' + new Date().valueOf(),
             body: {
-                value: 'Rocket on internal power'
+                value: 'Rocket on internal power',
+                timestamp: Date.now(),
             },
             messageType: 'info',
             topicName: TOPIC_LAUNCH_EVENT
@@ -61,7 +62,8 @@ export class AppService {
             await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
                 messageId: '' + new Date().valueOf(),
                 body: {
-                    value: 'Startup (T-00:01:00)'
+                    value: 'Startup (T-00:01:00)',
+                    timestamp: Date.now(),
                 },
                 messageType: 'info',
                 topicName: TOPIC_LAUNCH_EVENT
@@ -70,7 +72,8 @@ export class AppService {
                 await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
                     messageId: '' + new Date().valueOf(),
                     body: {
-                        value: 'Main engine start (T-00:00:03)'
+                        value: 'Main engine start (T-00:00:03)',
+                        timestamp: Date.now(),
                     },
                     messageType: 'info',
                     topicName: TOPIC_LAUNCH_EVENT
@@ -79,7 +82,8 @@ export class AppService {
                     await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
                         messageId: '' + new Date().valueOf(),
                         body: {
-                            value: 'Liftoff/Launch (T+00:00:00)'
+                            value: 'Liftoff/Launch (T+00:00:00)',
+                            timestamp: Date.now(),
                         },
                         messageType: 'info',
                         topicName: TOPIC_LAUNCH_EVENT

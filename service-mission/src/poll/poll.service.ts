@@ -29,6 +29,10 @@ export class PollService {
         }
     }
 
+    public test(){
+        Logger.log("test");
+    }
+
     public managePollResponse(payload: any){
         Logger.log('[POLL_SERVICE] ' + payload.body.value);
         if(!PollService.isPolling)
