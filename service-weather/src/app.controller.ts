@@ -6,11 +6,6 @@ export class AppController {
     constructor(private readonly appService: AppService) {
     }
 
-    @Get('/ok')
-    healthCheck(): string {
-        return 'ok';
-    }
-
     @Get('/status')
     getWeather(): string {
         return this.appService.getWeatherStatus();

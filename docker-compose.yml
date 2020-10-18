@@ -90,6 +90,23 @@ services:
 #    ports:
 #      - 3002:3002
 
+  webcaster:
+    build: ./service-webcaster
+    image: boxb/webcaster
+    container_name: webcaster
+    restart: unless-stopped
+    environment:
+      - PORT=3005
+    volumes:
+      - ./service-webcaster/src/:/app/src/ # FOR HOT RELOAD ONLY
+    depends_on:
+      - mongo
+      - kafka
+    expose:
+      - 3005
+    ports:
+      - 3005:3005
+
   ## DATABASE FOR TELEMETRY, POLLS & ACTIONS HISTORY (WIP)
   mongo:
     image: mongo:latest
@@ -226,6 +243,9 @@ services:
       - ./service-modules/analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
+    depends_on:
+      - kafka
+      - mission
 #    expose:
 #      - "4000"
 #    ports:
