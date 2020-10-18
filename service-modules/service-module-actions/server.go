@@ -383,7 +383,7 @@ func main() {
 		Latitude:   43.6656112,
 		Longitude:  7.0701789,
 		IsAttached: true,
-		IsRunning:  true,
+		IsRunning:  false,
 		IsBoom:     false,
 	}
 	writeJSONMetric(CurrentModule.LastMetric)

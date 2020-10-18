@@ -51,8 +51,8 @@ func readJSONEvents() (events []Event) {
 	byteValue, _ := ioutil.ReadFile(EventFilePath)
 	parseErr := json.Unmarshal(byteValue, &events)
 	if parseErr != nil {
-		log.Println("Error Unmarshal : ")
-		log.Println(parseErr)
+		//log.Println("Error Unmarshal : ")
+		//log.Println(parseErr)
 		//log.Fatal(parseErr)
 	}
 
