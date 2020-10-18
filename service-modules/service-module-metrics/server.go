@@ -117,8 +117,6 @@ func readJSONMetric() (metric Metric) {
 	return
 }
 
-
-
 // Add a metric to the current module's cache
 func appendMetric(metric Metric) {
 	//log.Println(metric)

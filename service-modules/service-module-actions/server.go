@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"google.golang.org/grpc"
+	"io/ioutil"
 	"log"
+	"math"
 	"math/rand"
 	"net"
 	"os"
@@ -73,6 +75,7 @@ func generateMetric(done <-chan bool) {
 			case <-ticker.C:
 				// Generation from last metric
 
+
 				// We decrease fuel only if the module is running
 				var fuelVariation float32
 				if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
@@ -82,18 +85,22 @@ func generateMetric(done <-chan bool) {
 						fuelVariation = CurrentModule.LastMetric.Fuel
 					}
 				}
+				// Pressure is 1 at 0m, 0 at 10000m, decreasing linearly
+				newPressure := ((1.0/10000.0)*float32(CurrentModule.LastMetric.Altitude))+1.0
 
-				// Avoid negative pressure
-				pressureVariation := -0.5 + rand.Float32()*(-0.5 - -0.5)
-				// Avoid negative fuel
-				if CurrentModule.LastMetric.Pressure+fuelVariation < 0 {
-					pressureVariation = CurrentModule.LastMetric.Pressure
+				MAX_SPEED := 4000
+				acceleration := 0.0
+				if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
+					acceleration = math.Sqrt(float64(MAX_SPEED-CurrentModule.LastMetric.Speed))*20
+				} else if CurrentModule.LastMetric.Altitude > 0 {
+					acceleration = - math.Sqrt(float64(MAX_SPEED-CurrentModule.LastMetric.Speed))*20
 				}
 
-				// Avoid negative speed
-				speedVariation := rand.Intn(300 - -150) + -150
-				if CurrentModule.LastMetric.Speed < 150 && speedVariation < 0 {
-					speedVariation = -speedVariation
+				latitudeVariation := 0.0
+				longitudeVariation := 0.0
+				if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
+					latitudeVariation = rand.Float64() - 0.5
+					longitudeVariation = rand.Float64() - 0.5
 				}
 
 				newMetric := Metric{
@@ -101,12 +108,12 @@ func generateMetric(done <-chan bool) {
 					// rand.Intn(max - min) + min
 					Altitude:   CurrentModule.LastMetric.Altitude + rand.Intn(100-5) + 5,
 					Fuel:       CurrentModule.LastMetric.Fuel + fuelVariation,
-					Pressure:   CurrentModule.LastMetric.Pressure + pressureVariation,
+					Pressure:   newPressure,
 					IsAttached: CurrentModule.LastMetric.IsAttached,
 					IsRunning:  CurrentModule.LastMetric.IsRunning,
-					Speed:      CurrentModule.LastMetric.Speed + speedVariation,
-					Latitude:   CurrentModule.LastMetric.Latitude + -0.05 + rand.Float32()*(0.05 - -0.05),
-					Longitude:  CurrentModule.LastMetric.Longitude + -0.05 + rand.Float32()*(0.05 - -0.05),
+					Speed:      CurrentModule.LastMetric.Speed + int(acceleration),
+					Latitude:   CurrentModule.LastMetric.Latitude + float32(latitudeVariation),
+					Longitude:  CurrentModule.LastMetric.Longitude + float32(longitudeVariation),
 					IdModule:   CurrentModule.Id,
 					Timestamp:  time.Now(),
 				}
@@ -135,6 +142,23 @@ func writeJSONMetric(jsonObj interface{}) (err error) {
 		log.Println("Write JSON Metric error")
 		//log.Fatal(err)
 	}
+	return
+}
+
+// Read the analog file & unmarchal metric (or return the error)
+func readJSONMetric() (metric Metric) {
+	AnalogFile.Sync()
+
+	metric = Metric{}
+
+	byteValue, _ := ioutil.ReadFile(AnalogFilePath)
+	parseErr := json.Unmarshal(byteValue, &metric)
+	if parseErr != nil {
+		//log.Println("Error Unmarshal : ")
+		//log.Println(parseErr)
+		//log.Fatal(parseErr)
+	}
+
 	return
 }
 
@@ -263,13 +287,13 @@ func main() {
 	CurrentModule.LastMetric = Metric{
 		Timestamp:  time.Now(),
 		IdModule:   CurrentModule.Id,
-		Altitude:   15,
+		Altitude:   0,
 		Fuel:       1000,
 		Pressure:   1,
-		Speed:      342,
+		Speed:      0,
 		Latitude:   43.6656112,
 		Longitude:  7.0701789,
-		IsAttached: false,
+		IsAttached: true,
 		IsRunning:  true,
 		IsBoom:     false,
 	}
