@@ -206,6 +206,23 @@ services:
     labels:
       - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
 
+
+  loki:
+    image: grafana/loki:1.6.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:1.6.0
+    container_name: promtail
+    restart: unless-stopped
+    volumes:
+      - ./service-rocket-monitoring/promtail_config.yml:/etc/promtail/config.yml
+#      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yml
+
   ## REVERSE PROXY
   traefik:
     # The official v2 Traefik docker image
