@@ -7,7 +7,6 @@ import (
 	"google.golang.org/grpc"
 	"io/ioutil"
 	"log"
-	"math"
 	"math/rand"
 	"net"
 	"os"
@@ -74,28 +73,54 @@ func generateMetric(done <-chan bool) {
 				return
 			case <-ticker.C:
 				// Generation from last metric
+				LINEAR_FACTOR := 4 // Linear factor <=> acceleration and altitudeVariation value
 
+				// ALtitude variation
+				altitudeVariation := CurrentModule.LastMetric.Speed/3
+				// If not running, altitude decreases instead of increasing
+				if !(CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0) {
+					altitudeVariation = -altitudeVariation
+					// Avoid negative altitude
+					if CurrentModule.LastMetric.Altitude + altitudeVariation < 0 {
+						altitudeVariation = -CurrentModule.LastMetric.Altitude
+					}
+				}
 
 				// We decrease fuel only if the module is running
 				var fuelVariation float32
 				if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
-					fuelVariation = -0.1 + rand.Float32()*(-0.5 - -0.1)
+					fuelVariation = -5
 					// Avoid negative fuel
 					if CurrentModule.LastMetric.Fuel+fuelVariation < 0 {
 						fuelVariation = CurrentModule.LastMetric.Fuel
 					}
 				}
-				// Pressure is 1 at 0m, 0 at 10000m, decreasing linearly
-				newPressure := ((1.0/10000.0)*float32(CurrentModule.LastMetric.Altitude))+1.0
 
-				MAX_SPEED := 4000
-				acceleration := 0.0
-				if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
-					acceleration = math.Sqrt(float64(MAX_SPEED-CurrentModule.LastMetric.Speed))*20
-				} else if CurrentModule.LastMetric.Altitude > 0 {
-					acceleration = - math.Sqrt(float64(MAX_SPEED-CurrentModule.LastMetric.Speed))*20
+				// Pressure is 1 at 0m, 0 at 10000m, decreasing linearly
+				newPressure := 1.0-((1.0/10000.0)*float32(CurrentModule.LastMetric.Altitude))
+				if newPressure < 0.0 {
+					newPressure = 0.0
 				}
 
+				// Speed variation: acceleration is 0 when not running
+				MAX_SPEED := 4000 // Max speed of the rocket
+				acceleration := 0
+				if CurrentModule.LastMetric.Speed < MAX_SPEED {
+					if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
+						if MAX_SPEED - CurrentModule.LastMetric.Speed > LINEAR_FACTOR {
+							acceleration = LINEAR_FACTOR
+						} else {
+							acceleration = MAX_SPEED - CurrentModule.LastMetric.Speed
+						}
+					}
+				}
+
+				// When altitude is 0, acceleration resets speed
+				if CurrentModule.LastMetric.Altitude == 0 && !(CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0){
+					acceleration = -CurrentModule.LastMetric.Speed
+				}
+
+				// Coordinates variation (random)
 				latitudeVariation := 0.0
 				longitudeVariation := 0.0
 				if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
@@ -106,7 +131,7 @@ func generateMetric(done <-chan bool) {
 				newMetric := Metric{
 					// min + rand.Float64() * (max - min)
 					// rand.Intn(max - min) + min
-					Altitude:   CurrentModule.LastMetric.Altitude + rand.Intn(100-5) + 5,
+					Altitude:   CurrentModule.LastMetric.Altitude + altitudeVariation,
 					Fuel:       CurrentModule.LastMetric.Fuel + fuelVariation,
 					Pressure:   newPressure,
 					IsAttached: CurrentModule.LastMetric.IsAttached,

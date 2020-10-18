@@ -199,7 +199,6 @@ services:
       - ./service-rocket-monitoring/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
       - ./service-rocket-monitoring/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
       - ./service-rocket-monitoring/grafana/grafana.ini:/etc/grafana/grafana.ini
-      - ./service-rocket-monitoring/grafana/dashboards:/var/lib/grafana/dashboards
     labels:
       - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
 
