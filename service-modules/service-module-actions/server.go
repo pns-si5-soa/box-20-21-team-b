@@ -76,7 +76,7 @@ func createNewMetric() {
 	// Altitude variation
 	altitudeVariation := CurrentModule.LastMetric.Speed/3
 	// If not running, altitude decreases instead of increasing
-	if !(CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0) {
+	if !(CurrentModule.LastMetric.IsRunning || CurrentModule.LastMetric.Fuel > 0) {
 		altitudeVariation = -altitudeVariation
 		// Avoid negative altitude
 		if CurrentModule.LastMetric.Altitude + altitudeVariation < 0 {
@@ -144,11 +144,10 @@ func createNewMetric() {
 
 func resolveAutoActions() {
 	// MAX Q check -- decrease speed if reached
-	MAX_Q_PRESSURE := float32(7.0)
-	if CurrentModule.LastMetric.Pressure >= MAX_Q_PRESSURE {
+	if CurrentModule.LastMetric.Pressure >= CurrentModule.MaxPressure {
 		sendMessageToKafka("Max Q reached - decreasing thrusters power")
 		LINEAR_FACTOR = 0
-		CurrentModule.LastMetric.Speed = int(MAX_Q_PRESSURE * PRESSURE_FACTOR)
+		CurrentModule.LastMetric.Speed = int(CurrentModule.MaxPressure * PRESSURE_FACTOR)
 	}
 
 	// Fuel level check to auto detach
@@ -386,6 +385,9 @@ func main() {
 		IsRunning:  false,
 		IsBoom:     false,
 	}
+	CurrentModule.DetachAltitude = 10000
+	CurrentModule.MinFuelToLand = 50
+	CurrentModule.MaxPressure = 7.0
 	writeJSONMetric(CurrentModule.LastMetric)
 
 	// CRON to generate random metric every second
