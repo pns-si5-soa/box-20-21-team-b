@@ -15,5 +15,10 @@ export class AppController {
     getWeather(): string {
         return this.appService.getWeatherStatus();
     }
+
+    @Get('/ok')
+    ok(): string {
+        return "ok";
+    }
 }
 

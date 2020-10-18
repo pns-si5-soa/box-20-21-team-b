@@ -1,4 +1,4 @@
-module service-module-metrics/v2
+module service-module-events/v2
 
 go 1.15
 

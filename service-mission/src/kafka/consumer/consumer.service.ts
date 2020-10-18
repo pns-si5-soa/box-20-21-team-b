@@ -42,6 +42,11 @@ export class ConsumerService extends AbstractKafkaConsumer {
         await this.dataService.saveRocketEvent(body.value, body.timestamp);
     }
 
+    @SubscribeTo(TOPIC_ROCKET_EVENT)
+    rocketEventSubscriber(payload: string) {
+        Logger.log('[KAFKA_' + TOPIC_ROCKET_EVENT + '] ' + payload);
+    }
+
     /**
      * When application or container scale up &
      * consumer group id is same for application

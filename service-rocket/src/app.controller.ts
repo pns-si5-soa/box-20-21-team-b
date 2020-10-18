@@ -11,8 +11,8 @@ export class AppController {
     }
 
     @Get('/ok')
-    healthCheck(): string{
-        return 'ok';
+    ok(): string {
+        return "ok";
     }
 
     @Get('/status')
@@ -61,7 +61,7 @@ export class AppController {
     }
 
     @Post('/actions/ok')
-    ok(@Res() res: Response): void{
+    okActions(@Res() res: Response): void{
         this.appService.okActions(res);
     }
 

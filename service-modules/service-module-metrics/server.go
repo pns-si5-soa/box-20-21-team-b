@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io"
 	"io/ioutil"
 	"log"
@@ -11,27 +14,72 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"sync"
 	"time"
+)
+
+var (
+	altitudeGauge = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace:   "boxb",
+		Subsystem:   "module_metrics",
+		Name:        "altitude",
+		Help:        "Altitude metric",
+	})
+
+	fuelGauge = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace:   "boxb",
+		Subsystem:   "module_metrics",
+		Name:        "fuel",
+		Help:        "Fuel metric",
+	})
+
+	pressureGauge = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace:   "boxb",
+		Subsystem:   "module_metrics",
+		Name:        "pressure",
+		Help:        "Pressure metric",
+	})
+
+	speedGauge = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace:   "boxb",
+		Subsystem:   "module_metrics",
+		Name:        "speed",
+		Help:        "Speed metric",
+	})
+
+	latitudeGauge = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace:   "boxb",
+		Subsystem:   "module_metrics",
+		Name:        "latitude",
+		Help:        "Latitude metric",
+	})
+
+	longitudeGauge = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace:   "boxb",
+		Subsystem:   "module_metrics",
+		Name:        "longitude",
+		Help:        "Longitude metric",
+	})
 )
 
 // A module representation
 type Module struct {
+	Id          int
 	LastMetrics []Metric // Cache of last 24 hours of log (1 per second)
 }
 
 // A simple metric for telemetry
 type Metric struct {
-	Altitude  int       `json:"altitude"`
-	Fuel      float32   `json:"fuel"`
-	Pressure  float32   `json:"pressure"`
-	Attached  bool      `json:"attached"`
-	Running   bool      `json:"running"`
-	Speed     int       `json:"speed"`
-	Latitude  float32   `json:"latitude"`
-	Longitude float32   `json:"longitude"`
-	Timestamp time.Time `json:"timestamp"`
-	Boom      bool      `json:"boom"`
+	Timestamp  time.Time `json:"timestamp"`
+	IdModule   int       `json:"idModule"`
+	Altitude   int       `json:"altitude"`
+	Fuel       float32   `json:"fuel"`
+	Pressure   float32   `json:"pressure"`
+	Speed      int       `json:"speed"`
+	Latitude   float32   `json:"latitude"`
+	Longitude  float32   `json:"longitude"`
+	IsAttached bool      `json:"isAttached"`
+	IsRunning  bool      `json:"isRunning"`
+	IsBoom     bool      `json:"isBoom"`
 }
 
 // Custom error to return in case of a JSON parsing error
@@ -47,43 +95,50 @@ const MaxCache int = 86400
 
 // Path of the mocked analog system
 const AnalogFilePath = "/etc/analog-mock.json"
+
 //const AnalogFilePath = "../analog-mock.json"
 
-var Analog, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
-var mu sync.Mutex // Its mutex for read / write
+var AnalogFile, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_RDONLY, os.ModePerm)
 
 // Read the analog file & unmarchal metric (or return the error)
-func readJSONMetric() (Metric, error) {
-	mu.Lock()
-	defer mu.Unlock()
+func readJSONMetric() (metric Metric) {
+	AnalogFile.Sync()
 
-	Analog.Sync()
-
-	metric := Metric{}
+	metric = Metric{}
 
 	byteValue, _ := ioutil.ReadFile(AnalogFilePath)
 	parseErr := json.Unmarshal(byteValue, &metric)
 	if parseErr != nil {
-		log.Println("Error Unmarshal : ")
-		log.Println(parseErr)
+		//log.Println("Error Unmarshal : ")
+		//log.Println(parseErr)
 		//log.Fatal(parseErr)
 	}
 
-	// boom detected
-	if metric.Boom && len(CurrentModule.LastMetrics) > 1 {
-		log.Println("Boom initiated")
-		mu.Lock()
-		defer mu.Unlock()
-		encoder := json.NewEncoder(Analog)
-		encoder.Encode("{}")
-		os.Exit(0)
-	}
-
-	return metric, parseErr
+	return
 }
 
 // Add a metric to the current module's cache
 func appendMetric(metric Metric) {
+	//log.Println(metric)
+
+	// if metric is the same
+	if len(CurrentModule.LastMetrics) != 0 && metric.Timestamp.Equal(CurrentModule.LastMetrics[0].Timestamp) {
+		//log.Println("No new Metric")
+		return
+	}
+
+	log.Print("New Metric reads : ")
+	log.Println(metric)
+
+	// boom detected
+	if metric.IsBoom {
+		log.Println("Boom initiated")
+		// Write empty JSON {} to simulate explosion (useful in case of a reload)
+		encoder := json.NewEncoder(AnalogFile)
+		encoder.Encode("{}")
+		os.Exit(0)
+	}
+
 	// If the cache is full (24 hours of logs with 1 log / second), pop the last entry (FIFO)
 	if len(CurrentModule.LastMetrics) == MaxCache {
 		CurrentModule.LastMetrics = CurrentModule.LastMetrics[:len(CurrentModule.LastMetrics)-1]
@@ -92,18 +147,13 @@ func appendMetric(metric Metric) {
 	// Add the current metric at the first place (FIFO)
 	CurrentModule.LastMetrics = append([]Metric{metric}, CurrentModule.LastMetrics...)
 
-	mu.Lock()
-	defer mu.Unlock()
-	// Write metrics in mocked analog (https://medium.com/eaciit-engineering/better-way-to-read-and-write-json-file-in-golang-9d575b7254f2)
-	Analog.Sync()
-	Analog.Truncate(0)
-	Analog.Seek(0, 0)
-	encoder := json.NewEncoder(Analog)
-	err := encoder.Encode(metric)
-	if err != nil {
-		log.Println("Write JSON error")
-		log.Fatal(err)
-	}
+	// Publish metrics
+	altitudeGauge.Set(float64(metric.Altitude))
+	fuelGauge.Set(float64(metric.Fuel))
+	pressureGauge.Set(float64(metric.Pressure))
+	speedGauge.Set(float64(metric.Speed))
+	latitudeGauge.Set(float64(metric.Latitude))
+	longitudeGauge.Set(float64(metric.Longitude))
 }
 
 // Return all the metrics newer than the timestamp
@@ -135,6 +185,11 @@ func ok(w http.ResponseWriter, req *http.Request) {
 // List the metrics after a given timestamp
 func metrics(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	if len(CurrentModule.LastMetrics) == 0 {
+		json.NewEncoder(w).Encode("{}")
+		return
+	}
+
 	params := mux.Vars(req)
 	var listMetrics []Metric // List of metrics to return
 
@@ -181,7 +236,7 @@ func allMetrics(w http.ResponseWriter, req *http.Request) {
 }
 
 // Generate & add a random metric every 1 second
-func generateMetric(done <-chan bool) {
+func getLastMetricRoutine(done <-chan bool) {
 	ticker := time.NewTicker(1 * time.Second)
 	go func() {
 		for {
@@ -190,30 +245,10 @@ func generateMetric(done <-chan bool) {
 				ticker.Stop()
 				return
 			case <-ticker.C:
-				// Generation from last metric
-				//last := CurrentModule.LastMetrics[len(CurrentModule.LastMetrics)-1]
-				last, _ := readJSONMetric()
 
-				// We decrease fuel only if the module is running
-				var fuelVariation float32
-				if last.Running {
-					fuelVariation = -0.1 + rand.Float32()*(-0.5 - -0.1)
-				}
-
-				newMetric := Metric{
-					// min + rand.Float64() * (max - min)
-					// rand.Intn(max - min) + min
-					Altitude:  last.Altitude + rand.Intn(100-5) + 5,
-					Fuel:      last.Fuel + fuelVariation,
-					Pressure:  last.Pressure + 0 + rand.Float32()*((7.2-last.Pressure)-0),
-					Attached:  last.Attached,
-					Running:   last.Running,
-					Speed:     last.Speed + rand.Intn(150 - -150) + -150,
-					Latitude:  last.Latitude + -0.5 + rand.Float32()*(-0.5 - -0.5),
-					Longitude: last.Longitude + -0.5 + rand.Float32()*(-0.5 - -0.5),
-					Timestamp: time.Now(),
-				}
-				appendMetric(newMetric)
+				// Get last metric writes
+				last := readJSONMetric()
+				appendMetric(last)
 			}
 		}
 	}()
@@ -238,40 +273,28 @@ func main() {
 		port = "3003"
 	}
 
-	defer Analog.Close()
+	// Retrieve the ID of the Module
+	var idModule int
+	if idModule, _ = strconv.Atoi(os.Getenv("ID_MODULE")); idModule == 0 {
+		log.Println("Error : no IdModule provided. Exit")
+		os.Exit(-1)
+	}
+	CurrentModule.Id = idModule
+
+	defer AnalogFile.Close()
 
 	CurrentModule = Module{LastMetrics: make([]Metric, 0, MaxCache)}
 
-	lastMetricInAnalog, unmarshalError := readJSONMetric()
-	// If there is a previous existing metric
-	if unmarshalError == nil {
-		fmt.Println("Retrieve module metric...")
-		CurrentModule.LastMetrics = append(CurrentModule.LastMetrics, lastMetricInAnalog)
-	} else { // Else create a new one
-		fmt.Println("Generate 1st module metric...")
-		appendMetric(Metric{
-			Altitude:  100,
-			Fuel:      20.0,
-			Pressure:  1,
-			Attached:  true,
-			Running:   true,
-			Speed:     4000,
-			Latitude:  25.333,
-			Longitude: 52.666,
-			Timestamp: time.Now(),
-		})
-	}
-
-	// CRON to generate random metric every second
-	gene := make(chan bool, 1)
-	generateMetric(gene)
+	// CRON to read metric every second
+	analogTicker := make(chan bool, 1)
+	getLastMetricRoutine(analogTicker)
 
 	// Create a new router to serve routes
 	router := mux.NewRouter()
 
 	// All the routes of the app
 	router.HandleFunc("/module-metrics/ok", ok).Methods("GET")
-	router.HandleFunc("/module-metrics/metrics", allMetrics).Methods("GET")
+	router.Handle("/module-metrics/metrics", promhttp.Handler())
 	router.HandleFunc("/module-metrics/metrics/{timestamp}", metrics).Methods("GET")
 
 	fmt.Println("Server is running on port " + port)
