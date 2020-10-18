@@ -75,7 +75,7 @@ func generateMetric(done <-chan bool) {
 				// Generation from last metric
 				LINEAR_FACTOR := 4 // Linear factor <=> acceleration and altitudeVariation value
 
-				// ALtitude variation
+				// Altitude variation
 				altitudeVariation := CurrentModule.LastMetric.Speed/3
 				// If not running, altitude decreases instead of increasing
 				if !(CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0) {
@@ -96,8 +96,8 @@ func generateMetric(done <-chan bool) {
 					}
 				}
 
-				// Pressure is 1 at 0m, 0 at 10000m, decreasing linearly
-				newPressure := 1.0-((1.0/10000.0)*float32(CurrentModule.LastMetric.Altitude))
+				// Pressure is 1 at 0m, 0 at 30000m, decreasing linearly
+				newPressure := 1.0-((1.0/30000.0)*float32(CurrentModule.LastMetric.Altitude))
 				if newPressure < 0.0 {
 					newPressure = 0.0
 				}
