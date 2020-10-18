@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/segmentio/kafka-go"
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/segmentio/kafka-go"
 	"google.golang.org/grpc"
 	"io/ioutil"
 	"log"
@@ -67,6 +67,113 @@ var CurrentModule Module
 
 var kafkaCon *kafka.Conn
 
+var LINEAR_FACTOR = 4 // Linear factor <=> acceleration and altitudeVariation value
+var PRESSURE_FACTOR = float32(500.0) // Factor between speed and pressure
+
+func createNewMetric() {
+	// Generation from last metric
+
+	// Altitude variation
+	altitudeVariation := CurrentModule.LastMetric.Speed/3
+	// If not running, altitude decreases instead of increasing
+	if !(CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0) {
+		altitudeVariation = -altitudeVariation
+		// Avoid negative altitude
+		if CurrentModule.LastMetric.Altitude + altitudeVariation < 0 {
+			altitudeVariation = -CurrentModule.LastMetric.Altitude
+		}
+	}
+
+	// We decrease fuel only if the module is running
+	var fuelVariation float32
+	if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
+		fuelVariation = -5
+		// Avoid negative fuel
+		if CurrentModule.LastMetric.Fuel+fuelVariation < 0 {
+			fuelVariation = CurrentModule.LastMetric.Fuel
+		}
+	}
+
+	// Pressure according to speed
+	newPressure := 1.0+float32(CurrentModule.LastMetric.Speed)/PRESSURE_FACTOR
+
+	// Speed variation: acceleration is 0 when not running
+	MAX_SPEED := 4000 // Max speed of the rocket
+	acceleration := 0
+	if CurrentModule.LastMetric.Speed < MAX_SPEED {
+		if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
+			if MAX_SPEED - CurrentModule.LastMetric.Speed > LINEAR_FACTOR {
+				acceleration = LINEAR_FACTOR
+			} else {
+				acceleration = MAX_SPEED - CurrentModule.LastMetric.Speed
+			}
+		}
+	}
+
+	// When altitude is 0, acceleration resets speed
+	if CurrentModule.LastMetric.Altitude == 0 && !(CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0){
+		acceleration = -CurrentModule.LastMetric.Speed
+	}
+
+	// Coordinates variation (random)
+	latitudeVariation := 0.0
+	longitudeVariation := 0.0
+	if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
+		latitudeVariation = rand.Float64() - 0.5
+		longitudeVariation = rand.Float64() - 0.5
+	}
+
+	newMetric := Metric{
+		// min + rand.Float64() * (max - min)
+		// rand.Intn(max - min) + min
+		Altitude:   CurrentModule.LastMetric.Altitude + altitudeVariation,
+		Fuel:       CurrentModule.LastMetric.Fuel + fuelVariation,
+		Pressure:   newPressure,
+		IsAttached: CurrentModule.LastMetric.IsAttached,
+		IsRunning:  CurrentModule.LastMetric.IsRunning,
+		Speed:      CurrentModule.LastMetric.Speed + acceleration,
+		Latitude:   CurrentModule.LastMetric.Latitude + float32(latitudeVariation),
+		Longitude:  CurrentModule.LastMetric.Longitude + float32(longitudeVariation),
+		IdModule:   CurrentModule.Id,
+		Timestamp:  time.Now(),
+	}
+	writeJSONMetric(newMetric)
+
+	CurrentModule.LastMetric = newMetric
+}
+
+func resolveAutoActions() {
+	// MAX Q check -- decrease speed if reached
+	MAX_Q_PRESSURE := float32(7.0)
+	if CurrentModule.LastMetric.Pressure >= MAX_Q_PRESSURE {
+		sendMessageToKafka("Max Q reached - decreasing thrusters power")
+		LINEAR_FACTOR = 0
+		CurrentModule.LastMetric.Speed = int(MAX_Q_PRESSURE * PRESSURE_FACTOR)
+	}
+
+	// Fuel level check to auto detach
+	if CurrentModule.LastMetric.Fuel <= CurrentModule.MinFuelToLand {
+		sendMessageToKafka("Fuel level reached minimum value - cutting off engine")
+		CurrentModule.LastMetric.IsRunning = false
+		go func() {
+			time.Sleep(2 * time.Second)
+			sendMessageToKafka("Detaching module")
+			CurrentModule.LastMetric.IsAttached = false
+		}()
+	}
+
+	// Altitude check to auto detach
+	if CurrentModule.LastMetric.Altitude >= CurrentModule.DetachAltitude {
+		sendMessageToKafka("Reached detachment altitude - cutting off engine")
+		CurrentModule.LastMetric.IsRunning = false
+		go func() {
+			time.Sleep(2 * time.Second)
+			sendMessageToKafka("Detaching module")
+			CurrentModule.LastMetric.IsAttached = false
+		}()
+	}
+}
+
 // Generate & add a random metric every 1 second
 func generateMetric(done <-chan bool) {
 	ticker := time.NewTicker(1 * time.Second)
@@ -77,79 +184,8 @@ func generateMetric(done <-chan bool) {
 				ticker.Stop()
 				return
 			case <-ticker.C:
-				// Generation from last metric
-				LINEAR_FACTOR := 4 // Linear factor <=> acceleration and altitudeVariation value
-
-				// Altitude variation
-				altitudeVariation := CurrentModule.LastMetric.Speed/3
-				// If not running, altitude decreases instead of increasing
-				if !(CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0) {
-					altitudeVariation = -altitudeVariation
-					// Avoid negative altitude
-					if CurrentModule.LastMetric.Altitude + altitudeVariation < 0 {
-						altitudeVariation = -CurrentModule.LastMetric.Altitude
-					}
-				}
-
-				// We decrease fuel only if the module is running
-				var fuelVariation float32
-				if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
-					fuelVariation = -5
-					// Avoid negative fuel
-					if CurrentModule.LastMetric.Fuel+fuelVariation < 0 {
-						fuelVariation = CurrentModule.LastMetric.Fuel
-					}
-				}
-
-				// Pressure is 1 at 0m, 0 at 30000m, decreasing linearly
-				newPressure := 1.0-((1.0/30000.0)*float32(CurrentModule.LastMetric.Altitude))
-				if newPressure < 0.0 {
-					newPressure = 0.0
-				}
-
-				// Speed variation: acceleration is 0 when not running
-				MAX_SPEED := 4000 // Max speed of the rocket
-				acceleration := 0
-				if CurrentModule.LastMetric.Speed < MAX_SPEED {
-					if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
-						if MAX_SPEED - CurrentModule.LastMetric.Speed > LINEAR_FACTOR {
-							acceleration = LINEAR_FACTOR
-						} else {
-							acceleration = MAX_SPEED - CurrentModule.LastMetric.Speed
-						}
-					}
-				}
-
-				// When altitude is 0, acceleration resets speed
-				if CurrentModule.LastMetric.Altitude == 0 && !(CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0){
-					acceleration = -CurrentModule.LastMetric.Speed
-				}
-
-				// Coordinates variation (random)
-				latitudeVariation := 0.0
-				longitudeVariation := 0.0
-				if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
-					latitudeVariation = rand.Float64() - 0.5
-					longitudeVariation = rand.Float64() - 0.5
-				}
-
-				newMetric := Metric{
-					// min + rand.Float64() * (max - min)
-					// rand.Intn(max - min) + min
-					Altitude:   CurrentModule.LastMetric.Altitude + altitudeVariation,
-					Fuel:       CurrentModule.LastMetric.Fuel + fuelVariation,
-					Pressure:   newPressure,
-					IsAttached: CurrentModule.LastMetric.IsAttached,
-					IsRunning:  CurrentModule.LastMetric.IsRunning,
-					Speed:      CurrentModule.LastMetric.Speed + int(acceleration),
-					Latitude:   CurrentModule.LastMetric.Latitude + float32(latitudeVariation),
-					Longitude:  CurrentModule.LastMetric.Longitude + float32(longitudeVariation),
-					IdModule:   CurrentModule.Id,
-					Timestamp:  time.Now(),
-				}
-				writeJSONMetric(newMetric)
-
-				CurrentModule.LastMetric = newMetric
+				createNewMetric() // Generate a new mocked metric
+				resolveAutoActions() // Analyze metrics and take auto actions according to them
 			}
 		}
 	}()
@@ -218,13 +254,13 @@ func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*
 	log.Println(boomMessage)
 
 	CurrentModule.LastMetric.IsBoom = true
-	writeJSONEvent(Event{
-		Timestamp:   time.Time{},
-		IdModule:    CurrentModule.Id,
-		Label:       "boom",
-		Initiator:   "manual",
-		Description: "Module exploded",
-	})
+	//writeJSONEvent(Event{
+	//	Timestamp:   time.Time{},
+	//	IdModule:    CurrentModule.Id,
+	//	Label:       "boom",
+	//	Initiator:   "manual",
+	//	Description: "Module exploded",
+	//})
 
 	// TODO /ok return ko ?
 
@@ -239,13 +275,13 @@ func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) 
 	log.Println("Detaching module:")
 
 	CurrentModule.LastMetric.IsAttached = false
-	writeJSONEvent(Event{
-		Timestamp:   time.Time{},
-		IdModule:    CurrentModule.Id,
-		Label:       "detach",
-		Initiator:   "manual",
-		Description: "Module detached from its predecessor",
-	})
+	//writeJSONEvent(Event{
+	//	Timestamp:   time.Time{},
+	//	IdModule:    CurrentModule.Id,
+	//	Label:       "detach",
+	//	Initiator:   "manual",
+	//	Description: "Module detached from its predecessor",
+	//})
 
 	sendMessageToKafka("Detach module")
 
@@ -257,13 +293,13 @@ func (s *moduleActionsServer) SetThrustersSpeed(ctx context.Context, value *acti
 	res := "Thrusters speed is now " + fmt.Sprintf("%F", value.GetVal())
 	log.Println(res)
 
-	writeJSONEvent(Event{
-		Timestamp:   time.Time{},
-		IdModule:    CurrentModule.Id,
-		Label:       "set_thrusters_speed",
-		Initiator:   "manual",
-		Description: "Set thrusters speed to " + fmt.Sprintf("%F", value.GetVal()),
-	})
+	//writeJSONEvent(Event{
+	//	Timestamp:   time.Time{},
+	//	IdModule:    CurrentModule.Id,
+	//	Label:       "set_thrusters_speed",
+	//	Initiator:   "manual",
+	//	Description: "Set thrusters speed to " + fmt.Sprintf("%F", value.GetVal()),
+	//})
 	CurrentModule.LastMetric.Speed = int(value.GetVal())
 
 	return &actions.SetThrustersSpeedReply{Content: res}, nil
@@ -287,13 +323,13 @@ func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.
 	}
 	sendMessageToKafka(message)
 	log.Println(message)
-	writeJSONEvent(Event{
-		Timestamp:   time.Time{},
-		IdModule:    CurrentModule.Id,
-		Label:       "toggle_running",
-		Initiator:   "manual",
-		Description: message,
-	})
+	//writeJSONEvent(Event{
+	//	Timestamp:   time.Time{},
+	//	IdModule:    CurrentModule.Id,
+	//	Label:       "toggle_running",
+	//	Initiator:   "manual",
+	//	Description: message,
+	//})
 	CurrentModule.LastMetric.IsAttached = !CurrentModule.LastMetric.IsAttached
 
 	return &actions.RunningReply{Content: message}, nil
