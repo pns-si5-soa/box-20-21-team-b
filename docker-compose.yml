@@ -20,10 +20,6 @@ services:
       - kafka
     expose:
       - 80
-#    expose:
-#      - 3000
-#    ports:
-#      - 3000:3000
     labels:
       - "traefik.http.routers.weather.rule=PathPrefix(`/weather`)"
 
@@ -34,15 +30,15 @@ services:
     restart: unless-stopped
     container_name: rocket
     environment:
-#      - PORT=3001
       - PORT=80
       - MISSION_HOST=mission
-#      - MISSION_PORT=3002
       - MISSION_PORT=80
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=blue_origin
-      - MODULES_HOST=module-actions
+      - MODULE_BOOSTER_HOST=module-actions-booster
+      - MODULE_BOOSTER_HOST=module-actions-middle
+      - MODULE_BOOSTER_HOST=module-actions-payload
       - MODULES_PORT=80
     volumes:
       - ./service-rocket/src/:/app/src/ # FOR HOT RELOAD ONLY
@@ -51,10 +47,6 @@ services:
       - kafka
     expose:
       - 80
-#    expose:
-#      - 3001
-#    ports:
-#      - 3001:3001
     labels:
       - "traefik.http.routers.rocket.rule=PathPrefix(`/rocket`)"
 
@@ -62,8 +54,6 @@ services:
   mission:
     build: ./service-mission
     image: boxb/mission
-    labels:
-      - "traefik.http.routers.mission.rule=PathPrefix(`/mission`)"
     container_name: mission
     restart: unless-stopped
     environment:
@@ -87,11 +77,10 @@ services:
       - kafka
     expose:
       - 80
-#    expose:
-#      - 3002
-#    ports:
-#      - 3002:3002
+    labels:
+      - "traefik.http.routers.mission.rule=PathPrefix(`/mission`)"
 
+  ## Webcaster bus subscriber
   webcaster:
     build: ./service-webcaster
     image: boxb/webcaster
@@ -105,9 +94,10 @@ services:
       - mongo
       - kafka
     expose:
-      - 3005
-    ports:
-      - 3005:3005
+      - 80
+    labels:
+      - "traefik.http.routers.webcaster.rule=PathPrefix(`/webcaster`)"
+
 
   ## DATABASE FOR TELEMETRY, POLLS & ACTIONS HISTORY (WIP)
   mongo:
@@ -123,6 +113,7 @@ services:
     ports:
       - 27017:27017
 
+  ## kafka bus configuration
   zookeeper:
     container_name: boxb-zookeeper
     restart: unless-stopped
@@ -131,9 +122,6 @@ services:
       zk_id: "1"
     expose:
       - 2181
-#    ports:
-#      - 2181:2181
-
   kafka:
     container_name: boxb-kafka
     restart: unless-stopped
@@ -149,8 +137,6 @@ services:
       KAFKA_CREATE_TOPICS: "topic-poll:1:1,topic-poll-response:1:1,topic-rocket-event:1:1,topic-launch-event:1:1,topic-launch-order:1:1"
     expose:
       - 9092
-#    ports:
-#      - 9092:9092
 
 
   ## PROMETHEUS SERVER FOR RETRIEVING DATA FROM ROCKET MODULES
@@ -170,8 +156,6 @@ services:
       - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
     expose:
       - 9090
-#    ports:
-#      - 9090:9090
 
       ## ALERTMANAGER FOR PROMETHEUS
       # alertmanager:
@@ -205,8 +189,6 @@ services:
       - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
     expose:
       - 3000
-#    ports:
-#    - 2999:3000
 
   ## REVERSE PROXY
   traefik:
@@ -221,7 +203,10 @@ services:
       - rocket
       - mission
       - weather
-      - module-actions
+      - module-actions-booster
+      - module-actions-middle
+      - module-actions-payload
+      - webcaster
     volumes:
       # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock
@@ -232,65 +217,73 @@ services:
       - "8080:8080"
 
   ## MODULES
-  module-actions:
+  module-actions-booster:
     build: ./service-modules/service-module-actions
     image: boxb/module-actions
     restart: unless-stopped
-    #        container_name: module-actions-booster
+    container_name: module-actions-booster
     environment:
-#      - PORT=4000
       - PORT=80
       - ID_MODULE=1
+      - MODULE_TYPE=booster
     volumes:
-      - ./service-modules/event-mock.json:/etc/event-mock.json # FOR EVENT MODULE DEBUG ONLY
-      - ./service-modules/analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE DEBUG ONLY
+      - ./service-modules/analog-mock_booster.json:/etc/analog-mock_booster.json # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
       - kafka
       - mission
-#    expose:
-#      - "4000"
-#    ports:
-#      - 4000:4000
   # TODO Traefik LB + PrefixPath by ID
 
-  module-metrics:
+  module-metrics-booster:
     build: ./service-modules/service-module-metrics
     image: boxb/module-metrics
     restart: unless-stopped
     #        container_name: module-actions-booster
     environment:
-#      - PORT=4001
       - PORT=80
       - ID_MODULE=1
+      - MODULE_TYPE=booster
     volumes:
-      - ./service-modules/analog-mock.json:/etc/analog-mock.json # FOR ANALOG MODULE STATUS ONLY
+      - ./service-modules/analog-mock-booster.json:/etc/analog-mock-booster.json # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
-#    expose:
-#      - "4001"
-#    ports:
-#      - 4001:4001
   # TODO Traefik LB + PrefixPath by ID
 
-  module-events:
-    build: ./service-modules/service-module-events
-    image: boxb/module-events
+  module-actions-middle:
+    build: ./service-modules/service-module-actions
+    image: boxb/module-actions
     restart: unless-stopped
-    #        container_name: module-actions-booster
+    container_name: module-actions-middle
     environment:
-#      - PORT=4002
       - PORT=80
+      - MODULE_TYPE=middle
       - ID_MODULE=1
     volumes:
-      - ./service-modules/event-mock.json:/etc/event-mock.json # FOR EVENT MODULE STATUS ONLY
+      - ./service-modules/analog-mock-middle.json:/etc/analog-mock-middle.json # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
-#    expose:
-#      - "4002"
-#    ports:
-#      - 4002:4002
+    depends_on:
+      - kafka
+      - mission
+  # TODO Traefik LB + PrefixPath by ID
+
+  module-actions-payload:
+    build: ./service-modules/service-module-actions
+    image: boxb/module-actions
+    restart: unless-stopped
+    container_name: module-actions-payload
+    environment:
+      - PORT=80
+      - ID_MODULE=1
+      - MODULE_TYPE=payload
+    volumes:
+      - ./service-modules/analog-mock-payload.json:/etc/analog-mock-payload.json # FOR ANALOG MODULE DEBUG ONLY
+    expose:
+      - "80"
+    depends_on:
+      - kafka
+      - mission
   # TODO Traefik LB + PrefixPath by ID
 
 volumes:

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/segmentio/kafka-go"
 	"google.golang.org/grpc"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net"
@@ -20,6 +19,7 @@ import (
 // A module representation
 type Module struct {
 	Id             int
+	Type			string
 	DetachAltitude int
 	MaxPressure    float32
 	MinFuelToLand  float32
@@ -50,19 +50,13 @@ type Event struct {
 	Description string    `json:"description"`
 }
 
-// Path of the mocked analog system
-const AnalogFilePath = "/etc/analog-mock.json"
+const TopicRocketEvent = "topic-rocket-event"
+const ModuleTypeBooster = "booster"
+const ModuleTypePayload = "payload"
+const ModuleTypeMiddle = "middle"
 
-// Path of the mocked event system
-const EventFilePath = "/etc/event-mock.json"
-
-const TOPIC_ROCKET_EVENT = "topic-rocket-event"
-
-var EventFile, _ = os.OpenFile(EventFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
-
-var AnalogFile, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
+var AnalogFile *os.File
 var mu sync.Mutex   // Its mutex for read / write analog
-var mumu sync.Mutex // Its mutex for read / write event
 var CurrentModule Module
 
 var kafkaCon *kafka.Conn
@@ -143,16 +137,17 @@ func createNewMetric() {
 }
 
 func resolveAutoActions() {
-	log.Printf("Speed: %d - Altitude: %d - Pressure: %f\n", CurrentModule.LastMetric.Speed, CurrentModule.LastMetric.Altitude, CurrentModule.LastMetric.Pressure)
+	if CurrentModule.LastMetric.IsRunning {
+		log.Printf("Speed: %d - Altitude: %d - Pressure: %f - Fuel: %f\n", CurrentModule.LastMetric.Speed, CurrentModule.LastMetric.Altitude, CurrentModule.LastMetric.Pressure, CurrentModule.LastMetric.Fuel)
+	}
 	// MAX Q check -- decrease speed if reached
 	if CurrentModule.LastMetric.Pressure > CurrentModule.MaxPressure {
-		log.Println("Max Q reached - decreasing thrusters power")
 		sendEventToKafka(Event{
 			Timestamp:   time.Time{},
 			IdModule:    CurrentModule.Id,
 			Label:       "max_q",
 			Initiator:   "auto",
-			Description: "Max Q reached - decreasing thrusters power",
+			Description: "[" + CurrentModule.Type + "] Max Q reached - decreasing thrusters power",
 		})
 		LINEAR_FACTOR = 0
 		CurrentModule.LastMetric.Speed = int((CurrentModule.MaxPressure-1) * PRESSURE_FACTOR)
@@ -160,49 +155,52 @@ func resolveAutoActions() {
 
 	// Fuel level check to auto detach
 	if CurrentModule.LastMetric.Fuel <= CurrentModule.MinFuelToLand && CurrentModule.LastMetric.IsAttached && CurrentModule.LastMetric.IsRunning{
-		log.Println("Fuel level reached minimum value - cutting off engine")
 		sendEventToKafka(Event{
 			Timestamp:   time.Time{},
 			IdModule:    CurrentModule.Id,
 			Label:       "detach",
 			Initiator:   "auto",
-			Description: "Fuel level reached minimum value - cutting off engine",
+			Description: "["+ CurrentModule.Type +"] Fuel level reached minimum value - cutting off engine",
 		})
 		CurrentModule.LastMetric.IsRunning = false
-		go func() {
-			time.Sleep(2 * time.Second)
-			sendEventToKafka(Event{
-				Timestamp:   time.Time{},
-				IdModule:    CurrentModule.Id,
-				Label:       "detach",
-				Initiator:   "auto",
-				Description: "Detaching module",
-			})
-			CurrentModule.LastMetric.IsAttached = false
-		}()
+		if CurrentModule.Type == ModuleTypeBooster { // only boosters will be detached when no more fuel
+			go func() {
+				time.Sleep(2 * time.Second)
+				sendEventToKafka(Event{
+					Timestamp:   time.Time{},
+					IdModule:    CurrentModule.Id,
+					Label:       "detach",
+					Initiator:   "auto",
+					Description: "["+ CurrentModule.Type +"] Detaching module",
+				})
+				CurrentModule.LastMetric.IsAttached = false
+			}()
+		}
 	}
 
 	// Altitude check to auto detach
-	if CurrentModule.LastMetric.Altitude >= CurrentModule.DetachAltitude && CurrentModule.LastMetric.IsAttached && CurrentModule.LastMetric.IsRunning{
-		sendEventToKafka(Event{
-			Timestamp:   time.Time{},
-			IdModule:    CurrentModule.Id,
-			Label:       "detach",
-			Initiator:   "auto",
-			Description: "Reached detachment altitude - cutting off engine",
-		})
-		CurrentModule.LastMetric.IsRunning = false
-		go func() {
-			time.Sleep(2 * time.Second)
+	if CurrentModule.Type == ModuleTypePayload { // only payload will be detached at given altitude
+		if CurrentModule.LastMetric.Altitude >= CurrentModule.DetachAltitude && CurrentModule.LastMetric.IsAttached && CurrentModule.LastMetric.IsRunning {
 			sendEventToKafka(Event{
 				Timestamp:   time.Time{},
 				IdModule:    CurrentModule.Id,
 				Label:       "detach",
 				Initiator:   "auto",
-				Description: "Detaching module",
+				Description: "["+ CurrentModule.Type +"] Reached detachment altitude - cutting off engine",
 			})
-			CurrentModule.LastMetric.IsAttached = false
-		}()
+			CurrentModule.LastMetric.IsRunning = false
+			go func() {
+				time.Sleep(2 * time.Second)
+				sendEventToKafka(Event{
+					Timestamp:   time.Time{},
+					IdModule:    CurrentModule.Id,
+					Label:       "detach",
+					Initiator:   "auto",
+					Description: "["+ CurrentModule.Type +"] Detaching module",
+				})
+				CurrentModule.LastMetric.IsAttached = false
+			}()
+		}
 	}
 }
 
@@ -243,39 +241,6 @@ func writeJSONMetric(jsonObj interface{}) (err error) {
 	return
 }
 
-// Read the analog file & unmarchal metric (or return the error)
-func readJSONMetric() (metric Metric) {
-	AnalogFile.Sync()
-
-	metric = Metric{}
-
-	byteValue, _ := ioutil.ReadFile(AnalogFilePath)
-	parseErr := json.Unmarshal(byteValue, &metric)
-	if parseErr != nil {
-		//log.Println("Error Unmarshal : ")
-		//log.Println(parseErr)
-		//log.Fatal(parseErr)
-	}
-
-	return
-}
-
-// Write into the EventFile json file
-func writeJSONEvent(jsonObj interface{}) (err error) {
-	mumu.Lock()
-	defer mumu.Unlock()
-
-	EventFile.Sync()
-
-	encoder := json.NewEncoder(EventFile)
-	err = encoder.Encode(jsonObj)
-	if err != nil {
-		log.Println("Write JSON Event error")
-		log.Fatal(err)
-	}
-	return
-}
-
 type moduleActionsServer struct {
 	actions.UnimplementedModuleActionsServer
 }
@@ -286,13 +251,6 @@ func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*
 	log.Println(boomMessage)
 
 	CurrentModule.LastMetric.IsBoom = true
-	//writeJSONEvent(Event{
-	//	Timestamp:   time.Time{},
-	//	IdModule:    CurrentModule.Id,
-	//	Label:       "boom",
-	//	Initiator:   "manual",
-	//	Description: "Module exploded",
-	//})
 
 	// TODO /ok return ko ?
 
@@ -305,16 +263,7 @@ func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*
 // Detach the module from its predecessor
 func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) (*actions.Boolean, error) {
 	log.Println("Detaching module:")
-
 	CurrentModule.LastMetric.IsAttached = false
-	//writeJSONEvent(Event{
-	//	Timestamp:   time.Time{},
-	//	IdModule:    CurrentModule.Id,
-	//	Label:       "detach",
-	//	Initiator:   "manual",
-	//	Description: "Module detached from its predecessor",
-	//})
-
 	sendEventToKafka(Event{
 		Timestamp:   time.Time{},
 		IdModule:    CurrentModule.Id,
@@ -322,7 +271,6 @@ func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) 
 		Initiator:   "manual",
 		Description: "Detaching module",
 	})
-
 	return &actions.Boolean{Val: true}, nil
 }
 
@@ -330,16 +278,7 @@ func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) 
 func (s *moduleActionsServer) SetThrustersSpeed(ctx context.Context, value *actions.Double) (*actions.SetThrustersSpeedReply, error) {
 	res := "Thrusters speed is now " + fmt.Sprintf("%F", value.GetVal())
 	log.Println(res)
-
-	//writeJSONEvent(Event{
-	//	Timestamp:   time.Time{},
-	//	IdModule:    CurrentModule.Id,
-	//	Label:       "set_thrusters_speed",
-	//	Initiator:   "manual",
-	//	Description: "Set thrusters speed to " + fmt.Sprintf("%F", value.GetVal()),
-	//})
 	CurrentModule.LastMetric.Speed = int(value.GetVal())
-
 	return &actions.SetThrustersSpeedReply{Content: res}, nil
 }
 
@@ -367,20 +306,16 @@ func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.
 		Description: message,
 	})
 	log.Println(message)
-	//writeJSONEvent(Event{
-	//	Timestamp:   time.Time{},
-	//	IdModule:    CurrentModule.Id,
-	//	Label:       "toggle_running",
-	//	Initiator:   "manual",
-	//	Description: message,
-	//})
 	CurrentModule.LastMetric.IsRunning = !CurrentModule.LastMetric.IsRunning
-
 	return &actions.RunningReply{Content: message}, nil
 }
 
 func sendEventToKafka(event Event){
-	kafkaCon.SetWriteDeadline(time.Now().Add(10*time.Second))
+	err := kafkaCon.SetWriteDeadline(time.Now().Add(10*time.Second))
+	if err != nil {
+		log.Fatal("failed to set kafka config:", err)
+		return
+	}
 	s, err := json.Marshal(event)
 	if err != nil {
 		log.Fatal("failed to marshal event:", err)
@@ -408,10 +343,18 @@ func main() {
 		os.Exit(-1)
 	}
 	CurrentModule.Id = idModule
+	var moduleType string
+	if moduleType = os.Getenv("MODULE_TYPE"); moduleType == "" {
+		log.Println("Error : no moduleType provided. Exit")
+		os.Exit(-1)
+	}
+	log.Println(moduleType)
+	CurrentModule.Type = moduleType
+	AnalogFile, _ = os.OpenFile("/etc/analog-mock-" + moduleType + ".json", os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
 
 
 	// to produce messages
-	conn, err := kafka.DialLeader(context.Background(), "tcp", "kafka:9092", TOPIC_ROCKET_EVENT, 0)
+	conn, err := kafka.DialLeader(context.Background(), "tcp", "kafka:9092", TopicRocketEvent, 0)
 	if err != nil {
 		log.Fatal("failed to dial leader:", err)
 	}
@@ -432,7 +375,7 @@ func main() {
 		IsRunning:  false,
 		IsBoom:     false,
 	}
-	CurrentModule.DetachAltitude = 10000
+	CurrentModule.DetachAltitude = 1000
 	CurrentModule.MinFuelToLand = 50
 	CurrentModule.MaxPressure = 7.0
 	writeJSONMetric(CurrentModule.LastMetric)

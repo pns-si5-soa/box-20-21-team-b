@@ -7,9 +7,9 @@ export class PollService {
     constructor(private readonly kafkaService: KafkaService) {
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public pollInitiated(payload: any){
         Logger.log('Le poll a démarré, merci d\'envoyer une réponse!');
-        Logger.log(payload.body.value);
     }
 
     async sendAnswerToMission(go: boolean): Promise<void> {

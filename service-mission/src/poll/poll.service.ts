@@ -14,7 +14,6 @@ export class PollService {
     public async launchPoll(): Promise<string> {
         if (!PollService.isPolling) {
             PollService.isPolling = true;
-            Logger.log('Polling : ' + PollService.isPolling);
             await this.kafkaService.sendMessage(TOPIC_POLL, {
                 messageId: '' + new Date().valueOf(),
                 body: {
@@ -29,12 +28,7 @@ export class PollService {
         }
     }
 
-    public test(){
-        Logger.log("test");
-    }
-
     public managePollResponse(payload: any){
-        Logger.log('[POLL_SERVICE] ' + payload.body.value);
         if(!PollService.isPolling)
             return;
 

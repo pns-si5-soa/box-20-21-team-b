@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { setInterval } from "timers";
 import { Rocket } from "./models/rocket/rocket";
 import { HeadModule } from "./models/rocket/headModule";
 import { Payload } from "./models/payload";
@@ -12,8 +11,6 @@ import {TOPIC_LAUNCH_EVENT} from "./kafka/topics";
 
 @Injectable()
 export class AppService {
-    private static payloadAltitudeToDetach = 200;
-    private static calculateAltitude: any;
     private static rocket: Rocket;
     private static canLaunch = false;
 
@@ -88,6 +85,7 @@ export class AppService {
                         messageType: 'info',
                         topicName: TOPIC_LAUNCH_EVENT
                     });
+                    Logger.log("Starting client booster")
                     clientBooster.toggleRunning(new Empty(), function(err, response){
                         if (response !== undefined) {
                             Logger.log(response.getContent());
@@ -96,35 +94,29 @@ export class AppService {
                            Logger.error('Error: gRPC communication fail:' + err);
                         }
                     });
-                    AppService.calculateAltitude = setInterval(this.altitudeInterval.bind(this), 1500);
+
+                    Logger.log("Starting client middle")
+                    clientStage.toggleRunning(new Empty(), function(err, response){
+                        if (response !== undefined) {
+                            Logger.log(response.getContent());
+                        }
+                        else {
+                            Logger.error('Error: gRPC communication fail:' + err);
+                        }
+                    });
+
+                    Logger.log("Starting client payload")
+                    clientProbe.toggleRunning(new Empty(), function(err, response){
+                        if (response !== undefined) {
+                            Logger.log(response.getContent());
+                        }
+                        else {
+                            Logger.error('Error: gRPC communication fail:' + err);
+                        }
+                    });
                 }.bind(this), 1000)
             }.bind(this), 1000)
         }.bind(this), 1000)
-    }
-
-    //TODO remove in next release
-    private altitudeInterval(): void {
-        Logger.log("Calculating altitude... " + AppService.rocket.altitude + "km");
-        AppService.rocket.altitude += 10;
-        if (AppService.rocket.numberOfStages() > 1)
-            AppService.rocket.removeFuel(8);
-        else
-            AppService.rocket.removeFuel(1); //head consomme moins
-
-
-        if (AppService.rocket.getFuelAtLastModule() == 0) {
-            //this.detachFuelPart();
-        }
-
-        if (AppService.rocket.altitude >= AppService.payloadAltitudeToDetach) {
-            //this.detachPayloadPart();
-        }
-    }
-
-    //TODO remove in next release
-    public setPayloadAltitudeToDetach(altitudeToDetach: number): string {
-        AppService.payloadAltitudeToDetach = altitudeToDetach;
-        return 'Altitude to detach payload is now ' + AppService.payloadAltitudeToDetach + 'km';
     }
 
     public boom(res: Response, module: string): void {

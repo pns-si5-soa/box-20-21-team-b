@@ -93,12 +93,8 @@ var CurrentModule Module
 // Max metrics entry saved in cache, currently 24h with 1 log per second
 const MaxCache int = 86400
 
-// Path of the mocked analog system
-const AnalogFilePath = "/etc/analog-mock.json"
-
-//const AnalogFilePath = "../analog-mock.json"
-
-var AnalogFile, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_RDONLY, os.ModePerm)
+var AnalogFile *os.File
+var AnalogFilePath string
 
 // Read the analog file & unmarchal metric (or return the error)
 func readJSONMetric() (metric Metric) {
@@ -127,8 +123,9 @@ func appendMetric(metric Metric) {
 		return
 	}
 
-	log.Print("New Metric reads : ")
-	log.Println(metric)
+	// TODO reading metric
+	//log.Print("New Metric reads : ")
+	//log.Println(metric)
 
 	// boom detected
 	if metric.IsBoom {
@@ -280,6 +277,14 @@ func main() {
 		os.Exit(-1)
 	}
 	CurrentModule.Id = idModule
+	var moduleType string
+	if moduleType = os.Getenv("MODULE_TYPE"); moduleType == "" {
+		log.Println("Error : no moduleType provided. Exit")
+		os.Exit(-1)
+	}
+	log.Println(moduleType)
+	AnalogFilePath = "/etc/analog-mock-" + moduleType + ".json"
+	AnalogFile, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
 
 	defer AnalogFile.Close()
 

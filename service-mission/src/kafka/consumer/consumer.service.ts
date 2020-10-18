@@ -38,13 +38,8 @@ export class ConsumerService extends AbstractKafkaConsumer {
     @SubscribeTo(TOPIC_ROCKET_EVENT)
     async rocketEventsSubscriber(payload: string) {
         Logger.log('[KAFKA_' + TOPIC_ROCKET_EVENT + '] ' + payload);
-        const body = JSON.parse(payload).body;
-        await this.dataService.saveRocketEvent(body.value, body.timestamp);
-    }
-
-    @SubscribeTo(TOPIC_ROCKET_EVENT)
-    rocketEventSubscriber(payload: string) {
-        Logger.log('[KAFKA_' + TOPIC_ROCKET_EVENT + '] ' + payload);
+        const body = JSON.parse(payload);
+        await this.dataService.saveRocketEvent(body.description, body.timestamp);
     }
 
     /**
