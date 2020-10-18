@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/segmentio/kafka-go"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -55,12 +56,16 @@ const AnalogFilePath = "/etc/analog-mock.json"
 // Path of the mocked event system
 const EventFilePath = "/etc/event-mock.json"
 
+const TOPIC_ROCKET_EVENT = "topic-rocket-event"
+
 var EventFile, _ = os.OpenFile(EventFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
 
 var AnalogFile, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
 var mu sync.Mutex   // Its mutex for read / write analog
 var mumu sync.Mutex // Its mutex for read / write event
 var CurrentModule Module
+
+var kafkaCon *kafka.Conn
 
 // Generate & add a random metric every 1 second
 func generateMetric(done <-chan bool) {
@@ -242,6 +247,8 @@ func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) 
 		Description: "Module detached from its predecessor",
 	})
 
+	sendMessageToKafka("Detach module")
+
 	return &actions.Boolean{Val: true}, nil
 }
 
@@ -278,7 +285,7 @@ func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.
 	} else {
 		message = "Start the engine"
 	}
-
+	sendMessageToKafka(message)
 	log.Println(message)
 	writeJSONEvent(Event{
 		Timestamp:   time.Time{},
@@ -290,6 +297,19 @@ func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.
 	CurrentModule.LastMetric.IsAttached = !CurrentModule.LastMetric.IsAttached
 
 	return &actions.RunningReply{Content: message}, nil
+}
+
+func sendMessageToKafka(message string){
+	kafkaCon.SetWriteDeadline(time.Now().Add(10*time.Second))
+	_, err := kafkaCon.WriteMessages(
+		kafka.Message{Value: []byte(message)},
+	)
+	if err != nil {
+		log.Fatal("failed to write messages:", err)
+	}
+	if err := kafkaCon.Close(); err != nil {
+		log.Fatal("failed to close writer:", err)
+	}
 }
 
 func main() {
@@ -306,6 +326,14 @@ func main() {
 		os.Exit(-1)
 	}
 	CurrentModule.Id = idModule
+
+
+	// to produce messages
+	conn, err := kafka.DialLeader(context.Background(), "tcp", "kafka:9092", TOPIC_ROCKET_EVENT, 0)
+	if err != nil {
+		log.Fatal("failed to dial leader:", err)
+	}
+	kafkaCon = conn
 
 	// Generate first metric
 

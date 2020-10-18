@@ -1,11 +1,12 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { Consumer, Kafka, Producer } from 'kafkajs';
+import {Consumer, Kafka, Producer} from 'kafkajs';
 import {
   SUBSCRIBER_FIXED_FN_REF_MAP,
   SUBSCRIBER_FN_REF_MAP,
   SUBSCRIBER_OBJ_REF_MAP,
 } from './kafka.decorator';
 import { KafkaConfig, KafkaPayload } from './kafka.message';
+
 
 @Injectable()
 export class KafkaService implements OnModuleInit, OnModuleDestroy {
