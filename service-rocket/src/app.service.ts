@@ -88,6 +88,14 @@ export class AppService {
                         messageType: 'info',
                         topicName: TOPIC_LAUNCH_EVENT
                     });
+                    clientBooster.toggleRunning(new Empty(), function(err, response){
+                        if (response !== undefined) {
+                            Logger.log(response.getContent());
+                        }
+                        else {
+                           Logger.error('Error: gRPC communication fail:' + err);
+                        }
+                    });
                     AppService.calculateAltitude = setInterval(this.altitudeInterval.bind(this), 1500);
                 }.bind(this), 1000)
             }.bind(this), 1000)

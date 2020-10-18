@@ -67,8 +67,8 @@ var CurrentModule Module
 
 var kafkaCon *kafka.Conn
 
-var LINEAR_FACTOR = 4 // Linear factor <=> acceleration and altitudeVariation value
-var PRESSURE_FACTOR = float32(500.0) // Factor between speed and pressure
+var LINEAR_FACTOR = 10 // Linear factor <=> acceleration and altitudeVariation value
+var PRESSURE_FACTOR = float32(20.0) // Factor between speed and pressure
 
 func createNewMetric() {
 	// Generation from last metric
@@ -143,31 +143,64 @@ func createNewMetric() {
 }
 
 func resolveAutoActions() {
+	log.Printf("Speed: %d - Altitude: %d - Pressure: %f\n", CurrentModule.LastMetric.Speed, CurrentModule.LastMetric.Altitude, CurrentModule.LastMetric.Pressure)
 	// MAX Q check -- decrease speed if reached
-	if CurrentModule.LastMetric.Pressure >= CurrentModule.MaxPressure {
-		sendMessageToKafka("Max Q reached - decreasing thrusters power")
+	if CurrentModule.LastMetric.Pressure > CurrentModule.MaxPressure {
+		log.Println("Max Q reached - decreasing thrusters power")
+		sendEventToKafka(Event{
+			Timestamp:   time.Time{},
+			IdModule:    CurrentModule.Id,
+			Label:       "max_q",
+			Initiator:   "auto",
+			Description: "Max Q reached - decreasing thrusters power",
+		})
 		LINEAR_FACTOR = 0
-		CurrentModule.LastMetric.Speed = int(CurrentModule.MaxPressure * PRESSURE_FACTOR)
+		CurrentModule.LastMetric.Speed = int((CurrentModule.MaxPressure-1) * PRESSURE_FACTOR)
 	}
 
 	// Fuel level check to auto detach
-	if CurrentModule.LastMetric.Fuel <= CurrentModule.MinFuelToLand {
-		sendMessageToKafka("Fuel level reached minimum value - cutting off engine")
+	if CurrentModule.LastMetric.Fuel <= CurrentModule.MinFuelToLand && CurrentModule.LastMetric.IsAttached && CurrentModule.LastMetric.IsRunning{
+		log.Println("Fuel level reached minimum value - cutting off engine")
+		sendEventToKafka(Event{
+			Timestamp:   time.Time{},
+			IdModule:    CurrentModule.Id,
+			Label:       "detach",
+			Initiator:   "auto",
+			Description: "Fuel level reached minimum value - cutting off engine",
+		})
 		CurrentModule.LastMetric.IsRunning = false
 		go func() {
 			time.Sleep(2 * time.Second)
-			sendMessageToKafka("Detaching module")
+			sendEventToKafka(Event{
+				Timestamp:   time.Time{},
+				IdModule:    CurrentModule.Id,
+				Label:       "detach",
+				Initiator:   "auto",
+				Description: "Detaching module",
+			})
 			CurrentModule.LastMetric.IsAttached = false
 		}()
 	}
 
 	// Altitude check to auto detach
-	if CurrentModule.LastMetric.Altitude >= CurrentModule.DetachAltitude {
-		sendMessageToKafka("Reached detachment altitude - cutting off engine")
+	if CurrentModule.LastMetric.Altitude >= CurrentModule.DetachAltitude && CurrentModule.LastMetric.IsAttached && CurrentModule.LastMetric.IsRunning{
+		sendEventToKafka(Event{
+			Timestamp:   time.Time{},
+			IdModule:    CurrentModule.Id,
+			Label:       "detach",
+			Initiator:   "auto",
+			Description: "Reached detachment altitude - cutting off engine",
+		})
 		CurrentModule.LastMetric.IsRunning = false
 		go func() {
 			time.Sleep(2 * time.Second)
-			sendMessageToKafka("Detaching module")
+			sendEventToKafka(Event{
+				Timestamp:   time.Time{},
+				IdModule:    CurrentModule.Id,
+				Label:       "detach",
+				Initiator:   "auto",
+				Description: "Detaching module",
+			})
 			CurrentModule.LastMetric.IsAttached = false
 		}()
 	}
@@ -282,7 +315,13 @@ func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) 
 	//	Description: "Module detached from its predecessor",
 	//})
 
-	sendMessageToKafka("Detach module")
+	sendEventToKafka(Event{
+		Timestamp:   time.Time{},
+		IdModule:    CurrentModule.Id,
+		Label:       "detach",
+		Initiator:   "manual",
+		Description: "Detaching module",
+	})
 
 	return &actions.Boolean{Val: true}, nil
 }
@@ -320,7 +359,13 @@ func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.
 	} else {
 		message = "Start the engine"
 	}
-	sendMessageToKafka(message)
+	sendEventToKafka(Event{
+		Timestamp:   time.Time{},
+		IdModule:    CurrentModule.Id,
+		Label:       "toggle_running",
+		Initiator:   "manual",
+		Description: message,
+	})
 	log.Println(message)
 	//writeJSONEvent(Event{
 	//	Timestamp:   time.Time{},
@@ -329,21 +374,23 @@ func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.
 	//	Initiator:   "manual",
 	//	Description: message,
 	//})
-	CurrentModule.LastMetric.IsAttached = !CurrentModule.LastMetric.IsAttached
+	CurrentModule.LastMetric.IsRunning = !CurrentModule.LastMetric.IsRunning
 
 	return &actions.RunningReply{Content: message}, nil
 }
 
-func sendMessageToKafka(message string){
+func sendEventToKafka(event Event){
 	kafkaCon.SetWriteDeadline(time.Now().Add(10*time.Second))
-	_, err := kafkaCon.WriteMessages(
-		kafka.Message{Value: []byte(message)},
+	s, err := json.Marshal(event)
+	if err != nil {
+		log.Fatal("failed to marshal event:", err)
+		return
+	}
+	_, err = kafkaCon.WriteMessages(
+		kafka.Message{Value: s},
 	)
 	if err != nil {
 		log.Fatal("failed to write messages:", err)
-	}
-	if err := kafkaCon.Close(); err != nil {
-		log.Fatal("failed to close writer:", err)
 	}
 }
 
