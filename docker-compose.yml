@@ -222,7 +222,7 @@ services:
     build: ./service-modules/service-module-metrics
     image: boxb/module-metrics
     restart: unless-stopped
-    #        container_name: module-actions-booster
+    container_name: module-metrics-booster
     environment:
       - PORT=80
       - ID_MODULE=1
@@ -232,6 +232,36 @@ services:
     expose:
       - "80"
   # TODO Traefik LB + PrefixPath by ID
+
+  module-metrics-middle:
+    build: ./service-modules/service-module-metrics
+    image: boxb/module-metrics
+    restart: unless-stopped
+    container_name: module-metrics-middle
+    environment:
+      - PORT=80
+      - ID_MODULE=2
+      - MODULE_TYPE=middle
+    volumes:
+      - ./service-modules/analog-mock-middle.json:/etc/analog-mock-middle.json # FOR ANALOG MODULE STATUS ONLY
+    expose:
+      - "80"
+    # TODO Traefik LB + PrefixPath by ID
+
+  module-metrics-payload:
+    build: ./service-modules/service-module-metrics
+    image: boxb/module-metrics
+    restart: unless-stopped
+    container_name: module-metrics-payload
+    environment:
+      - PORT=80
+      - ID_MODULE=3
+      - MODULE_TYPE=payload
+    volumes:
+      - ./service-modules/analog-mock-payload.json:/etc/analog-mock-payload.json # FOR ANALOG MODULE STATUS ONLY
+    expose:
+      - "80"
+    # TODO Traefik LB + PrefixPath by ID
 
   module-actions-booster:
     build: ./service-modules/service-module-actions
@@ -250,6 +280,7 @@ services:
       - kafka
       - mission
     # TODO Traefik LB + PrefixPath by ID
+
 
   module-actions-middle:
     build: ./service-modules/service-module-actions

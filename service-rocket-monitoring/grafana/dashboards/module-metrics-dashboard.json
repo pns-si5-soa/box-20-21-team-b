@@ -15,7 +15,6 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 1,
   "links": [],
   "panels": [
     {
@@ -450,7 +449,7 @@
       "type": "stat"
     }
   ],
-  "refresh": "5s",
+  "refresh": "1s",
   "schemaVersion": 26,
   "style": "dark",
   "tags": [],
@@ -458,16 +457,16 @@
     "list": []
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-1m",
     "to": "now"
   },
   "timepicker": {
     "refresh_intervals": [
-      "5s"
+      "1s"
     ]
   },
   "timezone": "browser",
   "title": "Module Metrics",
   "uid": "CNlEB3cMk",
-  "version": 3
+  "version": 5
 }
