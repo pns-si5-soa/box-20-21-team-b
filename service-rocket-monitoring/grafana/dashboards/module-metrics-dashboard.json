@@ -29,11 +29,11 @@
         },
         "overrides": []
       },
-      "fill": 1,
-      "fillGradient": 1,
+      "fill": 6,
+      "fillGradient": 6,
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 14,
+        "w": 24,
         "x": 0,
         "y": 0
       },
@@ -49,7 +49,7 @@
         "values": true
       },
       "lines": true,
-      "linewidth": 1,
+      "linewidth": 4,
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
@@ -57,7 +57,7 @@
       "percentage": false,
       "pluginVersion": "7.2.1",
       "pointradius": 2,
-      "points": true,
+      "points": false,
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
@@ -114,64 +114,6 @@
       }
     },
     {
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "id": 6,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "7.2.1",
-      "targets": [
-        {
-          "expr": "boxb_module_metrics_pressure",
-          "instant": false,
-          "interval": "",
-          "legendFormat": "Pressure",
-          "refId": "A"
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Pressure",
-      "type": "stat"
-    },
-    {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
@@ -197,13 +139,13 @@
         },
         "overrides": []
       },
-      "fill": 1,
-      "fillGradient": 1,
+      "fill": 6,
+      "fillGradient": 6,
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 14,
+        "w": 24,
         "x": 0,
-        "y": 8
+        "y": 14
       },
       "hiddenSeries": false,
       "id": 4,
@@ -217,7 +159,7 @@
         "values": false
       },
       "lines": true,
-      "linewidth": 1,
+      "linewidth": 3,
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
@@ -230,7 +172,7 @@
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
-      "steppedLine": true,
+      "steppedLine": false,
       "targets": [
         {
           "expr": "boxb_module_metrics_altitude",
@@ -304,9 +246,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
+        "w": 24,
+        "x": 0,
+        "y": 28
       },
       "id": 2,
       "options": {
@@ -314,10 +256,10 @@
           "calcs": [
             "last"
           ],
-          "fields": "",
+          "fields": "/^Fuel$/",
           "values": false
         },
-        "showThresholdLabels": false,
+        "showThresholdLabels": true,
         "showThresholdMarkers": true
       },
       "pluginVersion": "7.2.1",
@@ -334,53 +276,6 @@
       "timeShift": null,
       "title": "Fuel",
       "type": "gauge"
-    },
-    {
-      "autoZoom": true,
-      "datasource": "Prometheus",
-      "defaultLayer": "OpenStreetMap",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 16
-      },
-      "id": 10,
-      "interval": "",
-      "lineColor": "red",
-      "maxDataPoints": 10,
-      "pluginVersion": "7.2.1",
-      "pointColor": "royalblue",
-      "scrollWheelZoom": false,
-      "showLayerChanger": true,
-      "targets": [
-        {
-          "expr": "boxb_module_metrics_latitude",
-          "format": "time_series",
-          "instant": false,
-          "interval": "",
-          "legendFormat": "Latitude",
-          "refId": "A"
-        },
-        {
-          "expr": "boxb_module_metrics_longitude",
-          "format": "time_series",
-          "instant": false,
-          "interval": "",
-          "legendFormat": "Longitude",
-          "refId": "B"
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Location",
-      "type": "pr0ps-trackmap-panel"
     },
     {
       "datasource": "Prometheus",
@@ -408,10 +303,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
-        "x": 12,
-        "y": 16
+        "x": 0,
+        "y": 36
       },
       "id": 12,
       "options": {
@@ -447,9 +342,67 @@
       "timeShift": null,
       "title": "Panel Title",
       "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 36
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.2.1",
+      "targets": [
+        {
+          "expr": "boxb_module_metrics_pressure",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "Pressure",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Pressure",
+      "type": "stat"
     }
   ],
-  "refresh": "1s",
+  "refresh": "500ms",
   "schemaVersion": 26,
   "style": "dark",
   "tags": [],
@@ -457,16 +410,17 @@
     "list": []
   },
   "time": {
-    "from": "now-1m",
+    "from": "now-35s",
     "to": "now"
   },
   "timepicker": {
     "refresh_intervals": [
+      "500ms",
       "1s"
     ]
   },
   "timezone": "browser",
   "title": "Module Metrics",
   "uid": "CNlEB3cMk",
-  "version": 5
+  "version": 2
 }

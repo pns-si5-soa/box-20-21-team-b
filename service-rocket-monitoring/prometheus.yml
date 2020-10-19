@@ -1,5 +1,5 @@
 global:
-  scrape_interval: 1s
+  scrape_interval: 100ms
   external_labels:
     env: 'boxb'
 
@@ -20,4 +20,4 @@ scrape_configs:
       - targets: ['module-metrics-payload', 'module-metrics-middle', 'module-metrics-booster']
 #      - labels: [ id: id]
     metrics_path: "/module-metrics/metrics"
-    scrape_interval: 300ms
+    scrape_interval: 100ms

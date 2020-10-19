@@ -39,7 +39,7 @@ type Metric struct {
 	IsAttached bool      `json:"isAttached"`
 	IsRunning  bool      `json:"isRunning"`
 	IsBoom     bool      `json:"isBoom"`
-	hasLanded  bool		  `json:"hasLanded"`
+	HasLanded  bool		  `json:"hasLanded"`
 }
 
 // A event representation
@@ -136,7 +136,7 @@ func createNewMetric() {
 		Fuel:       CurrentModule.LastMetric.Fuel + fuelVariation,
 		Pressure:   newPressure,
 		IsAttached: CurrentModule.LastMetric.IsAttached,
-		hasLanded: CurrentModule.LastMetric.hasLanded,
+		HasLanded: CurrentModule.LastMetric.HasLanded,
 		IsRunning:  CurrentModule.LastMetric.IsRunning,
 		Speed:      CurrentModule.LastMetric.Speed + acceleration,
 		Latitude:   CurrentModule.LastMetric.Latitude + float32(latitudeVariation),
@@ -189,7 +189,7 @@ func resolveAutoActions() {
 		}()
 	}
 
-	if CurrentModule.LastMetric.IsAttached == false && CurrentModule.Type == "booster" && CurrentModule.LastMetric.hasLanded == false {
+	if CurrentModule.LastMetric.IsAttached == false && CurrentModule.Type == "booster" && CurrentModule.LastMetric.HasLanded == false {
 		sendEventToKafka(Event{
 			Timestamp:   time.Time{},
 			IdModule:    CurrentModule.Id,
@@ -255,7 +255,7 @@ func resolveAutoActions() {
 			CurrentModule.LastMetric.Fuel = 0
 
 		}()
-		CurrentModule.LastMetric.hasLanded = true
+		CurrentModule.LastMetric.HasLanded = true
 	}
 
 	// Altitude check to auto detach
@@ -283,7 +283,7 @@ func generateMetric(done <-chan bool) {
 		AltitudeToStartPower = 600
 	}
 
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(100 * time.Millisecond)
 	go func() {
 		for {
 			select {
@@ -454,7 +454,7 @@ func main() {
 		IsAttached: true,
 		IsRunning:  false,
 		IsBoom:     false,
-		hasLanded: false,
+		HasLanded: false,
 	}
 	CurrentModule.DetachAltitude = 1000
 	CurrentModule.MinFuelToLand = 50

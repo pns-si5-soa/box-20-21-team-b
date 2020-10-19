@@ -19,45 +19,66 @@ import (
 
 var (
 	altitudeGauge = promauto.NewGauge(prometheus.GaugeOpts{
-		Namespace:   "boxb",
-		Subsystem:   "module_metrics",
-		Name:        "altitude",
-		Help:        "Altitude metric",
+		Namespace: "boxb",
+		Subsystem: "module_metrics",
+		Name:      "altitude",
+		Help:      "Altitude metric",
 	})
 
 	fuelGauge = promauto.NewGauge(prometheus.GaugeOpts{
-		Namespace:   "boxb",
-		Subsystem:   "module_metrics",
-		Name:        "fuel",
-		Help:        "Fuel metric",
+		Namespace: "boxb",
+		Subsystem: "module_metrics",
+		Name:      "fuel",
+		Help:      "Fuel metric",
 	})
 
 	pressureGauge = promauto.NewGauge(prometheus.GaugeOpts{
-		Namespace:   "boxb",
-		Subsystem:   "module_metrics",
-		Name:        "pressure",
-		Help:        "Pressure metric",
+		Namespace: "boxb",
+		Subsystem: "module_metrics",
+		Name:      "pressure",
+		Help:      "Pressure metric",
 	})
 
 	speedGauge = promauto.NewGauge(prometheus.GaugeOpts{
-		Namespace:   "boxb",
-		Subsystem:   "module_metrics",
-		Name:        "speed",
-		Help:        "Speed metric",
+		Namespace: "boxb",
+		Subsystem: "module_metrics",
+		Name:      "speed",
+		Help:      "Speed metric",
 	})
 
 	latitudeGauge = promauto.NewGauge(prometheus.GaugeOpts{
-		Namespace:   "boxb",
-		Subsystem:   "module_metrics",
-		Name:        "latitude",
-		Help:        "Latitude metric",
+		Namespace: "boxb",
+		Subsystem: "module_metrics",
+		Name:      "latitude",
+		Help:      "Latitude metric",
 	})
 
 	longitudeGauge = promauto.NewGauge(prometheus.GaugeOpts{
-		Namespace:   "boxb",
-		Subsystem:   "module_metrics",
-		Name:        "longitude",
-		Help:        "Longitude metric",
+		Namespace: "boxb",
+		Subsystem: "module_metrics",
+		Name:      "longitude",
+		Help:      "Longitude metric",
+	})
+
+	isRunningGauge = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace: "boxb",
+		Subsystem: "module_metrics",
+		Name:      "isRunning",
+		Help:      "IsRunning metric",
+	})
+
+	isAttachedGauge = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace: "boxb",
+		Subsystem: "module_metrics",
+		Name:      "isAttached",
+		Help:      "IsAttached metric",
+	})
+
+	isHasLandedGauge = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace: "boxb",
+		Subsystem: "module_metrics",
+		Name:      "isHasLanded",
+		Help:      "IsHasLanded metric",
 	})
 )
 
@@ -80,6 +101,7 @@ type Metric struct {
 	IsAttached bool      `json:"isAttached"`
 	IsRunning  bool      `json:"isRunning"`
 	IsBoom     bool      `json:"isBoom"`
+	HasLanded  bool      `json:"hasLanded"`
 }
 
 // Custom error to return in case of a JSON parsing error
@@ -234,7 +256,7 @@ func allMetrics(w http.ResponseWriter, req *http.Request) {
 
 // Generate & add a random metric every 1 second
 func getLastMetricRoutine(done <-chan bool) {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(100 * time.Millisecond)
 	go func() {
 		for {
 			select {
