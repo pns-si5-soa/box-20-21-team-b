@@ -225,7 +225,7 @@ func resolveAutoActions() {
 			})
 
 			go func(){
-				for i := 5; i > 1; i-- {
+				for i := 5; i > 0; i-- {
 					CurrentModule.LastMetric.Altitude =  CurrentModule.LastMetric.Altitude * i/5
 					CurrentModule.LastMetric.Fuel = CurrentModule.LastMetric.Fuel * float32(i)/5.0
 					time.Sleep(1 * time.Second)
