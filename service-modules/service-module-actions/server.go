@@ -188,7 +188,43 @@ func resolveAutoActions() {
 	}
 
 	if CurrentModule.LastMetric.IsAttached == false && CurrentModule.Type == "booster" {
-		//TODO land
+		sendEventToKafka(Event{
+			Timestamp:   time.Time{},
+			IdModule:    CurrentModule.Id,
+			Label:       "landing",
+			Initiator:   "auto",
+			Description: "["+ CurrentModule.Type +"] flip maneuver engaged for landing",
+		})
+		go func() {
+			time.Sleep(5 * time.Second)
+			sendEventToKafka(Event{
+				Timestamp:   time.Time{},
+				IdModule:    CurrentModule.Id,
+				Label:       "landing",
+				Initiator:   "auto",
+				Description: "["+ CurrentModule.Type +"] entry burn in the atmosphere",
+			})
+
+			time.Sleep(10 * time.Second)
+			sendEventToKafka(Event{
+				Timestamp:   time.Time{},
+				IdModule:    CurrentModule.Id,
+				Label:       "landing",
+				Initiator:   "auto",
+				Description: "["+ CurrentModule.Type +"] landing burn",
+			})
+
+
+			time.Sleep(5 * time.Second)
+			sendEventToKafka(Event{
+				Timestamp:   time.Time{},
+				IdModule:    CurrentModule.Id,
+				Label:       "landing",
+				Initiator:   "auto",
+				Description: "["+ CurrentModule.Type +"] legs deployed",
+			})
+
+		}()
 	}
 
 	// Altitude check to auto detach
