@@ -120,9 +120,9 @@ func createNewMetric() {
 
 	// Speed variation: acceleration is 0 when not running
 	MAX_SPEED := 150 // Max speed of the rocket
-	if CurrentModule.Type == "middle"{
+	if CurrentModule.Type == ModuleTypeMiddle{
 		MAX_SPEED = 100
-	} else if CurrentModule.Type == "payload"{
+	} else if CurrentModule.Type == ModuleTypePayload{
 		MAX_SPEED = 80
 	}
 	acceleration := 0
@@ -205,7 +205,7 @@ func resolveAutoActions() {
 		CurrentModule.LastMetric.IsAttached = false
 	}
 
-	if CurrentModule.LastMetric.IsAttached == false && CurrentModule.Type == "booster" && CurrentModule.LastMetric.HasLanded == false {
+	if CurrentModule.LastMetric.IsAttached == false && CurrentModule.Type == ModuleTypeBooster && CurrentModule.LastMetric.HasLanded == false {
 
 		sendEventToKafka(Event{
 			Timestamp:   time.Time{},
@@ -275,6 +275,7 @@ func resolveAutoActions() {
 				Description: "["+ CurrentModule.Type +"] is now deployed",
 			})
 			CurrentModule.LastMetric.IsAttached = false
+			CurrentModule.LastMetric.Speed = 0
 		}
 	}
 }
@@ -285,7 +286,7 @@ func generateMetric(done <-chan bool) {
 	if CurrentModule.Type == "middle"{
 		AltitudeToStartPower = 1480
 	} else if CurrentModule.Type == "payload"{
-		AltitudeToStartPower = 1800
+		AltitudeToStartPower = 2000
 	}
 
 	ticker := time.NewTicker(1 * time.Second)
@@ -447,24 +448,42 @@ func main() {
 
 	// Generate first metric
 
-	CurrentModule.LastMetric = Metric{
-		Timestamp:  time.Now(),
-		IdModule:   CurrentModule.Id,
-		Altitude:   0,
-		Fuel:       1000,
-		Pressure:   1,
-		Speed:      0,
-		Latitude:   43.6656112,
-		Longitude:  7.0701789,
-		IsAttached: true,
-		IsRunning:  false,
-		IsBoom:     false,
-		HasLanded:  false,
+	if CurrentModule.Type == ModuleTypeBooster {
+		CurrentModule.LastMetric = Metric{
+			Timestamp:  time.Now(),
+			IdModule:   CurrentModule.Id,
+			Altitude:   0,
+			Fuel:       1000,
+			Pressure:   1,
+			Speed:      0,
+			Latitude:   43.6656112,
+			Longitude:  7.0701789,
+			IsAttached: true,
+			IsRunning:  false,
+			IsBoom:     false,
+			HasLanded:  false,
+		}
+	}else{
+		CurrentModule.LastMetric = Metric{
+			Timestamp:  time.Now(),
+			IdModule:   CurrentModule.Id,
+			Altitude:   0,
+			Fuel:       500,
+			Pressure:   1,
+			Speed:      0,
+			Latitude:   43.6656112,
+			Longitude:  7.0701789,
+			IsAttached: true,
+			IsRunning:  false,
+			IsBoom:     false,
+			HasLanded:  false,
+		}
 	}
 	CurrentModule.DetachAltitude = 2000
 	CurrentModule.MinFuelToLand = 50
 	CurrentModule.MaxPressure = 7.0
 	writeJSONMetric(CurrentModule.LastMetric)
+
 
 	// CRON to generate random metric every second
 	gene := make(chan bool, 1)
