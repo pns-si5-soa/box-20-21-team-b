@@ -39,7 +39,7 @@ type Metric struct {
 	IsAttached bool      `json:"isAttached"`
 	IsRunning  bool      `json:"isRunning"`
 	IsBoom     bool      `json:"isBoom"`
-	HasLanded  bool      `json:"HasLanded"`
+	HasLanded  bool		  `json:"hasLanded"`
 }
 
 // A event representation
