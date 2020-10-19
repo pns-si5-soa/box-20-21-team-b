@@ -39,7 +39,7 @@ type Metric struct {
 	IsAttached bool      `json:"isAttached"`
 	IsRunning  bool      `json:"isRunning"`
 	IsBoom     bool      `json:"isBoom"`
-	hasLanded  bool		  `json:"hasLanded"`
+	HasLanded  bool      `json:"HasLanded"`
 }
 
 // A event representation
@@ -71,28 +71,48 @@ func createNewMetric() {
 	// Generation from last metric
 
 	// Altitude variation
-	altitudeVariation := CurrentModule.LastMetric.Speed/3
-	// If not running, altitude decreases instead of increasing
-	if !(CurrentModule.LastMetric.IsRunning || CurrentModule.LastMetric.Fuel > 0) {
-		altitudeVariation = -altitudeVariation
-		// Avoid negative altitude
-		if CurrentModule.LastMetric.Altitude + altitudeVariation < 0 {
-			altitudeVariation = -CurrentModule.LastMetric.Altitude
+
+	var altitudeVariation = 0
+	if CurrentModule.LastMetric.Fuel > CurrentModule.MinFuelToLand {
+		altitudeVariation = CurrentModule.LastMetric.Speed/3
+		// If not running, altitude decreases instead of increasing
+		//if !(CurrentModule.LastMetric.IsRunning || CurrentModule.LastMetric.Fuel > 0) {
+		//	//altitudeVariation = -altitudeVariation
+		//	// Avoid negative altitude
+		//	if CurrentModule.LastMetric.Altitude + altitudeVariation < 0 {
+		//		altitudeVariation = -CurrentModule.LastMetric.Altitude
+		//	}
+		//}
+	} else {
+		if CurrentModule.LastMetric.Altitude > 200 {
+			altitudeVariation =  -CurrentModule.LastMetric.Speed
+		} else {
+			altitudeVariation =  -CurrentModule.LastMetric.Speed/2
 		}
+		log.Println("Altitude variation : ", altitudeVariation)
+	}
+	if CurrentModule.LastMetric.Altitude + altitudeVariation < 0{
+		altitudeVariation = 0
+		CurrentModule.LastMetric.Altitude = 0
 	}
 
 	// We decrease fuel only if the module is running
-	var fuelVariation float32
+	var fuelVariation = float32(0.0)
 	if fuelCanLower {
-		if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
-			fuelVariation = -50
-			// Avoid negative fuel
-			if CurrentModule.LastMetric.Fuel+fuelVariation < 0 {
-				fuelVariation = CurrentModule.LastMetric.Fuel
+		if CurrentModule.LastMetric.IsRunning {
+			if CurrentModule.LastMetric.IsAttached {
+				fuelVariation = -20
+			}else{
+				if CurrentModule.LastMetric.Altitude > 200 {
+					fuelVariation = -2
+				} else {
+					fuelVariation = -4
+				}
 			}
 		}
-	}else{
-		fuelVariation = 0
+		if CurrentModule.LastMetric.Fuel+fuelVariation < 0 {
+			fuelVariation =  CurrentModule.LastMetric.Fuel + fuelVariation + (-fuelVariation - CurrentModule.LastMetric.Fuel)
+		}
 	}
 
 	// Pressure according to speed
@@ -136,7 +156,7 @@ func createNewMetric() {
 		Fuel:       CurrentModule.LastMetric.Fuel + fuelVariation,
 		Pressure:   newPressure,
 		IsAttached: CurrentModule.LastMetric.IsAttached,
-		hasLanded: CurrentModule.LastMetric.hasLanded,
+		HasLanded:  CurrentModule.LastMetric.HasLanded,
 		IsRunning:  CurrentModule.LastMetric.IsRunning,
 		Speed:      CurrentModule.LastMetric.Speed + acceleration,
 		Latitude:   CurrentModule.LastMetric.Latitude + float32(latitudeVariation),
@@ -175,21 +195,18 @@ func resolveAutoActions() {
 			Initiator:   "auto",
 			Description: "["+ CurrentModule.Type +"] Fuel level reached minimum value - cutting off engine",
 		})
-		CurrentModule.LastMetric.IsRunning = false
-		go func() {
-			time.Sleep(2 * time.Second)
-			sendEventToKafka(Event{
-				Timestamp:   time.Time{},
-				IdModule:    CurrentModule.Id,
-				Label:       "detach",
-				Initiator:   "auto",
-				Description: "["+ CurrentModule.Type +"] Detaching module",
-			})
-			CurrentModule.LastMetric.IsAttached = false
-		}()
+		sendEventToKafka(Event{
+			Timestamp:   time.Time{},
+			IdModule:    CurrentModule.Id,
+			Label:       "detach",
+			Initiator:   "auto",
+			Description: "["+ CurrentModule.Type +"] Detaching module",
+		})
+		CurrentModule.LastMetric.IsAttached = false
 	}
 
-	if CurrentModule.LastMetric.IsAttached == false && CurrentModule.Type == "booster" && CurrentModule.LastMetric.hasLanded == false {
+	if CurrentModule.LastMetric.IsAttached == false && CurrentModule.Type == "booster" && CurrentModule.LastMetric.HasLanded == false {
+
 		sendEventToKafka(Event{
 			Timestamp:   time.Time{},
 			IdModule:    CurrentModule.Id,
@@ -197,6 +214,8 @@ func resolveAutoActions() {
 			Initiator:   "auto",
 			Description: "["+ CurrentModule.Type +"] flip maneuver engaged for landing",
 		})
+		CurrentModule.LastMetric.HasLanded = true
+
 		go func() {
 
 			time.Sleep(5 * time.Second)
@@ -207,55 +226,41 @@ func resolveAutoActions() {
 				Initiator:   "auto",
 				Description: "["+ CurrentModule.Type +"] entry burn in the atmosphere",
 			})
-			go func(){
-				for i := 10; i > 2; i-- {
-					CurrentModule.LastMetric.Altitude =  CurrentModule.LastMetric.Altitude * i/10
-					time.Sleep(1 * time.Second)
-
-				}
-			}()
-
-			time.Sleep(10 * time.Second)
-			sendEventToKafka(Event{
-				Timestamp:   time.Time{},
-				IdModule:    CurrentModule.Id,
-				Label:       "landing",
-				Initiator:   "auto",
-				Description: "["+ CurrentModule.Type +"] landing burn",
-			})
 
 			go func(){
-				for i := 5; i > 0; i-- {
-					CurrentModule.LastMetric.Altitude =  CurrentModule.LastMetric.Altitude * i/5
-					CurrentModule.LastMetric.Fuel = CurrentModule.LastMetric.Fuel * float32(i)/5.0
-					time.Sleep(1 * time.Second)
+				for ; CurrentModule.LastMetric.Altitude > 200; {
+
 				}
+				time.Sleep(2 * time.Second)
+				sendEventToKafka(Event{
+					Timestamp:   time.Time{},
+					IdModule:    CurrentModule.Id,
+					Label:       "landing",
+					Initiator:   "auto",
+					Description: "[" + CurrentModule.Type + "] landing burn",
+				})
+
+				time.Sleep(2 * time.Second)
+				sendEventToKafka(Event{
+					Timestamp:   time.Time{},
+					IdModule:    CurrentModule.Id,
+					Label:       "landing",
+					Initiator:   "auto",
+					Description: "[" + CurrentModule.Type + "] legs deployed",
+				})
+
+				time.Sleep(2 * time.Second)
+				sendEventToKafka(Event{
+					Timestamp:   time.Time{},
+					IdModule:    CurrentModule.Id,
+					Label:       "landing",
+					Initiator:   "auto",
+					Description: "[" + CurrentModule.Type + "] landing on ground",
+				})
+				CurrentModule.LastMetric.IsRunning = false
 			}()
-
-
-
-			time.Sleep(5 * time.Second)
-			sendEventToKafka(Event{
-				Timestamp:   time.Time{},
-				IdModule:    CurrentModule.Id,
-				Label:       "landing",
-				Initiator:   "auto",
-				Description: "["+ CurrentModule.Type +"] legs deployed",
-			})
-
-			time.Sleep(5 * time.Second)
-			sendEventToKafka(Event{
-				Timestamp:   time.Time{},
-				IdModule:    CurrentModule.Id,
-				Label:       "landing",
-				Initiator:   "auto",
-				Description: "["+ CurrentModule.Type +"] landing on ground",
-			})
-			CurrentModule.LastMetric.Altitude = 0
-			CurrentModule.LastMetric.Fuel = 0
 
 		}()
-		CurrentModule.LastMetric.hasLanded = true
 	}
 
 	// Altitude check to auto detach
@@ -278,9 +283,9 @@ func resolveAutoActions() {
 func generateMetric(done <-chan bool) {
 	AltitudeToStartPower := 0
 	if CurrentModule.Type == "middle"{
-		AltitudeToStartPower = 411
+		AltitudeToStartPower = 1480
 	} else if CurrentModule.Type == "payload"{
-		AltitudeToStartPower = 600
+		AltitudeToStartPower = 1800
 	}
 
 	ticker := time.NewTicker(1 * time.Second)
@@ -454,9 +459,9 @@ func main() {
 		IsAttached: true,
 		IsRunning:  false,
 		IsBoom:     false,
-		hasLanded: false,
+		HasLanded:  false,
 	}
-	CurrentModule.DetachAltitude = 1000
+	CurrentModule.DetachAltitude = 2000
 	CurrentModule.MinFuelToLand = 50
 	CurrentModule.MaxPressure = 7.0
 	writeJSONMetric(CurrentModule.LastMetric)
