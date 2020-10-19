@@ -60,4 +60,4 @@ curl --silent http://localhost/rocket/actions/detach/booster -X POST
 
 echo -e "\n\n${YELLOW}Chief Rocket Department -> I need to make it go BOOM !${NC}"
 echo -e "${YELLOW}There will be a gRPC error since the module will blow up as soon as the message is sent to it, thus the gRPC server in the module will not respond (simulated with exit 0, see docker log)${NC}"
-curl --silent http://localhost/rocket/actions/boom/booster -X POST
+#curl --silent http://localhost/rocket/actions/boom/booster -X POST
