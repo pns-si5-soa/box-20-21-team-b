@@ -85,7 +85,6 @@ export class AppService {
                         messageType: 'info',
                         topicName: TOPIC_LAUNCH_EVENT
                     });
-                    Logger.log("Starting client booster")
                     clientBooster.toggleRunning(new Empty(), function(err, response){
                         if (response !== undefined) {
                             Logger.log(response.getContent());
@@ -94,8 +93,6 @@ export class AppService {
                            Logger.error('Error: gRPC communication fail:' + err);
                         }
                     });
-
-                    Logger.log("Starting client middle")
                     clientStage.toggleRunning(new Empty(), function(err, response){
                         if (response !== undefined) {
                             Logger.log(response.getContent());
@@ -104,8 +101,6 @@ export class AppService {
                             Logger.error('Error: gRPC communication fail:' + err);
                         }
                     });
-
-                    Logger.log("Starting client payload")
                     clientProbe.toggleRunning(new Empty(), function(err, response){
                         if (response !== undefined) {
                             Logger.log(response.getContent());

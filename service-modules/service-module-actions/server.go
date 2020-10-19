@@ -59,6 +59,8 @@ var AnalogFile *os.File
 var mu sync.Mutex   // Its mutex for read / write analog
 var CurrentModule Module
 
+var fuelCanLower = false
+
 var kafkaCon *kafka.Conn
 
 var LINEAR_FACTOR = 10 // Linear factor <=> acceleration and altitudeVariation value
@@ -80,19 +82,28 @@ func createNewMetric() {
 
 	// We decrease fuel only if the module is running
 	var fuelVariation float32
-	if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
-		fuelVariation = -5
-		// Avoid negative fuel
-		if CurrentModule.LastMetric.Fuel+fuelVariation < 0 {
-			fuelVariation = CurrentModule.LastMetric.Fuel
+	if fuelCanLower {
+		if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
+			fuelVariation = -50
+			// Avoid negative fuel
+			if CurrentModule.LastMetric.Fuel+fuelVariation < 0 {
+				fuelVariation = CurrentModule.LastMetric.Fuel
+			}
 		}
+	}else{
+		fuelVariation = 0
 	}
 
 	// Pressure according to speed
 	newPressure := 1.0+float32(CurrentModule.LastMetric.Speed)/PRESSURE_FACTOR
 
 	// Speed variation: acceleration is 0 when not running
-	MAX_SPEED := 4000 // Max speed of the rocket
+	MAX_SPEED := 150 // Max speed of the rocket
+	if CurrentModule.Type == "middle"{
+		MAX_SPEED = 100
+	} else if CurrentModule.Type == "payload"{
+		MAX_SPEED = 80
+	}
 	acceleration := 0
 	if CurrentModule.LastMetric.Speed < MAX_SPEED {
 		if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
@@ -163,49 +174,48 @@ func resolveAutoActions() {
 			Description: "["+ CurrentModule.Type +"] Fuel level reached minimum value - cutting off engine",
 		})
 		CurrentModule.LastMetric.IsRunning = false
-		if CurrentModule.Type == ModuleTypeBooster { // only boosters will be detached when no more fuel
-			go func() {
-				time.Sleep(2 * time.Second)
-				sendEventToKafka(Event{
-					Timestamp:   time.Time{},
-					IdModule:    CurrentModule.Id,
-					Label:       "detach",
-					Initiator:   "auto",
-					Description: "["+ CurrentModule.Type +"] Detaching module",
-				})
-				CurrentModule.LastMetric.IsAttached = false
-			}()
-		}
-	}
-
-	// Altitude check to auto detach
-	if CurrentModule.Type == ModuleTypePayload { // only payload will be detached at given altitude
-		if CurrentModule.LastMetric.Altitude >= CurrentModule.DetachAltitude && CurrentModule.LastMetric.IsAttached && CurrentModule.LastMetric.IsRunning {
+		go func() {
+			time.Sleep(2 * time.Second)
 			sendEventToKafka(Event{
 				Timestamp:   time.Time{},
 				IdModule:    CurrentModule.Id,
 				Label:       "detach",
 				Initiator:   "auto",
-				Description: "["+ CurrentModule.Type +"] Reached detachment altitude - cutting off engine",
+				Description: "["+ CurrentModule.Type +"] Detaching module",
 			})
+			CurrentModule.LastMetric.IsAttached = false
+		}()
+	}
+
+	if CurrentModule.LastMetric.IsAttached == false && CurrentModule.Type == "booster" {
+		//TODO land
+	}
+
+	// Altitude check to auto detach
+	if CurrentModule.Type == ModuleTypePayload { // only payload will be detached at given altitude
+		if CurrentModule.LastMetric.Altitude >= CurrentModule.DetachAltitude && CurrentModule.LastMetric.IsAttached && CurrentModule.LastMetric.IsRunning {
 			CurrentModule.LastMetric.IsRunning = false
-			go func() {
-				time.Sleep(2 * time.Second)
-				sendEventToKafka(Event{
-					Timestamp:   time.Time{},
-					IdModule:    CurrentModule.Id,
-					Label:       "detach",
-					Initiator:   "auto",
-					Description: "["+ CurrentModule.Type +"] Detaching module",
-				})
-				CurrentModule.LastMetric.IsAttached = false
-			}()
+			sendEventToKafka(Event{
+				Timestamp:   time.Time{},
+				IdModule:    CurrentModule.Id,
+				Label:       "detach",
+				Initiator:   "auto",
+				Description: "["+ CurrentModule.Type +"] is now deployed",
+			})
+			CurrentModule.LastMetric.IsAttached = false
 		}
 	}
 }
 
 // Generate & add a random metric every 1 second
 func generateMetric(done <-chan bool) {
+	AltitudeToStartPower := 0
+	if CurrentModule.Type == "middle"{
+		AltitudeToStartPower = 411
+	} else if CurrentModule.Type == "payload"{
+		AltitudeToStartPower = 600
+	}
+
 	ticker := time.NewTicker(1 * time.Second)
 	go func() {
 		for {
@@ -215,7 +225,10 @@ func generateMetric(done <-chan bool) {
 				return
 			case <-ticker.C:
 				createNewMetric() // Generate a new mocked metric
-				resolveAutoActions() // Analyze metrics and take auto actions according to them
+				if CurrentModule.LastMetric.Altitude >= AltitudeToStartPower {
+					fuelCanLower = true
+					resolveAutoActions() // Analyze metrics and take auto actions according to them
+				}
 			}
 		}
 	}()
@@ -303,7 +316,7 @@ func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.
 		IdModule:    CurrentModule.Id,
 		Label:       "toggle_running",
 		Initiator:   "manual",
-		Description: message,
+		Description: "["+ CurrentModule.Type +"]" + message,
 	})
 	log.Println(message)
 	CurrentModule.LastMetric.IsRunning = !CurrentModule.LastMetric.IsRunning
