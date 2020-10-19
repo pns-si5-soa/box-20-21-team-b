@@ -39,6 +39,7 @@ type Metric struct {
 	IsAttached bool      `json:"isAttached"`
 	IsRunning  bool      `json:"isRunning"`
 	IsBoom     bool      `json:"isBoom"`
+	hasLanded  bool		  `json:"hasLanded"`
 }
 
 // A event representation
@@ -135,6 +136,7 @@ func createNewMetric() {
 		Fuel:       CurrentModule.LastMetric.Fuel + fuelVariation,
 		Pressure:   newPressure,
 		IsAttached: CurrentModule.LastMetric.IsAttached,
+		hasLanded: CurrentModule.LastMetric.hasLanded,
 		IsRunning:  CurrentModule.LastMetric.IsRunning,
 		Speed:      CurrentModule.LastMetric.Speed + acceleration,
 		Latitude:   CurrentModule.LastMetric.Latitude + float32(latitudeVariation),
@@ -187,7 +189,7 @@ func resolveAutoActions() {
 		}()
 	}
 
-	if CurrentModule.LastMetric.IsAttached == false && CurrentModule.Type == "booster" {
+	if CurrentModule.LastMetric.IsAttached == false && CurrentModule.Type == "booster" && CurrentModule.LastMetric.hasLanded == false {
 		sendEventToKafka(Event{
 			Timestamp:   time.Time{},
 			IdModule:    CurrentModule.Id,
@@ -196,6 +198,7 @@ func resolveAutoActions() {
 			Description: "["+ CurrentModule.Type +"] flip maneuver engaged for landing",
 		})
 		go func() {
+
 			time.Sleep(5 * time.Second)
 			sendEventToKafka(Event{
 				Timestamp:   time.Time{},
@@ -204,6 +207,13 @@ func resolveAutoActions() {
 				Initiator:   "auto",
 				Description: "["+ CurrentModule.Type +"] entry burn in the atmosphere",
 			})
+			go func(){
+				for i := 10; i > 2; i-- {
+					CurrentModule.LastMetric.Altitude =  CurrentModule.LastMetric.Altitude * i/10
+					time.Sleep(1 * time.Second)
+
+				}
+			}()
 
 			time.Sleep(10 * time.Second)
 			sendEventToKafka(Event{
@@ -213,6 +223,15 @@ func resolveAutoActions() {
 				Initiator:   "auto",
 				Description: "["+ CurrentModule.Type +"] landing burn",
 			})
+
+			go func(){
+				for i := 5; i > 1; i-- {
+					CurrentModule.LastMetric.Altitude =  CurrentModule.LastMetric.Altitude * i/5
+					CurrentModule.LastMetric.Fuel = CurrentModule.LastMetric.Fuel * float32(i)/5.0
+					time.Sleep(1 * time.Second)
+				}
+			}()
+
 
 
 			time.Sleep(5 * time.Second)
@@ -224,7 +243,19 @@ func resolveAutoActions() {
 				Description: "["+ CurrentModule.Type +"] legs deployed",
 			})
 
+			time.Sleep(5 * time.Second)
+			sendEventToKafka(Event{
+				Timestamp:   time.Time{},
+				IdModule:    CurrentModule.Id,
+				Label:       "landing",
+				Initiator:   "auto",
+				Description: "["+ CurrentModule.Type +"] landing on ground",
+			})
+			CurrentModule.LastMetric.Altitude = 0
+			CurrentModule.LastMetric.Fuel = 0
+
 		}()
+		CurrentModule.LastMetric.hasLanded = true
 	}
 
 	// Altitude check to auto detach
@@ -423,6 +454,7 @@ func main() {
 		IsAttached: true,
 		IsRunning:  false,
 		IsBoom:     false,
+		hasLanded: false,
 	}
 	CurrentModule.DetachAltitude = 1000
 	CurrentModule.MinFuelToLand = 50
