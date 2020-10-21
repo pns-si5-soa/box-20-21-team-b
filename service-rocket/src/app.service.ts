@@ -1,20 +1,56 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Rocket } from "./models/rocket/rocket";
-import { HeadModule } from "./models/rocket/headModule";
-import { Payload } from "./models/payload";
-import { FuelModule } from "./models/rocket/fuelModule";
 import { Double, Empty } from "../rpc/actions_pb";
-import { clientBooster, clientProbe, clientStage } from "./actions.stub";
 import { Response } from 'express'
 import {KafkaService} from "./kafka/kafka.service";
 import {TOPIC_LAUNCH_EVENT} from "./kafka/topics";
+import { MODULES, MODULES_PORT} from "./env_variables";
+import {Module} from "./models/rocket/module";
+import {ModuleActionsClient} from "../rpc/actions_grpc_pb";
+import {credentials} from "grpc";
 
 @Injectable()
 export class AppService {
-    private static rocket: Rocket;
+    private static rockets: Rocket[]
     private static canLaunch = false;
 
-    constructor(private readonly kafkaService: KafkaService) { }
+    getRocketWithId(id: number){
+        for (const rockets of AppService.rockets) {
+            if(rockets.id == id)
+                return rockets;
+        }
+        return null;
+    }
+
+    constructor(private readonly kafkaService: KafkaService) {
+        AppService.rockets = []
+
+        const rocketsNotCasted = MODULES.split(",")
+        let rocket = null;
+
+        let rocketId = -1;
+        for(let i = 0;i<rocketsNotCasted.length;i++){
+            const id = parseInt(rocketsNotCasted[i], 10);
+            if(i%3 === 0){ //id of a rocket
+                rocketId = id;
+                if((rocket === null || rocket.id !== id)) {
+                    rocket = this.getRocketWithId(id);
+                    if (rocket === null) { // the rocket does not already exists
+                        rocket = new Rocket(id);
+                        AppService.rockets.push(rocket)
+                    }
+                }
+            }else{
+                const moduleName = rocketsNotCasted[i+1];
+                Logger.log('module-actions-' + moduleName + '-' + rocketId + ':'+MODULES_PORT)
+                rocket.addModule(new Module(id, new ModuleActionsClient(
+                    'module-actions-' + moduleName + '-' + rocketId + ':'+MODULES_PORT,
+                    credentials.createInsecure()
+                ), moduleName));
+                i++;
+            }
+        }
+    }
 
     async getStatus(): Promise<string> {
         await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
@@ -28,28 +64,24 @@ export class AppService {
         return 'Rocket status : ready';
     }
 
-    public allowLaunch(): string {
+    public allowLaunch(rocketId: number): string {
         AppService.canLaunch = true;
-        Logger.log('Mission commander sent a go. You can now launch the rocket')
+        Logger.log('Mission commander sent a go. You can now launch the rocket with id ' + rocketId)
         return 'Rocket can now be launched';
     }
 
-    //TODO refactor module management
-    public async requestLaunch(): Promise<string> {
-        AppService.rocket = new Rocket();
-        AppService.rocket.setHeadModule(new HeadModule(20.0, new Payload('210 avenue de la grande ours', 150.5)));
-        AppService.rocket.addModule(new FuelModule(100.0));
-        AppService.rocket.setNumberInitialStages();
-        this.launchingSequence();
+    public async requestLaunch(rocketId: number): Promise<string> {
+        this.launchingSequence(rocketId);
         return "Rocket launching sequence started";
     }
 
-    private async launchingSequence(): Promise<void>{
+    private async launchingSequence(rocketId: number): Promise<void>{
         await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
             messageId: '' + new Date().valueOf(),
             body: {
-                value: 'Rocket on internal power',
+                value: 'Rocket ' + rocketId + ' - on internal power',
                 timestamp: Date.now(),
+                rocketId: rocketId
             },
             messageType: 'info',
             topicName: TOPIC_LAUNCH_EVENT
@@ -59,8 +91,9 @@ export class AppService {
             await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
                 messageId: '' + new Date().valueOf(),
                 body: {
-                    value: 'Startup (T-00:01:00)',
+                    value: 'Rocket ' + rocketId + ' - Startup (T-00:01:00)',
                     timestamp: Date.now(),
+                    rocketId: rocketId
                 },
                 messageType: 'info',
                 topicName: TOPIC_LAUNCH_EVENT
@@ -69,8 +102,9 @@ export class AppService {
                 await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
                     messageId: '' + new Date().valueOf(),
                     body: {
-                        value: 'Main engine start (T-00:00:03)',
+                        value: 'Rocket ' + rocketId + ' - Main engine start (T-00:00:03)',
                         timestamp: Date.now(),
+                        rocketId: rocketId
                     },
                     messageType: 'info',
                     topicName: TOPIC_LAUNCH_EVENT
@@ -79,50 +113,33 @@ export class AppService {
                     await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
                         messageId: '' + new Date().valueOf(),
                         body: {
-                            value: 'Liftoff/Launch (T+00:00:00)',
+                            value: 'Rocket ' + rocketId + ' - Liftoff/Launch (T+00:00:00)',
                             timestamp: Date.now(),
+                            rocketId: rocketId
                         },
                         messageType: 'info',
                         topicName: TOPIC_LAUNCH_EVENT
                     });
-                    clientBooster.toggleRunning(new Empty(), function(err, response){
-                        if (response !== undefined) {
-                            Logger.log(response.getContent());
-                        }
-                        else {
-                           Logger.error('Error: gRPC communication fail:' + err);
-                        }
-                    });
-                    clientStage.toggleRunning(new Empty(), function(err, response){
-                        if (response !== undefined) {
-                            Logger.log(response.getContent());
-                        }
-                        else {
-                            Logger.error('Error: gRPC communication fail:' + err);
-                        }
-                    });
-                    clientProbe.toggleRunning(new Empty(), function(err, response){
-                        if (response !== undefined) {
-                            Logger.log(response.getContent());
-                        }
-                        else {
-                            Logger.error('Error: gRPC communication fail:' + err);
-                        }
-                    });
+
+                    const rocket = this.getRocketWithId(rocketId);
+                    for(const module of rocket.modules){
+                        module.moduleAction.toggleRunning(new Empty(), function(err, response){
+                            if (response !== undefined) {
+                                Logger.log(response.getContent());
+                            }
+                            else {
+                                Logger.error('Error: gRPC communication fail:' + err);
+                            }
+                        });
+                    }
                 }.bind(this), 1000)
             }.bind(this), 1000)
         }.bind(this), 1000)
     }
 
-    public boom(res: Response, module: string): void {
-        let moduleToRemove;
-        if(module === 'payload')
-            moduleToRemove = clientProbe;
-        else if(module === 'stage')
-            moduleToRemove = clientStage;
-        else
-            moduleToRemove = clientBooster;
-        moduleToRemove.boom(new Empty(), function (err, response) {
+    public boom(res: Response, rocketId: number, moduleId: number): void {
+        const module = this.getRocketWithId(rocketId).getModuleWithId(moduleId);
+        module.moduleAction.boom(new Empty(), function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());
             else
@@ -130,13 +147,9 @@ export class AppService {
         });
     }
 
-    public detachModule(res: Response, module: string) {
-        let moduleToRemove;
-        if(module === 'payload')
-            moduleToRemove = clientProbe;
-        else
-            moduleToRemove = clientBooster;
-        moduleToRemove.detach(new Empty(), function (err, response) {
+    public detachModule(res: Response, rocketId: number, moduleId: number) {
+        const module = this.getRocketWithId(rocketId).getModuleWithId(moduleId);
+        module.moduleAction.detach(new Empty(), function (err, response) {
             if (response !== undefined) {
                 if (response.getVal() === true) {
                     res.status(200).send('Successfully detached module');
@@ -151,10 +164,11 @@ export class AppService {
         return res;
     }
 
-    public setThrustersSpeed(value: number, res: Response) {
+    public setThrustersSpeed(value: number, res: Response, rocketId: number, moduleId: number) {
+        const module = this.getRocketWithId(rocketId).getModuleWithId(moduleId);
         const speed = new Double();
         speed.setVal(value);
-        clientBooster.setThrustersSpeed(speed, function (err, response) {
+        module.moduleAction.setThrustersSpeed(speed, function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());
             else
@@ -162,8 +176,9 @@ export class AppService {
         });
     }
 
-    public okActions(res: Response) {
-        clientBooster.ok(new Empty(), function (err, response) {
+    public okActions(res: Response, rocketId: number, moduleId: number) {
+        const module = this.getRocketWithId(rocketId).getModuleWithId(moduleId);
+        module.moduleAction.ok(new Empty(), function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());
             else
@@ -171,8 +186,9 @@ export class AppService {
         });
     }
 
-    public toggleRunning(res: Response) {
-        clientBooster.toggleRunning(new Empty(), function (err, response) {
+    public toggleRunning(res: Response, rocketId: number, moduleId: number) {
+        const module = this.getRocketWithId(rocketId).getModuleWithId(moduleId);
+        module.moduleAction.toggleRunning(new Empty(), function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());
             else

@@ -25,21 +25,22 @@ export class ConsumerService extends AbstractKafkaConsumer {
     @SubscribeTo(TOPIC_POLL_RESPONSE)
     pollSubscriber(payload: string) {
         Logger.log('[KAFKA_' + TOPIC_POLL_RESPONSE + '] ' + payload);
-        this.pollService.managePollResponse(JSON.parse(payload));
+        const body = JSON.parse(payload).body;
+        this.pollService.managePollResponse(body.client, body.value, parseInt(body.rocketId, 10));
     }
 
     @SubscribeTo(TOPIC_LAUNCH_EVENT)
     async launchEventsSubscriber(payload: string) {
         Logger.log('[KAFKA_' + TOPIC_LAUNCH_EVENT + '] ' + payload);
         const body = JSON.parse(payload).body;
-        await this.dataService.saveRocketEvent(body.value, body.timestamp);
+        await this.dataService.saveRocketEvent(body.value, body.timestamp, body.rocketId);
     }
 
     @SubscribeTo(TOPIC_ROCKET_EVENT)
     async rocketEventsSubscriber(payload: string) {
         Logger.log('[KAFKA_' + TOPIC_ROCKET_EVENT + '] ' + payload);
         const body = JSON.parse(payload);
-        await this.dataService.saveRocketEvent(body.description, body.timestamp);
+        await this.dataService.saveRocketEvent(body.description, body.timestamp, body.rocketId);
     }
 
     /**

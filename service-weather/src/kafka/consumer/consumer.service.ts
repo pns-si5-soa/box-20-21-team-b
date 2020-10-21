@@ -22,6 +22,7 @@ export class ConsumerService extends AbstractKafkaConsumer {
     @SubscribeTo(TOPIC_POLL)
     helloSubscriber(payload: string) {
         Logger.log('[KAFKA_' + TOPIC_POLL + '] ' + payload);
-        this.pollService.pollInitiated(JSON.parse(payload));
+        const body = JSON.parse(payload).body
+        this.pollService.pollInitiated(body.rocketId);
     }
 }

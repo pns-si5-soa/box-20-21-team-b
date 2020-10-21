@@ -49,6 +49,7 @@ type Event struct {
 	Label       string    `json:"label"`
 	Initiator   string    `json:"initiator"`
 	Description string    `json:"description"`
+	RocketId 	int		  `json:"rocketId"`
 }
 
 const TopicRocketEvent = "topic-rocket-event"
@@ -64,6 +65,7 @@ var fuelCanLower = false
 
 var kafkaCon *kafka.Conn
 
+var rocketId = -1
 var LINEAR_FACTOR = 10 // Linear factor <=> acceleration and altitudeVariation value
 var PRESSURE_FACTOR = float32(20.0) // Factor between speed and pressure
 
@@ -181,6 +183,7 @@ func resolveAutoActions() {
 			Label:       "max_q",
 			Initiator:   "auto",
 			Description: "[" + CurrentModule.Type + "] Max Q reached - decreasing thrusters power",
+			RocketId: rocketId,
 		})
 		LINEAR_FACTOR = 0
 		CurrentModule.LastMetric.Speed = int((CurrentModule.MaxPressure-1) * PRESSURE_FACTOR)
@@ -194,6 +197,7 @@ func resolveAutoActions() {
 			Label:       "detach",
 			Initiator:   "auto",
 			Description: "["+ CurrentModule.Type +"] Fuel level reached minimum value - cutting off engine",
+			RocketId: rocketId,
 		})
 		sendEventToKafka(Event{
 			Timestamp:   time.Time{},
@@ -201,6 +205,7 @@ func resolveAutoActions() {
 			Label:       "detach",
 			Initiator:   "auto",
 			Description: "["+ CurrentModule.Type +"] Detaching module",
+			RocketId: rocketId,
 		})
 		CurrentModule.LastMetric.IsAttached = false
 	}
@@ -225,6 +230,7 @@ func resolveAutoActions() {
 				Label:       "landing",
 				Initiator:   "auto",
 				Description: "["+ CurrentModule.Type +"] entry burn in the atmosphere",
+				RocketId: rocketId,
 			})
 
 			go func(){
@@ -238,6 +244,7 @@ func resolveAutoActions() {
 					Label:       "landing",
 					Initiator:   "auto",
 					Description: "[" + CurrentModule.Type + "] landing burn",
+					RocketId: rocketId,
 				})
 
 				time.Sleep(2 * time.Second)
@@ -247,6 +254,7 @@ func resolveAutoActions() {
 					Label:       "landing",
 					Initiator:   "auto",
 					Description: "[" + CurrentModule.Type + "] legs deployed",
+					RocketId: rocketId,
 				})
 
 				time.Sleep(2 * time.Second)
@@ -256,6 +264,7 @@ func resolveAutoActions() {
 					Label:       "landing",
 					Initiator:   "auto",
 					Description: "[" + CurrentModule.Type + "] landing on ground",
+					RocketId: rocketId,
 				})
 				CurrentModule.LastMetric.IsRunning = false
 			}()
@@ -273,6 +282,7 @@ func resolveAutoActions() {
 				Label:       "detach",
 				Initiator:   "auto",
 				Description: "["+ CurrentModule.Type +"] is now deployed",
+				RocketId: rocketId,
 			})
 			CurrentModule.LastMetric.IsAttached = false
 			CurrentModule.LastMetric.Speed = 0
@@ -356,6 +366,7 @@ func (s *moduleActionsServer) Detach(ctx context.Context, empty *actions.Empty) 
 		Label:       "detach",
 		Initiator:   "manual",
 		Description: "Detaching module",
+		RocketId: rocketId,
 	})
 	return &actions.Boolean{Val: true}, nil
 }
@@ -390,6 +401,7 @@ func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.
 		Label:       "toggle_running",
 		Initiator:   "manual",
 		Description: "["+ CurrentModule.Type +"]" + message,
+		RocketId: rocketId,
 	})
 	log.Println(message)
 	CurrentModule.LastMetric.IsRunning = !CurrentModule.LastMetric.IsRunning
@@ -428,6 +440,12 @@ func main() {
 		log.Println("Error : no IdModule provided. Exit")
 		os.Exit(-1)
 	}
+
+	if rocketId, _ = strconv.Atoi(os.Getenv("ROCKET_ID")); rocketId == 0 {
+		log.Println("Error : no rocketId provided. Exit")
+		os.Exit(-1)
+	}
+
 	CurrentModule.Id = idModule
 	var moduleType string
 	if moduleType = os.Getenv("MODULE_TYPE"); moduleType == "" {
