@@ -11,4 +11,4 @@ spec:
     targetPort: 80
   selector:
     app: weather
-#  type: NodePort # Uncomment if doesnt match IP
+  type: NodePort # Uncomment if doesnt match IP

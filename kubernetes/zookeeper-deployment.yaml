@@ -1,26 +1,27 @@
-apiVersion: apps/v1
 kind: Deployment
+apiVersion: apps/v1
 metadata:
-  labels:
-    app: zookeeper
-    boxb: boxb-ground
   name: zookeeper
+#  boxb: boxb-ground
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: zookeeper
-      boxb: boxb-ground
+      app: zookeeper-1
+#     boxb: boxb-ground
   template:
     metadata:
       labels:
-        app: zookeeper
-        boxb: boxb-ground
+        app: zookeeper-1
+#       boxb: boxb-ground
     spec:
       containers:
-      - image: wurstmeister/zookeeper:latest
-        name: zookeeper
-        imagePullPolicy: IfNotPresent
+      - name: zoo1
+        image: digitalwonderland/zookeeper
+        ports:
+        - containerPort: 2181
         env:
-          - name: zk_id
-            value: "1"
+        - name: ZOOKEEPER_ID
+          value: "1"
+        - name: ZOOKEEPER_SERVER_1
+          value: zoo1

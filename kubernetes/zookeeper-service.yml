@@ -1,14 +1,19 @@
 apiVersion: v1
 kind: Service
 metadata:
+  name: zoo1
   labels:
-    app: zookeeper
-  name: zookeeper
+    app: zookeeper-1
 spec:
   ports:
-  - port: 2181
+  - name: client
+    port: 2181
     protocol: TCP
-    targetPort: 2181
+  - name: follower
+    port: 2888
+    protocol: TCP
+  - name: leader
+    port: 3888
+    protocol: TCP
   selector:
-    app: zookeeper
-#  type: NodePort # Uncomment if doesnt match IP
+    app: zookeeper-1
