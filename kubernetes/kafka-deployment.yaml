@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kafka
+    boxb: boxb-ground
+  name: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+      boxb: boxb-ground
+  template:
+    metadata:
+      labels:
+        app: kafka
+        boxb: boxb-ground
+    spec:
+      containers:
+      - image: wurstmeister/kafka:latest
+        name: kafka
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: KAFKA_ADVERTISED_HOST_NAME
+            value: "kafka"
+          - name: KAFKA_ADVERTISED_PORT
+            value: "9092"
+          - name: KAFKA_ZOOKEEPER_CONNECT
+            value: "boxb-zookeeper:2181"
+          - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+            value: "1"
+          - name: KAFKA_BROKER_ID
+            value: "1"
+          - name: KAFKA_CREATE_TOPICS
+            value: "topic-poll:1:1,topic-poll-response:1:1,topic-rocket-event:1:1,topic-launch-event:1:1,topic-launch-order:1:1"

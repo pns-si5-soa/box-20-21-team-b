@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: zookeeper
+    boxb: boxb-ground
+  name: zookeeper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zookeeper
+      boxb: boxb-ground
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+        boxb: boxb-ground
+    spec:
+      containers:
+      - image: wurstmeister/zookeeper:latest
+        name: zookeeper
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: zk_id
+            value: "1"
