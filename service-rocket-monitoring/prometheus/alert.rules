@@ -3,7 +3,7 @@ groups:
   rules:
 
   - alert: taking_off
-    expr: isRunning == 0
+    expr: boxb_module_metrics_isRunning{instance="module-metrics-booster-1:80",job="module-metrics"} == 0
     labels:
       severity: safe
     annotations:

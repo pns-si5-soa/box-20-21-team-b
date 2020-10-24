@@ -163,7 +163,7 @@ services:
 #    deploy:
 #    replicas: 1
     labels:
-      - "traefik.http.routers.alertmanager.rule=PathPrefix(`/alertmanager`)"
+      - "traefik.http.routers.alertmanager.rule=Host(`alertmanager.localhost`)"
     volumes:
     - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
     #- ./alertmanager/templates/default.tmpl:/etc/alertmanager/templates/default.tmpl

@@ -18,16 +18,30 @@
   "links": [],
   "panels": [
     {
-      "dashboardFilter": "",
-      "dashboardTags": [],
       "datasource": "Prometheus AlertManager",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
         },
         "overrides": []
       },
-      "folderId": null,
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -35,13 +49,14 @@
         "y": 0
       },
       "id": 14,
-      "limit": 10,
-      "nameFilter": "",
-      "onlyAlertsOnDashboard": false,
+      "maxDataPoints": 1,
+      "options": {
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
       "pluginVersion": "7.2.1",
-      "show": "current",
-      "sortOrder": 1,
-      "stateFilter": [],
       "targets": [
         {
           "annotations": false,
@@ -50,13 +65,13 @@
           "legendFormat": "Alerts",
           "refId": "A",
           "target": "Query",
-          "type": "timeserie"
+          "type": "table"
         }
       ],
       "timeFrom": null,
       "timeShift": null,
       "title": "Alerts",
-      "type": "alertlist"
+      "type": "logs"
     },
     {
       "aliasColors": {},
@@ -463,5 +478,5 @@
   "timezone": "browser",
   "title": "Module Metrics",
   "uid": "CNlEB3cMk",
-  "version": 3
+  "version": 4
 }
