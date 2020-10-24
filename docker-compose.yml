@@ -144,28 +144,34 @@ services:
     restart: unless-stopped
     volumes:
       - prometheus-data:/prometheus
-      - ./service-rocket-monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      # - ./alertmanager/alert.rules/alerts.rules.yml:/alertmanager/alert.rules/alerts.rules.yml
+      - ./service-rocket-monitoring/prometheus/:/etc/prometheus/
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=365d'
     labels:
       - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
+    links:
+      - alertmanager:alertmanager
     expose:
       - 9090
 
-      ## ALERTMANAGER FOR PROMETHEUS
-      # alertmanager:
-      # image: prom/alertmanager:latest
-      # container_name: alertmanager
-      # deploy:
-      # replicas: 1
-      # volumes:
-      # - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
-      # - ./alertmanager/templates/default.tmpl:/etc/alertmanager/templates/default.tmpl
-      # command:
-      # - '--config.file=/etc/alertmanager/alertmanager.yml'
+  # ALERTMANAGER FOR PROMETHEUS
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+#    deploy:
+#    replicas: 1
+    labels:
+      - "traefik.http.routers.alertmanager.rule=PathPrefix(`/alertmanager`)"
+    volumes:
+    - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    #- ./alertmanager/templates/default.tmpl:/etc/alertmanager/templates/default.tmpl
+    command:
+    - '--config.file=/etc/alertmanager/alertmanager.yml'
+    - '-storage.path=/alertmanager'
+    expose:
+      - 9093
 
   ## GRAFANA DASHBOARD UI FOR PROMETHEUS METRICS
   grafana:

@@ -1,0 +1,11 @@
+groups:
+- name: rocket-monitoring
+  rules:
+
+  - alert: taking_off
+    expr: isRunning == 0
+    labels:
+      severity: safe
+    annotations:
+      summary: "Rocket {{ $labels.Id }} fired"
+      description: "{{ $labels.Id }} module has speed {{ $labels.Speed }}"
