@@ -18,6 +18,47 @@
   "links": [],
   "panels": [
     {
+      "dashboardFilter": "",
+      "dashboardTags": [],
+      "datasource": "Prometheus AlertManager",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "folderId": null,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 14,
+      "limit": 10,
+      "nameFilter": "",
+      "onlyAlertsOnDashboard": false,
+      "pluginVersion": "7.2.1",
+      "show": "current",
+      "sortOrder": 1,
+      "stateFilter": [],
+      "targets": [
+        {
+          "annotations": false,
+          "expr": "",
+          "labelSelector": "*",
+          "legendFormat": "Alerts",
+          "refId": "A",
+          "target": "Query",
+          "type": "timeserie"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Alerts",
+      "type": "alertlist"
+    },
+    {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
@@ -35,7 +76,7 @@
         "h": 14,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 8
       },
       "hiddenSeries": false,
       "id": 8,
@@ -145,7 +186,7 @@
         "h": 14,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 22
       },
       "hiddenSeries": false,
       "id": 4,
@@ -248,7 +289,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 36
       },
       "id": 2,
       "options": {
@@ -306,7 +347,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 36
+        "y": 44
       },
       "id": 12,
       "options": {
@@ -369,7 +410,7 @@
         "h": 5,
         "w": 12,
         "x": 12,
-        "y": 36
+        "y": 44
       },
       "id": 6,
       "options": {
@@ -422,5 +463,5 @@
   "timezone": "browser",
   "title": "Module Metrics",
   "uid": "CNlEB3cMk",
-  "version": 2
+  "version": 3
 }
