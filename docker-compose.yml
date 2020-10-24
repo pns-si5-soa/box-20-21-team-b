@@ -169,7 +169,7 @@ services:
     #- ./alertmanager/templates/default.tmpl:/etc/alertmanager/templates/default.tmpl
     command:
     - '--config.file=/etc/alertmanager/alertmanager.yml'
-    - '-storage.path=/alertmanager'
+    - '--storage.path=/alertmanager'
     expose:
       - 9093
 

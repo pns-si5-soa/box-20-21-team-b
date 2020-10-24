@@ -4,4 +4,4 @@ route:
 receivers:
   - name: 'pager'
     webhook_configs:
-      - url: localhost # replace with your PagerTree webhook url
+    - url: 'http://localhost/' # replace with your PagerTree webhook url
