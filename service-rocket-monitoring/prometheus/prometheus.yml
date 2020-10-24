@@ -21,3 +21,10 @@ scrape_configs:
 #      - labels: [ id: id]
     metrics_path: "/module-metrics/metrics"
     scrape_interval: 100ms
+    
+  - job_name: 'module-metrics2'
+    static_configs:
+      - targets: ['module-metrics-payload-2', 'module-metrics-middle-2', 'module-metrics-booster-2']
+#      - labels: [ id: id]
+    metrics_path: "/module-metrics/metrics"
+    scrape_interval: 100ms

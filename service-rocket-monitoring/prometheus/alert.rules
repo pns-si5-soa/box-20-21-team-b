@@ -2,10 +2,10 @@ groups:
 - name: rocket-monitoring
   rules:
 
-  - alert: taking_off
-    expr: boxb_module_metrics_isRunning{instance="module-metrics-booster-1:80",job="module-metrics"} == 0
+  - alert: MaxQReached
+    expr: boxb_module_metrics_pressure{job="module-metrics"} > 1
     labels:
-      severity: safe
+      severity: critical
     annotations:
-      summary: "Rocket {{ $labels.Id }} fired"
-      description: "{{ $labels.Id }} module has speed {{ $labels.Speed }}"
+      summary: "MaxQ Reached"
+      description: "The maximum pressure has been reached"
