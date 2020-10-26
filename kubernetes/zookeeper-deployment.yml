@@ -4,7 +4,7 @@ metadata:
   name: zookeeper
 #  boxb: boxb-ground
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: zookeeper-1
