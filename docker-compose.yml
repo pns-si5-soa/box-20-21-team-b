@@ -243,7 +243,7 @@ services:
       - ROCKET_ID=1
       - MODULE_TYPE=booster
     volumes:
-      - ./service-modules/analog-mock-booster.json:/etc/analog-mock-booster.json # FOR ANALOG MODULE STATUS ONLY
+      - module-metrics-booster-1:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
 
@@ -258,7 +258,7 @@ services:
       - ROCKET_ID=1
       - MODULE_TYPE=middle
     volumes:
-      - ./service-modules/analog-mock-middle.json:/etc/analog-mock-middle.json # FOR ANALOG MODULE STATUS ONLY
+      - module-metrics-middle-1:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
     # TODO Traefik LB + PrefixPath by ID
@@ -274,7 +274,7 @@ services:
       - ROCKET_ID=1
       - MODULE_TYPE=payload
     volumes:
-      - ./service-modules/analog-mock-payload.json:/etc/analog-mock-payload.json # FOR ANALOG MODULE STATUS ONLY
+      - module-metrics-payload-1:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
     # TODO Traefik LB + PrefixPath by ID
@@ -290,7 +290,7 @@ services:
       - ROCKET_ID=1
       - MODULE_TYPE=booster
     volumes:
-      - ./service-modules/analog-mock-booster.json:/etc/analog-mock-booster.json # FOR ANALOG MODULE DEBUG ONLY
+      - module-metrics-booster-1:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
@@ -309,7 +309,7 @@ services:
       - ROCKET_ID=1
       - ID_MODULE=2
     volumes:
-      - ./service-modules/analog-mock-middle.json:/etc/analog-mock-middle.json # FOR ANALOG MODULE DEBUG ONLY
+      - module-metrics-middle-1:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
@@ -327,7 +327,7 @@ services:
       - ROCKET_ID=1
       - MODULE_TYPE=payload
     volumes:
-      - ./service-modules/analog-mock-payload.json:/etc/analog-mock-payload.json # FOR ANALOG MODULE DEBUG ONLY
+      - module-metrics-payload-1:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
@@ -346,7 +346,7 @@ services:
       - ROCKET_ID=2
       - MODULE_TYPE=booster
     volumes:
-      - ./service-modules/analog-mock-booster2.json:/etc/analog-mock-booster.json # FOR ANALOG MODULE STATUS ONLY
+      - .module-metrics-booster-2:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
 
@@ -361,7 +361,7 @@ services:
       - ROCKET_ID=2
       - MODULE_TYPE=middle
     volumes:
-      - ./service-modules/analog-mock-middle2.json:/etc/analog-mock-middle.json # FOR ANALOG MODULE STATUS ONLY
+      - module-metrics-middle-2:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
     # TODO Traefik LB + PrefixPath by ID
@@ -377,7 +377,7 @@ services:
       - ROCKET_ID=2
       - MODULE_TYPE=payload
     volumes:
-      - ./service-modules/analog-mock-payload2.json:/etc/analog-mock-payload.json # FOR ANALOG MODULE STATUS ONLY
+      - module-metrics-payload-2:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
     # TODO Traefik LB + PrefixPath by ID
@@ -393,7 +393,7 @@ services:
       - ROCKET_ID=2
       - MODULE_TYPE=booster
     volumes:
-      - ./service-modules/analog-mock-booster2.json:/etc/analog-mock-booster.json # FOR ANALOG MODULE DEBUG ONLY
+      - module-metrics-booster-2:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
@@ -412,7 +412,7 @@ services:
       - ROCKET_ID=2
       - ID_MODULE=2
     volumes:
-      - ./service-modules/analog-mock-middle2.json:/etc/analog-mock-middle.json # FOR ANALOG MODULE DEBUG ONLY
+      - module-metrics-middle-2:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
@@ -430,7 +430,7 @@ services:
       - ROCKET_ID=2
       - MODULE_TYPE=payload
     volumes:
-      - ./service-modules/analog-mock-payload2.json:/etc/analog-mock-payload.json # FOR ANALOG MODULE DEBUG ONLY
+      - module-metrics-payload-2:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
@@ -440,5 +440,10 @@ services:
 volumes:
   prometheus-data: { }
   grafana-data: { }
-
+  module-metrics-booster-1: { }
+  module-metrics-middle-1: { }
+  module-metrics-payload-1: { }
+  module-metrics-booster-2: { }
+  module-metrics-middle-2: { }
+  module-metrics-payload-2: { }
 
