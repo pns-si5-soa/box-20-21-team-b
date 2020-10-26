@@ -346,7 +346,7 @@ services:
       - ROCKET_ID=2
       - MODULE_TYPE=booster
     volumes:
-      - .module-metrics-booster-2:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
+      - module-metrics-booster-2:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
 
