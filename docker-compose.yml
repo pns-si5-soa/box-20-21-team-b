@@ -17,7 +17,7 @@ services:
       - ./service-weather/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
-      - kafka
+      - kafka-service
     expose:
       - 80
     labels:
@@ -43,7 +43,7 @@ services:
       - ./service-rocket/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
-      - kafka
+      - kafka-service
     expose:
       - 80
     labels:
@@ -73,7 +73,7 @@ services:
       - ./service-mission/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
-      - kafka
+      - kafka-service
     expose:
       - 80
     labels:
@@ -91,7 +91,7 @@ services:
       - ./service-webcaster/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
-      - kafka
+      - kafka-service
     expose:
       - 80
     labels:
@@ -120,14 +120,14 @@ services:
       zk_id: "1"
     expose:
       - 2181
-  kafka:
+  kafka-service:
     container_name: boxb-kafka
     restart: unless-stopped
     image: wurstmeister/kafka
     depends_on:
       - zookeeper
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ADVERTISED_HOST_NAME: kafka-service
       KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ZOOKEEPER_CONNECT: boxb-zookeeper:2181
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -294,7 +294,7 @@ services:
     expose:
       - "80"
     depends_on:
-      - kafka
+      - kafka-service
       - mission
     # TODO Traefik LB + PrefixPath by ID
 
@@ -313,7 +313,7 @@ services:
     expose:
       - "80"
     depends_on:
-      - kafka
+      - kafka-service
       - mission
 
   module-actions-payload-1:
@@ -331,7 +331,7 @@ services:
     expose:
       - "80"
     depends_on:
-      - kafka
+      - kafka-service
       - mission
 
   ## second rocket
@@ -397,7 +397,7 @@ services:
     expose:
       - "80"
     depends_on:
-      - kafka
+      - kafka-service
       - mission
     # TODO Traefik LB + PrefixPath by ID
 
@@ -416,7 +416,7 @@ services:
     expose:
       - "80"
     depends_on:
-      - kafka
+      - kafka-service
       - mission
 
   module-actions-payload-2:
@@ -434,7 +434,7 @@ services:
     expose:
       - "80"
     depends_on:
-      - kafka
+      - kafka-service
       - mission
 
 volumes:

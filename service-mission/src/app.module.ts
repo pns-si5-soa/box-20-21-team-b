@@ -14,7 +14,7 @@ import {AppController} from "./app.controller";
         PollModule,
         KafkaModule.register({
             clientId: 'mission-service',
-            brokers: ['kafka:9092'],
+            brokers: ['kafka-service:9092'],
             groupId: 'box-b',
         }),
         ConsumerModule,],
