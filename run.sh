@@ -51,7 +51,7 @@ echo -e "${YELLOW}Chief Rocket department -> I want to stage the rocket mid-flig
 echo ""
 
 echo -e "${YELLOW}Chief Payload department -> I want to deliver the payload by setting the altitude to deliver payload (I can also drop it manually but I won't)${NC}"
-curl --silent http://localhost/rocket/detach-payload/altitude -H "Content-type:application/json" -X POST -d "{\"altitude\": 130, \"rocketId\": 1}"
+curl --silent http://localhost/rocket/actions/set-altitude-to-detach -H "Content-type:application/json" -X POST -d "{\"value\": 1900, \"rocketId\": 1, \"moduleId\": 3}"
 
 echo -e "\n\nWaiting for the telemetry to get every data from launch (~30secs) (see docker logs)"
 
