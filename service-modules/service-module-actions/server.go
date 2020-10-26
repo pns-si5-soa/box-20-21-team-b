@@ -205,6 +205,10 @@ func resolveAutoActions() {
 			RocketId: rocketId,
 		})
 		CurrentModule.LastMetric.IsAttached = false
+		if CurrentModule.Type == ModuleTypeMiddle{
+			CurrentModule.LastMetric.Speed = 0
+			CurrentModule.LastMetric.IsRunning = false
+		}
 	}
 
 	if CurrentModule.LastMetric.IsAttached == false && CurrentModule.Type == ModuleTypeBooster && CurrentModule.LastMetric.HasLanded == false {
@@ -292,7 +296,7 @@ func generateMetric(done <-chan bool) {
 	if CurrentModule.Type == ModuleTypeMiddle{
 		AltitudeToStartPower = 1480
 	} else if CurrentModule.Type == ModuleTypePayload{
-		AltitudeToStartPower = CurrentModule.DetachAltitude - 100
+		AltitudeToStartPower = CurrentModule.DetachAltitude - 1
 	}
 
 	ticker := time.NewTicker(1 * time.Second)
@@ -304,6 +308,10 @@ func generateMetric(done <-chan bool) {
 				return
 			case <-ticker.C:
 				createNewMetric() // Generate a new mocked metric
+				if CurrentModule.LastMetric.Pressure > CurrentModule.MaxPressure && (CurrentModule.Type == ModuleTypeMiddle || CurrentModule.Type == ModuleTypePayload){
+					MAX_SPEED = 120
+					CurrentModule.LastMetric.Speed = MAX_SPEED
+				}
 				if CurrentModule.LastMetric.Altitude >= AltitudeToStartPower {
 					if CurrentModule.Type == ModuleTypeMiddle{
 						MAX_SPEED = 100
@@ -491,12 +499,13 @@ func main() {
 			IsBoom:     false,
 			HasLanded:  false,
 		}
-	}else{
+		CurrentModule.MinFuelToLand = 50
+	}else if CurrentModule.Type == ModuleTypeMiddle{
 		CurrentModule.LastMetric = Metric{
 			Timestamp:  time.Now(),
 			IdModule:   CurrentModule.Id,
 			Altitude:   0,
-			Fuel:       500,
+			Fuel:       400,
 			Pressure:   1,
 			Speed:      0,
 			Latitude:   43.6656112,
@@ -506,9 +515,25 @@ func main() {
 			IsBoom:     false,
 			HasLanded:  false,
 		}
+		CurrentModule.MinFuelToLand = 20
+	}else{
+		CurrentModule.LastMetric = Metric{
+			Timestamp:  time.Now(),
+			IdModule:   CurrentModule.Id,
+			Altitude:   0,
+			Fuel:       100,
+			Pressure:   1,
+			Speed:      0,
+			Latitude:   43.6656112,
+			Longitude:  7.0701789,
+			IsAttached: true,
+			IsRunning:  false,
+			IsBoom:     false,
+			HasLanded:  false,
+		}
+		CurrentModule.MinFuelToLand = 0
 	}
 	CurrentModule.DetachAltitude = 2000
-	CurrentModule.MinFuelToLand = 50
 	CurrentModule.MaxPressure = 7.0
 	writeJSONMetric(CurrentModule.LastMetric)
 

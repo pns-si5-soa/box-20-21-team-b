@@ -53,15 +53,17 @@ echo ""
 echo -e "${YELLOW}Chief Payload department -> I want to deliver the payload by setting the altitude to deliver payload (I can also drop it manually but I won't)${NC}"
 curl --silent http://localhost/rocket/actions/set-altitude-to-detach -H "Content-type:application/json" -X POST -d "{\"value\": 1900, \"rocketId\": 1, \"moduleId\": 3}"
 
-echo -e "\n\nWaiting for the telemetry to get every data from launch (~30secs) (see docker logs)"
+echo -e "${YELLOW}Telemetry Officer -> I want to check the telemetry of the launch${NC}"
 
-sleep 30
+#for i in `seq 1 3`;
+#do
+#        echo curl --silent http://prometheus.localhost/api/v1/query_range?query=boxb_module_metrics_altitude&start=2020-10-26T14:51:12.692Z&end=2020-10-26T14:53:12.692Z&step=10s -X GET
+#        sleep 10
+#done
 
-#echo -e "${YELLOW}Telemetry Officer -> I want to check the telemetry of the launch${NC}"
-#curl --silent http://localhost/telemetry/rocket-metrics -X GET
 
 echo -e "\n\n${YELLOW}Chief Rocket Department -> I want to set the speed of the rocket a bit lower so that it can go through max Q harmlessly${NC}"
-echo -e "${Cyan}It will send a POST request on the rocket service. The gRPC connection is used to change the spped of the module${NC}"
-curl --silent http://localhost/rocket/actions/set-thrusters-speed -H "Content-type:application/json" -X POST -d "{\"value\": 100, \"rocketId\": 1}"
+echo -e "${Cyan}It will send a POST request on the rocket service. The gRPC connection is used to change the speed of the module${NC}"
+curl --silent http://localhost/rocket/actions/set-thrusters-speed -H "Content-type:application/json" -X POST -d "{\"value\": 100, \"rocketId\": 1, \"moduleId\": 1}"
 
 
