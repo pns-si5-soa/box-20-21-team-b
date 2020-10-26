@@ -148,3 +148,24 @@ export namespace RunningReply {
         content: string,
     }
 }
+
+export class SetAltitudeToDetachReply extends jspb.Message { 
+    getContent(): string;
+    setContent(value: string): SetAltitudeToDetachReply;
+
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SetAltitudeToDetachReply.AsObject;
+    static toObject(includeInstance: boolean, msg: SetAltitudeToDetachReply): SetAltitudeToDetachReply.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SetAltitudeToDetachReply, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SetAltitudeToDetachReply;
+    static deserializeBinaryFromReader(message: SetAltitudeToDetachReply, reader: jspb.BinaryReader): SetAltitudeToDetachReply;
+}
+
+export namespace SetAltitudeToDetachReply {
+    export type AsObject = {
+        content: string,
+    }
+}

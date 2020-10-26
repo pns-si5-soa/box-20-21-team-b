@@ -408,6 +408,14 @@ func (s *moduleActionsServer) ToggleRunning(ctx context.Context, empty *actions.
 	return &actions.RunningReply{Content: message}, nil
 }
 
+// Set value for the altitude at which the module has to detach itself
+func (s *moduleActionsServer) SetAltitudeToDetach(ctx context.Context, value *actions.Double) (*actions.SetAltitudeToDetachReply, error) {
+	res := "Altitude to detach is now " + fmt.Sprintf("%F", value.GetVal()) + "km"
+	log.Println(res)
+	CurrentModule.DetachAltitude = int(value.GetVal())
+	return &actions.SetAltitudeToDetachReply{Content: res}, nil
+}
+
 func sendEventToKafka(event Event){
 	err := kafkaCon.SetWriteDeadline(time.Now().Add(10*time.Second))
 	if err != nil {

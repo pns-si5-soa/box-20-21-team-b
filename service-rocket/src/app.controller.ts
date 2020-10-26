@@ -4,6 +4,7 @@ import {AppService} from './app.service';
 import {ThrustersSpeedPayloadDto} from "./dto/ThrustersSpeedPayloadDTO.dto";
 import {RocketModuleDto} from './dto/RocketModuleDTO.dto'
 import {RocketDto} from "./dto/RocketDTO.dto";
+import {AltitudeToDetachPayloadDto} from "./dto/AltitudeToDetachPayloadDTO";
 
 @Controller('rocket')
 export class AppController {
@@ -39,6 +40,11 @@ export class AppController {
     @Post('/actions/set-thrusters-speed')
     setThrustersSpeed(@Body() message: ThrustersSpeedPayloadDto, @Res() res: Response): void{
         this.appService.setThrustersSpeed(message.value, res, message.rocketId, message.moduleId);
+    }
+
+    @Post('/actions/set-altitude-to-detach')
+    setAltitudeToDetach(@Body() message: AltitudeToDetachPayloadDto, @Res() res: Response): void{
+        this.appService.setAltitudeToDetach(message.value, res, message.rocketId, message.moduleId);
     }
 
     @Post('/actions/ok')
