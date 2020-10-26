@@ -464,7 +464,7 @@ func main() {
 	}
 	log.Println(moduleType)
 	CurrentModule.Type = moduleType
-	AnalogFile, _ = os.OpenFile("/etc/analog-mock-" + moduleType + ".json", os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
+	AnalogFile, _ = os.OpenFile("/etc/module-logs/analog-mock-" + moduleType + ".json", os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
 
 
 	// to produce messages
