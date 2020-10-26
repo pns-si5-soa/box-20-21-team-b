@@ -3,7 +3,7 @@
 YELLOW='\033[0;33m'
 Cyan="\033[0;36m"
 NC='\033[0m' # No Color
-
+#
 echo -e "${YELLOW}Mission Commander -> I have to perform a go/no go poll${NC}"
 echo -e "${Cyan}It will send a POST request on the mission service and the poll event will be send on the bus${NC}"
 curl --silent http://localhost/mission/poll/initiate -H "Content-type:application/json" -X POST -d "{\"rocketId\": 1}"
@@ -55,11 +55,16 @@ curl --silent http://localhost/rocket/actions/set-altitude-to-detach -H "Content
 
 echo -e "${YELLOW}Telemetry Officer -> I want to check the telemetry of the launch${NC}"
 
-#for i in `seq 1 3`;
-#do
-#        echo curl --silent http://prometheus.localhost/api/v1/query_range?query=boxb_module_metrics_altitude&start=2020-10-26T14:51:12.692Z&end=2020-10-26T14:53:12.692Z&step=10s -X GET
-#        sleep 10
-#done
+
+
+for i in `seq 1 3`;
+do
+        timestampStart=$( date "+%Y-%m-%dT%H:%M:%S.%3NZ" -d '- 2 hours - 10 seconds')
+        timestampEnd=$( date "+%Y-%m-%dT%H:%M:%S.%3NZ" -d '- 2 hours')
+        echo "REQUEST ON PROMETHEUS http://localhost:9090/api/v1/query_range?query=boxb_module_metrics_altitude&start=${timestampStart}&end=${timestampEnd}&step=1s"
+        curl -X GET "http://localhost:9090/api/v1/query_range?query=boxb_module_metrics_altitude&start=${timestampStart}&end=${timestampEnd}&step=1s"
+        sleep 10
+done
 
 
 echo -e "\n\n${YELLOW}Chief Rocket Department -> I want to set the speed of the rocket a bit lower so that it can go through max Q harmlessly${NC}"
