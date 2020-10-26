@@ -69,6 +69,9 @@ var rocketId = -1
 var LINEAR_FACTOR = 10 // Linear factor <=> acceleration and altitudeVariation value
 var PRESSURE_FACTOR = float32(20.0) // Factor between speed and pressure
 
+var MAX_SPEED = 150 // Max speed of the rocket
+var AltitudeToStartPower = 0
+
 func createNewMetric() {
 	// Generation from last metric
 
@@ -121,12 +124,6 @@ func createNewMetric() {
 	newPressure := 1.0+float32(CurrentModule.LastMetric.Speed)/PRESSURE_FACTOR
 
 	// Speed variation: acceleration is 0 when not running
-	MAX_SPEED := 150 // Max speed of the rocket
-	if CurrentModule.Type == ModuleTypeMiddle{
-		MAX_SPEED = 100
-	} else if CurrentModule.Type == ModuleTypePayload{
-		MAX_SPEED = 80
-	}
 	acceleration := 0
 	if CurrentModule.LastMetric.Speed < MAX_SPEED {
 		if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
@@ -292,11 +289,10 @@ func resolveAutoActions() {
 
 // Generate & add a random metric every 1 second
 func generateMetric(done <-chan bool) {
-	AltitudeToStartPower := 0
-	if CurrentModule.Type == "middle"{
+	if CurrentModule.Type == ModuleTypeMiddle{
 		AltitudeToStartPower = 1480
-	} else if CurrentModule.Type == "payload"{
-		AltitudeToStartPower = 2000
+	} else if CurrentModule.Type == ModuleTypePayload{
+		AltitudeToStartPower = CurrentModule.DetachAltitude - 100
 	}
 
 	ticker := time.NewTicker(1 * time.Second)
@@ -309,6 +305,11 @@ func generateMetric(done <-chan bool) {
 			case <-ticker.C:
 				createNewMetric() // Generate a new mocked metric
 				if CurrentModule.LastMetric.Altitude >= AltitudeToStartPower {
+					if CurrentModule.Type == ModuleTypeMiddle{
+						MAX_SPEED = 100
+					} else if CurrentModule.Type == ModuleTypePayload{
+						MAX_SPEED = 80
+					}
 					fuelCanLower = true
 					resolveAutoActions() // Analyze metrics and take auto actions according to them
 				}
@@ -413,6 +414,7 @@ func (s *moduleActionsServer) SetAltitudeToDetach(ctx context.Context, value *ac
 	res := "Altitude to detach is now " + fmt.Sprintf("%F", value.GetVal()) + "km"
 	log.Println(res)
 	CurrentModule.DetachAltitude = int(value.GetVal())
+	AltitudeToStartPower = CurrentModule.DetachAltitude - 100
 	return &actions.SetAltitudeToDetachReply{Content: res}, nil
 }
 
