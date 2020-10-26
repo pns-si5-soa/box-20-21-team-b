@@ -12,6 +12,8 @@ service ModuleActions {
   rpc Ok(Empty) returns(OkReply) {}
 
   rpc ToggleRunning(Empty) returns(RunningReply) {}
+
+  rpc SetAltitudeToDetach(Double) returns(SetAltitudeToDetachReply) {}
 }
 
 message Empty {
@@ -39,5 +41,9 @@ message OkReply {
 }
 
 message RunningReply {
+  string content = 1;
+}
+
+message SetAltitudeToDetachReply {
   string content = 1;
 }

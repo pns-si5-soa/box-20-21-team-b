@@ -22,6 +22,7 @@ type ModuleActionsClient interface {
 	SetThrustersSpeed(ctx context.Context, in *Double, opts ...grpc.CallOption) (*SetThrustersSpeedReply, error)
 	Ok(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*OkReply, error)
 	ToggleRunning(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*RunningReply, error)
+	SetAltitudeToDetach(ctx context.Context, in *Double, opts ...grpc.CallOption) (*SetAltitudeToDetachReply, error)
 }
 
 type moduleActionsClient struct {
@@ -77,6 +78,15 @@ func (c *moduleActionsClient) ToggleRunning(ctx context.Context, in *Empty, opts
 	return out, nil
 }
 
+func (c *moduleActionsClient) SetAltitudeToDetach(ctx context.Context, in *Double, opts ...grpc.CallOption) (*SetAltitudeToDetachReply, error) {
+	out := new(SetAltitudeToDetachReply)
+	err := c.cc.Invoke(ctx, "/actions.ModuleActions/SetAltitudeToDetach", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ModuleActionsServer is the server API for ModuleActions service.
 // All implementations must embed UnimplementedModuleActionsServer
 // for forward compatibility
@@ -86,6 +96,7 @@ type ModuleActionsServer interface {
 	SetThrustersSpeed(context.Context, *Double) (*SetThrustersSpeedReply, error)
 	Ok(context.Context, *Empty) (*OkReply, error)
 	ToggleRunning(context.Context, *Empty) (*RunningReply, error)
+	SetAltitudeToDetach(context.Context, *Double) (*SetAltitudeToDetachReply, error)
 	mustEmbedUnimplementedModuleActionsServer()
 }
 
@@ -107,6 +118,9 @@ func (UnimplementedModuleActionsServer) Ok(context.Context, *Empty) (*OkReply, e
 }
 func (UnimplementedModuleActionsServer) ToggleRunning(context.Context, *Empty) (*RunningReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ToggleRunning not implemented")
+}
+func (UnimplementedModuleActionsServer) SetAltitudeToDetach(context.Context, *Double) (*SetAltitudeToDetachReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetAltitudeToDetach not implemented")
 }
 func (UnimplementedModuleActionsServer) mustEmbedUnimplementedModuleActionsServer() {}
 
@@ -211,6 +225,24 @@ func _ModuleActions_ToggleRunning_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ModuleActions_SetAltitudeToDetach_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Double)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ModuleActionsServer).SetAltitudeToDetach(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/actions.ModuleActions/SetAltitudeToDetach",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ModuleActionsServer).SetAltitudeToDetach(ctx, req.(*Double))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _ModuleActions_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "actions.ModuleActions",
 	HandlerType: (*ModuleActionsServer)(nil),
@@ -234,6 +266,10 @@ var _ModuleActions_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ToggleRunning",
 			Handler:    _ModuleActions_ToggleRunning_Handler,
+		},
+		{
+			MethodName: "SetAltitudeToDetach",
+			Handler:    _ModuleActions_SetAltitudeToDetach_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
