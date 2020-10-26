@@ -195,4 +195,16 @@ export class AppService {
                 res.status(500).send('Error: gRPC communication fail');
         });
     }
+
+    setAltitudeToDetach(value: number, res: Response, rocketId: number, moduleId: number) {
+        const module = this.getRocketWithId(rocketId).getModuleWithId(moduleId);
+        const alt = new Double();
+        alt.setVal(value);
+        module.moduleAction.setAltitudeToDetach(alt, function (err, response) {
+            if (response !== undefined)
+                res.status(200).send(response.getContent());
+            else
+                res.status(500).send('Error: gRPC communication fail');
+        });
+    }
 }
