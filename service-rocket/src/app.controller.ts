@@ -1,7 +1,10 @@
 import {Body, Controller, Get, Post, Res} from '@nestjs/common';
 import {Response} from 'express';
 import {AppService} from './app.service';
-import {ThrustersSpeedPayloadDTODto} from "./dto/ThrustersSpeedPayloadDTO.dto";
+import {ThrustersSpeedPayloadDto} from "./dto/ThrustersSpeedPayloadDTO.dto";
+import {RocketModuleDto} from './dto/RocketModuleDTO.dto'
+import {RocketDto} from "./dto/RocketDTO.dto";
+import {AltitudeToDetachPayloadDto} from "./dto/AltitudeToDetachPayloadDTO";
 
 @Controller('rocket')
 export class AppController {
@@ -20,52 +23,37 @@ export class AppController {
     }
 
     @Post('/launch')
-    async launching(): Promise<string> {
-        return await this.appService.requestLaunch();
+    async launching(@Body() message: RocketDto): Promise<string> {
+        return await this.appService.requestLaunch(message.rocketId);
     }
 
-    // @Post('/detach-payload/altitude')
-    // setPayloadAltitudeToDetach(@Body() message: AltitudePayloadDTODto): string{
-    //     return this.appService.setPayloadAltitudeToDetach(message.altitude);
-    // }
-
-    @Post('/actions/boom/payload')
-    boomPayload(@Res() res: Response): void{
-        this.appService.boom(res, 'payload');
+    @Post('/actions/boom')
+    boomStage(@Res() res: Response, @Body() message: RocketModuleDto): void{
+        this.appService.boom(res, message.rocketId, message.moduleId);
     }
 
-    @Post('/actions/boom/booster')
-    boomBooster(@Res() res: Response): void{
-        this.appService.boom(res, 'booster');
-    }
-
-    @Post('/actions/boom/stage')
-    boomStage(@Res() res: Response): void{
-        this.appService.boom(res, 'stage');
-    }
-
-    @Post('/actions/detach/payload')
-    detachModulePayload(@Res() res: Response): void{
-        this.appService.detachModule(res, 'payload');
-    }
-
-    @Post('/actions/detach/booster')
-    detachModuleBooster(@Res() res: Response): void{
-        this.appService.detachModule(res, 'booster');
+    @Post('/actions/detach')
+    detachModuleBooster(@Res() res: Response, @Body() message: RocketModuleDto): void{
+        this.appService.detachModule(res, message.rocketId, message.moduleId);
     }
 
     @Post('/actions/set-thrusters-speed')
-    setThrustersSpeed(@Body() message: ThrustersSpeedPayloadDTODto, @Res() res: Response): void{
-        this.appService.setThrustersSpeed(message.value, res);
+    setThrustersSpeed(@Body() message: ThrustersSpeedPayloadDto, @Res() res: Response): void{
+        this.appService.setThrustersSpeed(message.value, res, message.rocketId, message.moduleId);
+    }
+
+    @Post('/actions/set-altitude-to-detach')
+    setAltitudeToDetach(@Body() message: AltitudeToDetachPayloadDto, @Res() res: Response): void{
+        this.appService.setAltitudeToDetach(message.value, res, message.rocketId, message.moduleId);
     }
 
     @Post('/actions/ok')
-    okActions(@Res() res: Response): void{
-        this.appService.okActions(res);
+    okActions(@Res() res: Response, @Body() message: RocketModuleDto): void{
+        this.appService.okActions(res, message.rocketId, message.moduleId);
     }
 
     @Post('/actions/toggle-running')
-    toggleRunning(@Res() res: Response): void{
-        this.appService.toggleRunning(res);
+    toggleRunning(@Res() res: Response, @Body() message: RocketModuleDto): void{
+        this.appService.toggleRunning(res, message.rocketId, message.moduleId);
     }
 }

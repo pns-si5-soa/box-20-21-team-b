@@ -16,7 +16,7 @@ export class PollController {
 
     @Post('/respond')
     async answerToMissionGo(@Body() message: PollDTO): Promise<string> {
-        await this.pollService.sendAnswerToMission(message.ready);
-        return 'Response go {' + message.ready + '} to mission has been sent';
+        await this.pollService.sendAnswerToMission(message.ready, message.rocketId);
+        return 'Response go {' + message.ready + '} to mission for rocket {' + message.rocketId + '} has been sent';
     }
 }

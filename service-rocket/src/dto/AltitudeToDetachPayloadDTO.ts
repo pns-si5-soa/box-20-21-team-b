@@ -1,4 +1,4 @@
-export class ThrustersSpeedPayloadDto {
+export class AltitudeToDetachPayloadDto {
     value: number
     rocketId: number
     moduleId: number

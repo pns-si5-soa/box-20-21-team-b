@@ -24,13 +24,14 @@ export class ConsumerService extends AbstractKafkaConsumer {
     @SubscribeTo(TOPIC_POLL)
     pollSubscriber(payload: string) {
         Logger.log('[KAFKA_' + TOPIC_POLL + '] ' + payload);
-        this.pollService.pollInitiated(JSON.parse(payload));
+        const body = JSON.parse(payload).body
+        this.pollService.pollInitiated(body.rocketId);
     }
 
     @SubscribeTo(TOPIC_LAUNCH_ORDER)
     allowLaunchSubscriber(payload: string) {
         Logger.log('[KAFKA_ ' + TOPIC_LAUNCH_ORDER + '] ' + payload);
-        this.appService.allowLaunch();
+        this.appService.allowLaunch(parseInt(JSON.parse(payload).body.rocketId, 10));
     }
 
 }

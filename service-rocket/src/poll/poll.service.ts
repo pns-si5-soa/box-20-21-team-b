@@ -8,16 +8,17 @@ export class PollService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public pollInitiated(payload: any){
-        Logger.log('Le poll a démarré, merci d\'envoyer une réponse!');
+    public pollInitiated(rocketId: number){
+        Logger.log('Le poll a démarré, merci d\'envoyer une réponse pour la rocket '+ rocketId +' !');
     }
 
-    async sendAnswerToMission(go: boolean): Promise<void> {
+    async sendAnswerToMission(go: boolean, rocketId: number): Promise<void> {
         await this.kafkaService.sendMessage(TOPIC_POLL_RESPONSE, {
             messageId: '' + new Date().valueOf(),
             body: {
                 client: 'rocket',
-                value: go
+                value: go,
+                rocketId: rocketId
             },
             messageType: 'info',
             topicName: TOPIC_POLL_RESPONSE

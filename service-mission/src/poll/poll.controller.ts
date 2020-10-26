@@ -1,6 +1,7 @@
 import {Body, Controller, Post} from '@nestjs/common';
 import {PollService} from './poll.service';
-import {PollDTO} from './poll.dto';
+import {PollInitDTO} from "../dto/pollinit.dto";
+import {PollDTO} from "../dto/poll.dto";
 
 @Controller('mission/poll')
 export class PollController {
@@ -9,12 +10,12 @@ export class PollController {
     }
 
     @Post('initiate')
-    async launchPoll(): Promise<string> {
-        return await this.pollService.launchPoll();
+    async launchPoll(@Body() message: PollInitDTO): Promise<string> {
+        return await this.pollService.launchPoll(message.rocketId);
     }
 
     @Post('mission')
     async finalizePoll(@Body() message: PollDTO): Promise<string> {
-        return this.pollService.finalizePoll(message.ready);
+        return this.pollService.finalizePoll(message.ready, message.rocketId);
     }
 }

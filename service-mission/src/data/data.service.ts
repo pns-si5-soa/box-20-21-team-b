@@ -8,8 +8,8 @@ export class DataService {
 
   constructor(@InjectModel('LaunchProcess') private readonly launchProcess: Model<RocketEventModel>) { }
 
-  async saveRocketEvent(process: string, timestamp: string){
-    const model = this.launchProcess({process, timestamp});
+  async saveRocketEvent(process: string, timestamp: string, rocketId: number){
+    const model = this.launchProcess({process, timestamp, rocketId});
     model.save();
   }
 
