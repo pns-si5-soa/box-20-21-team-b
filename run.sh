@@ -3,7 +3,7 @@
 YELLOW='\033[0;33m'
 Cyan="\033[0;36m"
 NC='\033[0m' # No Color
-
+#
 echo -e "${YELLOW}Mission Commander -> I have to perform a go/no go poll${NC}"
 echo -e "${Cyan}It will send a POST request on the mission service and the poll event will be send on the bus${NC}"
 curl --silent http://localhost/mission/poll/initiate -H "Content-type:application/json" -X POST -d "{\"rocketId\": 1}"
@@ -53,15 +53,22 @@ echo ""
 echo -e "${YELLOW}Chief Payload department -> I want to deliver the payload by setting the altitude to deliver payload (I can also drop it manually but I won't)${NC}"
 curl --silent http://localhost/rocket/actions/set-altitude-to-detach -H "Content-type:application/json" -X POST -d "{\"value\": 1900, \"rocketId\": 1, \"moduleId\": 3}"
 
-echo -e "\n\nWaiting for the telemetry to get every data from launch (~30secs) (see docker logs)"
+echo -e "${YELLOW}Telemetry Officer -> I want to check the telemetry of the launch${NC}"
 
-sleep 30
 
-#echo -e "${YELLOW}Telemetry Officer -> I want to check the telemetry of the launch${NC}"
-#curl --silent http://localhost/telemetry/rocket-metrics -X GET
+
+for i in `seq 1 3`;
+do
+        timestampStart=$( date "+%Y-%m-%dT%H:%M:%S.%3NZ" -d '- 2 hours - 10 seconds')
+        timestampEnd=$( date "+%Y-%m-%dT%H:%M:%S.%3NZ" -d '- 2 hours')
+        echo "REQUEST ON PROMETHEUS http://localhost:9090/api/v1/query_range?query=boxb_module_metrics_altitude&start=${timestampStart}&end=${timestampEnd}&step=1s"
+        curl -X GET "http://localhost:9090/api/v1/query_range?query=boxb_module_metrics_altitude&start=${timestampStart}&end=${timestampEnd}&step=1s"
+        sleep 10
+done
+
 
 echo -e "\n\n${YELLOW}Chief Rocket Department -> I want to set the speed of the rocket a bit lower so that it can go through max Q harmlessly${NC}"
-echo -e "${Cyan}It will send a POST request on the rocket service. The gRPC connection is used to change the spped of the module${NC}"
-curl --silent http://localhost/rocket/actions/set-thrusters-speed -H "Content-type:application/json" -X POST -d "{\"value\": 100, \"rocketId\": 1}"
+echo -e "${Cyan}It will send a POST request on the rocket service. The gRPC connection is used to change the speed of the module${NC}"
+curl --silent http://localhost/rocket/actions/set-thrusters-speed -H "Content-type:application/json" -X POST -d "{\"value\": 100, \"rocketId\": 1, \"moduleId\": 1}"
 
 

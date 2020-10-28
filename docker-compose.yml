@@ -153,6 +153,8 @@ services:
       - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
     links:
       - alertmanager:alertmanager
+    ports:
+      - 9090:9090
     expose:
       - 9090
 

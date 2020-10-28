@@ -69,6 +69,9 @@ var rocketId = -1
 var LINEAR_FACTOR = 10 // Linear factor <=> acceleration and altitudeVariation value
 var PRESSURE_FACTOR = float32(20.0) // Factor between speed and pressure
 
+var MAX_SPEED = 150 // Max speed of the rocket
+var AltitudeToStartPower = 0
+
 func createNewMetric() {
 	// Generation from last metric
 
@@ -121,12 +124,6 @@ func createNewMetric() {
 	newPressure := 1.0+float32(CurrentModule.LastMetric.Speed)/PRESSURE_FACTOR
 
 	// Speed variation: acceleration is 0 when not running
-	MAX_SPEED := 150 // Max speed of the rocket
-	if CurrentModule.Type == ModuleTypeMiddle{
-		MAX_SPEED = 100
-	} else if CurrentModule.Type == ModuleTypePayload{
-		MAX_SPEED = 80
-	}
 	acceleration := 0
 	if CurrentModule.LastMetric.Speed < MAX_SPEED {
 		if CurrentModule.LastMetric.IsRunning && CurrentModule.LastMetric.Fuel > 0 {
@@ -208,6 +205,10 @@ func resolveAutoActions() {
 			RocketId: rocketId,
 		})
 		CurrentModule.LastMetric.IsAttached = false
+		if CurrentModule.Type == ModuleTypeMiddle{
+			CurrentModule.LastMetric.Speed = 0
+			CurrentModule.LastMetric.IsRunning = false
+		}
 	}
 
 	if CurrentModule.LastMetric.IsAttached == false && CurrentModule.Type == ModuleTypeBooster && CurrentModule.LastMetric.HasLanded == false {
@@ -292,11 +293,10 @@ func resolveAutoActions() {
 
 // Generate & add a random metric every 1 second
 func generateMetric(done <-chan bool) {
-	AltitudeToStartPower := 0
-	if CurrentModule.Type == "middle"{
+	if CurrentModule.Type == ModuleTypeMiddle{
 		AltitudeToStartPower = 1480
-	} else if CurrentModule.Type == "payload"{
-		AltitudeToStartPower = 2000
+	} else if CurrentModule.Type == ModuleTypePayload{
+		AltitudeToStartPower = CurrentModule.DetachAltitude - 1
 	}
 
 	ticker := time.NewTicker(1 * time.Second)
@@ -308,7 +308,16 @@ func generateMetric(done <-chan bool) {
 				return
 			case <-ticker.C:
 				createNewMetric() // Generate a new mocked metric
+				if CurrentModule.LastMetric.Pressure > CurrentModule.MaxPressure && (CurrentModule.Type == ModuleTypeMiddle || CurrentModule.Type == ModuleTypePayload){
+					MAX_SPEED = 120
+					CurrentModule.LastMetric.Speed = MAX_SPEED
+				}
 				if CurrentModule.LastMetric.Altitude >= AltitudeToStartPower {
+					if CurrentModule.Type == ModuleTypeMiddle{
+						MAX_SPEED = 100
+					} else if CurrentModule.Type == ModuleTypePayload{
+						MAX_SPEED = 80
+					}
 					fuelCanLower = true
 					resolveAutoActions() // Analyze metrics and take auto actions according to them
 				}
@@ -413,6 +422,7 @@ func (s *moduleActionsServer) SetAltitudeToDetach(ctx context.Context, value *ac
 	res := "Altitude to detach is now " + fmt.Sprintf("%F", value.GetVal()) + "km"
 	log.Println(res)
 	CurrentModule.DetachAltitude = int(value.GetVal())
+	AltitudeToStartPower = CurrentModule.DetachAltitude - 100
 	return &actions.SetAltitudeToDetachReply{Content: res}, nil
 }
 
@@ -489,12 +499,13 @@ func main() {
 			IsBoom:     false,
 			HasLanded:  false,
 		}
-	}else{
+		CurrentModule.MinFuelToLand = 50
+	}else if CurrentModule.Type == ModuleTypeMiddle{
 		CurrentModule.LastMetric = Metric{
 			Timestamp:  time.Now(),
 			IdModule:   CurrentModule.Id,
 			Altitude:   0,
-			Fuel:       500,
+			Fuel:       400,
 			Pressure:   1,
 			Speed:      0,
 			Latitude:   43.6656112,
@@ -504,9 +515,25 @@ func main() {
 			IsBoom:     false,
 			HasLanded:  false,
 		}
+		CurrentModule.MinFuelToLand = 20
+	}else{
+		CurrentModule.LastMetric = Metric{
+			Timestamp:  time.Now(),
+			IdModule:   CurrentModule.Id,
+			Altitude:   0,
+			Fuel:       100,
+			Pressure:   1,
+			Speed:      0,
+			Latitude:   43.6656112,
+			Longitude:  7.0701789,
+			IsAttached: true,
+			IsRunning:  false,
+			IsBoom:     false,
+			HasLanded:  false,
+		}
+		CurrentModule.MinFuelToLand = 0
 	}
 	CurrentModule.DetachAltitude = 2000
-	CurrentModule.MinFuelToLand = 50
 	CurrentModule.MaxPressure = 7.0
 	writeJSONMetric(CurrentModule.LastMetric)
 
