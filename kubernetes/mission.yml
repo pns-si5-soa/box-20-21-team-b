@@ -1,0 +1,45 @@
+# Depoy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mission
+    boxb: boxb-ground
+  name: mission
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mission
+      boxb: boxb-ground
+  template:
+    metadata:
+      labels:
+        app: mission
+        boxb: boxb-ground
+    spec:
+      containers:
+      - image: boxb/mission:latest
+        name: mission
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: PORT
+            value: "80"
+---
+
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mission
+  name: mission
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: mission
+#  type: NodePort # Uncomment if doesnt match I

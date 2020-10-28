@@ -1,0 +1,49 @@
+# Deploy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: rocket
+    boxb: boxb-ground
+  name: rocket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocket
+      boxb: boxb-ground
+  template:
+    metadata:
+      labels:
+        app: rocket
+        boxb: boxb-ground
+    spec:
+      containers:
+      - image: boxb/rocket:latest
+        name: rocket
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: PORT
+            value: "80"
+          - name: MODULES
+            value: 1,1,booster,1,2,middle,1,3,payload,2,1,booster,2,2,middle,2,3,payload
+
+
+---
+
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rocket
+  name: rocket
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: rocket
+#  type: NodePort # Uncomment if doesnt match IP
