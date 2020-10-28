@@ -86,7 +86,7 @@ services:
     container_name: webcaster
     restart: unless-stopped
     environment:
-      - PORT=3005
+      - PORT=80
     volumes:
       - ./service-webcaster/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
