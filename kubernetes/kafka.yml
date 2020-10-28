@@ -1,3 +1,5 @@
+# Deploy
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -32,6 +34,26 @@ spec:
           value: "0"
         - name: KAFKA_CREATE_TOPICS
           value: "topic-poll:1:1,topic-poll-response:1:1,topic-rocket-event:1:1,topic-launch-event:1:1,topic-launch-order:1:1"
+
+---
+
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-service
+  labels:
+    name: boxb-kafka
+spec:
+  ports:
+    - port: 9092
+      name: kafka-port
+      protocol: TCP
+  selector:
+    app: boxb-kafka
+    id: "0"
+  type: LoadBalancer
+
 
 
 #apiVersion: apps/v1
@@ -70,3 +92,19 @@ spec:
 #            value: "1"
 #          - name: KAFKA_CREATE_TOPICS
 #            value: "topic-poll:1:1,topic-poll-response:1:1,topic-rocket-event:1:1,topic-launch-event:1:1,topic-launch-order:1:1"
+
+
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  labels:
+#    app: kafka
+#  name: kafka
+#spec:
+#  ports:
+#  - port: 9092
+#    protocol: TCP
+#    targetPort: 9092
+#  selector:
+#    app: kafka
+#  type: NodePort # Uncomment if doesnt match IP
