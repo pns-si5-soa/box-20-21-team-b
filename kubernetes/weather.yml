@@ -24,10 +24,14 @@ spec:
         name: weather
         imagePullPolicy: IfNotPresent
         ports:
-            - containerPort: 80
+        - containerPort: 80
         env:
-          - name: PORT
-            value: "80"
+        - name: PORT
+          value: "80"
+        - name: MISSION_HOST
+          value: "mission"
+        - name: MISSION_PORT
+          value: "80"
 
 ---
 
