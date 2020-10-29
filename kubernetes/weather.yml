@@ -23,6 +23,8 @@ spec:
       - image: boxb/weather:latest
         name: weather
         imagePullPolicy: IfNotPresent
+        ports:
+            - containerPort: 80
         env:
           - name: PORT
             value: "80"

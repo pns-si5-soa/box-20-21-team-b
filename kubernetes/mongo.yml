@@ -4,30 +4,31 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: webcaster
+    app: mongo
     boxb: boxb-ground
-  name: webcaster
+  name: mongo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: webcaster
+      app: mongo
       boxb: boxb-ground
   template:
     metadata:
       labels:
-        app: webcaster
+        app: mongo
         boxb: boxb-ground
     spec:
       containers:
-      - image: boxb/webcaster:latest
-        name: webcaster
-        imagePullPolicy: IfNotPresent
+      - image: mongo
+        name: mongo
         ports:
-            - containerPort: 80
+          - containerPort: 27017
         env:
-          - name: PORT
-            value: "80"
+          - name: MONGODB_DATABASE
+            value: "blue_origin"
+          - name: MONGO_HOST
+            value: "mongo"
 
 ---
 
@@ -36,13 +37,14 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: webcaster
-  name: webcaster
+    app: mongo
+  name: mongo
 spec:
   ports:
-    - port: 80
+    - port: 27017
       protocol: TCP
-      targetPort: 80
+      name: mongo-port
   selector:
-    app: webcaster
+    app: mongo
+  type: LoadBalancer
 #  type: NodePort # Uncomment if doesnt match IP

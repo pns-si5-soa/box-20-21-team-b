@@ -23,6 +23,8 @@ spec:
       - image: boxb/mission:latest
         name: mission
         imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
         env:
           - name: PORT
             value: "80"

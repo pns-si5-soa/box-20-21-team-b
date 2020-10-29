@@ -23,6 +23,8 @@ spec:
       - image: boxb/rocket:latest
         name: rocket
         imagePullPolicy: IfNotPresent
+        ports:
+            - containerPort: 80
         env:
           - name: PORT
             value: "80"
