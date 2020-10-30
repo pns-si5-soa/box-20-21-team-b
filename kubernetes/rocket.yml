@@ -24,7 +24,15 @@ spec:
         name: rocket
         imagePullPolicy: IfNotPresent
         ports:
-            - containerPort: 80
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /ok
+            port: 80
+          initialDelaySeconds: 20
+          timeoutSeconds: 3
+          periodSeconds: 30
+          failureThreshold: 20
         env:
         - name: PORT
           value: "80"
