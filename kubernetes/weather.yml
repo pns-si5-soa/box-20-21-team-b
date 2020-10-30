@@ -27,7 +27,7 @@ spec:
         - containerPort: 80
         readinessProbe:
           httpGet:
-            path: /ok
+            path: /weather/ok
             port: 80
           initialDelaySeconds: 20
           timeoutSeconds: 3
