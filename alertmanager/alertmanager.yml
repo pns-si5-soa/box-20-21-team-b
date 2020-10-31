@@ -1,7 +1,7 @@
 route:
-  receiver: 'pager'
+  receiver: 'rocket'
 
 receivers:
-  - name: 'pager'
+  - name: 'rocket'
     webhook_configs:
-    - url: 'http://localhost/' # replace with your PagerTree webhook url
+    - url: 'http://rocket/rocket/alert' # replace with your PagerTree webhook url

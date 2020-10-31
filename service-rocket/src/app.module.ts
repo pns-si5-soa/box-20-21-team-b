@@ -6,6 +6,7 @@ import {MONGO_DB, MONGO_HOST, MONGO_PORT} from "./env_variables";
 import {PollModule} from './poll/poll.module';
 import {KafkaModule} from "./kafka/kafka.module";
 import {ConsumerModule} from "./kafka/consumer/consumer.module";
+import { AlertModule } from './alert/alert.module';
 
 @Module({
     imports: [HttpModule, MongooseModule.forRoot('mongodb://' + MONGO_HOST + ':' + MONGO_PORT + '/' + MONGO_DB), PollModule,
@@ -14,7 +15,8 @@ import {ConsumerModule} from "./kafka/consumer/consumer.module";
             brokers: ['kafka:9092'],
             groupId: 'box-b',
         }),
-        ConsumerModule
+        ConsumerModule,
+        AlertModule
     ],
     controllers: [AppController],
     providers: [AppService],
