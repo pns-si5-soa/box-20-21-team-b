@@ -358,6 +358,14 @@ func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*
 	CurrentModule.LastMetric.IsBoom = true
 
 	// TODO /ok return ko ?
+	sendEventToKafka(Event{
+		Timestamp:   time.Time{},
+		IdModule:    CurrentModule.Id,
+		Label:       "Boom",
+		Initiator:   "auto",
+		Description: "["+ CurrentModule.Type +"] auto destruction engaged",
+		RocketId: rocketId,
+	})
 
 	// Exit system in 5 seconds to simulate boom
 	time.AfterFunc(5*time.Second, func() { os.Exit(0) })
