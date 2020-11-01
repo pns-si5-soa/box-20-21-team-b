@@ -30,8 +30,15 @@ spec:
             port: 80
           initialDelaySeconds: 20
           timeoutSeconds: 3
-          periodSeconds: 30
-          failureThreshold: 20
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /mission/ok
+            port: 80
+          initialDelaySeconds: 20
+          timeoutSeconds: 3
+          periodSeconds: 5
+          failureThreshold: 10
         env:
         - name: PORT
           value: "80"
