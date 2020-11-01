@@ -32,7 +32,7 @@ spec:
           initialDelaySeconds: 20
           timeoutSeconds: 3
           periodSeconds: 3
-          failureThreshold: 20
+          failureThreshold: 5
         livenessProbe:
           httpGet:
             path: /webcaster/ok
@@ -40,7 +40,7 @@ spec:
           initialDelaySeconds: 20
           timeoutSeconds: 3
           periodSeconds: 5
-          failureThreshold: 20
+          failureThreshold: 10
         env:
           - name: PORT
             value: "80"
