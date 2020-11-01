@@ -27,6 +27,16 @@ spec:
           value: "1"
         - name: ZOOKEEPER_SERVER_1
           value: zoo1
+        readinessProbe:
+          tcpSocket:
+            port: 2181
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          tcpSocket:
+            port: 2181
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
 
 ---
 

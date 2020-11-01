@@ -1,3 +1,4 @@
+
 # Deploy
 ---
 apiVersion: apps/v1
@@ -34,6 +35,18 @@ spec:
           value: "0"
         - name: KAFKA_CREATE_TOPICS
           value: "topic-poll:1:1,topic-poll-response:1:1,topic-rocket-event:1:1,topic-launch-event:1:1,topic-launch-order:1:1"
+        readinessProbe:
+          tcpSocket:
+            port: 9092
+          timeoutSeconds: 5
+          periodSeconds: 5
+          initialDelaySeconds: 40
+        livenessProbe:
+          tcpSocket:
+            port: 9092
+          timeoutSeconds: 5
+          periodSeconds: 5
+          initialDelaySeconds: 70
 
 ---
 
