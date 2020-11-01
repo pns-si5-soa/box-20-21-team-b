@@ -1,0 +1,116 @@
+#  labels:
+#    - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
+
+#  labels:
+#    - "traefik.http.routers.alertmanager.rule=Host(`alertmanager.localhost`)"
+
+# Deploy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: telemetry
+    boxb: boxb-ground
+  name: telemetry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telemetry
+      boxb: boxb-ground
+  template:
+    metadata:
+      labels:
+        app: telemetry
+        boxb: boxb-ground
+    spec:
+      containers:
+        - image: prom/prometheus:latest
+          name: prometheus
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9090
+          command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+              '--storage.tsdb.path=/prometheus'
+              '--storage.tsdb.retention.time=365d'
+          readinessProbe: # TODO
+            httpGet:
+              path: /prometheus/ok
+              port: 80
+            initialDelaySeconds: 20
+            timeoutSeconds: 3
+            periodSeconds: 5
+            failureThreshold: 5
+          livenessProbe: # TODO
+            httpGet:
+              path: /prometheus/ok
+              port: 80
+            initialDelaySeconds: 20
+            timeoutSeconds: 3
+            periodSeconds: 5
+            failureThreshold: 10
+          env: # TODO
+            - name: PORT
+              value: "80"
+
+          # TODO
+#          volumes:
+        #    - prometheus-data:/prometheus
+        #    - ./service-telemetry-monitoring/prometheus/:/etc/prometheus/
+
+        - image: prom/alertmanager:latest
+          name: alertmanager
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9093
+          command:
+            - '--config.file=/etc/alertmanager/alertmanager.yml'
+              '--storage.path=/alertmanager'
+          readinessProbe: # TODO
+            httpGet:
+              path: /alertmanager/ok
+              port: 80
+            initialDelaySeconds: 20
+            timeoutSeconds: 3
+            periodSeconds: 5
+            failureThreshold: 5
+          livenessProbe: # TODO
+            httpGet:
+              path: /alertmanager/ok
+              port: 80
+            initialDelaySeconds: 20
+            timeoutSeconds: 3
+            periodSeconds: 5
+            failureThreshold: 10
+          env: # TODO
+            - name: PORT
+              value: "80"
+          # TODO
+#          volumes:
+#            - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+
+---
+
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: telemetry
+  name: telemetry
+spec:
+  ports:
+    # Prometheus
+    - port: 9090
+      protocol: TCP
+      targetPort: 9090
+
+    # Alert manager
+    - port: 9093
+        protocol: TCP
+        targetPort: 9093
+  selector:
+    app: telemetry
+#  type: NodePort # Uncomment if doesnt match IP
