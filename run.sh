@@ -53,19 +53,19 @@ echo ""
 echo -e "${YELLOW}Chief Payload department -> I want to deliver the payload by setting the altitude to deliver payload (I can also drop it manually but I won't)${NC}"
 curl --silent http://localhost/rocket/actions/set-altitude-to-detach -H "Content-type:application/json" -X POST -d "{\"value\": 1900, \"rocketId\": 1, \"moduleId\": 3}"
 
+echo ""
+
 echo -e "${YELLOW}Telemetry Officer -> I want to check the telemetry of the launch${NC}"
-
-
 
 for i in `seq 1 3`;
 do
-        timestampStart=$( date "+%Y-%m-%dT%H:%M:%S.%3NZ" -d '- 2 hours - 10 seconds')
-        timestampEnd=$( date "+%Y-%m-%dT%H:%M:%S.%3NZ" -d '- 2 hours')
+        timestampStart=$( date "+%Y-%m-%dT%H:%M:%S.%3NZ" -d '- 1 hours - 10 seconds')
+        timestampEnd=$( date "+%Y-%m-%dT%H:%M:%S.%3NZ" -d '- 1 hours')
         echo "REQUEST ON PROMETHEUS http://localhost:9090/api/v1/query_range?query=boxb_module_metrics_altitude&start=${timestampStart}&end=${timestampEnd}&step=1s"
-        curl -X GET "http://localhost:9090/api/v1/query_range?query=boxb_module_metrics_altitude&start=${timestampStart}&end=${timestampEnd}&step=1s"
+        curl --silent "http://localhost:9090/api/v1/query_range?query=boxb_module_metrics_altitude&start=${timestampStart}&end=${timestampEnd}&step=1s" -X GET
+        echo ""
         sleep 10
 done
-
 
 echo -e "\n\n${YELLOW}Chief Rocket Department -> I want to set the speed of the rocket a bit lower so that it can go through max Q harmlessly${NC}"
 echo -e "${Cyan}It will send a POST request on the rocket service. The gRPC connection is used to change the speed of the module${NC}"
