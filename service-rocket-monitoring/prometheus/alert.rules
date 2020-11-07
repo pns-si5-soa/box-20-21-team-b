@@ -1,0 +1,11 @@
+groups:
+- name: rocket-monitoring
+  rules:
+
+  - alert: MaxQReached
+    expr: boxb_module_metrics_pressure{job="module-metrics"} > 1
+    labels:
+      severity: critical
+    annotations:
+      summary: "MaxQ Reached"
+      description: "The maximum pressure has been reached"

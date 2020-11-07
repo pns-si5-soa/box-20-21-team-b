@@ -9,5 +9,5 @@ echo Test Mission service..
 echo Test Weather service..
 ./healthcheck_service.sh http://localhost/weather/ok
 
-#echo Test Telemetry service..
-#./healthcheck_service.sh http://localhost/telemetry/ok
+echo Test Webcaster service..
+./healthcheck_service.sh http://localhost/webcaster/ok

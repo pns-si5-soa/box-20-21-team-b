@@ -8,3 +8,9 @@ datasources:
     editable: true
     jsonData:
       timeInterval: '1s'
+      
+  - name: Prometheus AlertManager
+    type: camptocamp-prometheus-alertmanager-datasource
+    access: proxy
+    url: http://alertmanager:9093
+    editable: true

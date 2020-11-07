@@ -305,7 +305,7 @@ func main() {
 		os.Exit(-1)
 	}
 	log.Println(moduleType)
-	AnalogFilePath = "/etc/analog-mock-" + moduleType + ".json"
+	AnalogFilePath = "/etc/module-logs/analog-mock-" + moduleType + ".json"
 	AnalogFile, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
 
 	defer AnalogFile.Close()

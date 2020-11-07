@@ -13,6 +13,7 @@ interface IModuleActionsService extends grpc.ServiceDefinition<grpc.UntypedServi
     setThrustersSpeed: IModuleActionsService_ISetThrustersSpeed;
     ok: IModuleActionsService_IOk;
     toggleRunning: IModuleActionsService_IToggleRunning;
+    setAltitudeToDetach: IModuleActionsService_ISetAltitudeToDetach;
 }
 
 interface IModuleActionsService_IBoom extends grpc.MethodDefinition<actions_pb.Empty, actions_pb.BoomReply> {
@@ -60,6 +61,15 @@ interface IModuleActionsService_IToggleRunning extends grpc.MethodDefinition<act
     responseSerialize: grpc.serialize<actions_pb.RunningReply>;
     responseDeserialize: grpc.deserialize<actions_pb.RunningReply>;
 }
+interface IModuleActionsService_ISetAltitudeToDetach extends grpc.MethodDefinition<actions_pb.Double, actions_pb.SetAltitudeToDetachReply> {
+    path: "/actions.ModuleActions/SetAltitudeToDetach";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<actions_pb.Double>;
+    requestDeserialize: grpc.deserialize<actions_pb.Double>;
+    responseSerialize: grpc.serialize<actions_pb.SetAltitudeToDetachReply>;
+    responseDeserialize: grpc.deserialize<actions_pb.SetAltitudeToDetachReply>;
+}
 
 export const ModuleActionsService: IModuleActionsService;
 
@@ -69,6 +79,7 @@ export interface IModuleActionsServer {
     setThrustersSpeed: grpc.handleUnaryCall<actions_pb.Double, actions_pb.SetThrustersSpeedReply>;
     ok: grpc.handleUnaryCall<actions_pb.Empty, actions_pb.OkReply>;
     toggleRunning: grpc.handleUnaryCall<actions_pb.Empty, actions_pb.RunningReply>;
+    setAltitudeToDetach: grpc.handleUnaryCall<actions_pb.Double, actions_pb.SetAltitudeToDetachReply>;
 }
 
 export interface IModuleActionsClient {
@@ -87,6 +98,9 @@ export interface IModuleActionsClient {
     toggleRunning(request: actions_pb.Empty, callback: (error: grpc.ServiceError | null, response: actions_pb.RunningReply) => void): grpc.ClientUnaryCall;
     toggleRunning(request: actions_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: actions_pb.RunningReply) => void): grpc.ClientUnaryCall;
     toggleRunning(request: actions_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: actions_pb.RunningReply) => void): grpc.ClientUnaryCall;
+    setAltitudeToDetach(request: actions_pb.Double, callback: (error: grpc.ServiceError | null, response: actions_pb.SetAltitudeToDetachReply) => void): grpc.ClientUnaryCall;
+    setAltitudeToDetach(request: actions_pb.Double, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: actions_pb.SetAltitudeToDetachReply) => void): grpc.ClientUnaryCall;
+    setAltitudeToDetach(request: actions_pb.Double, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: actions_pb.SetAltitudeToDetachReply) => void): grpc.ClientUnaryCall;
 }
 
 export class ModuleActionsClient extends grpc.Client implements IModuleActionsClient {
@@ -106,4 +120,7 @@ export class ModuleActionsClient extends grpc.Client implements IModuleActionsCl
     public toggleRunning(request: actions_pb.Empty, callback: (error: grpc.ServiceError | null, response: actions_pb.RunningReply) => void): grpc.ClientUnaryCall;
     public toggleRunning(request: actions_pb.Empty, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: actions_pb.RunningReply) => void): grpc.ClientUnaryCall;
     public toggleRunning(request: actions_pb.Empty, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: actions_pb.RunningReply) => void): grpc.ClientUnaryCall;
+    public setAltitudeToDetach(request: actions_pb.Double, callback: (error: grpc.ServiceError | null, response: actions_pb.SetAltitudeToDetachReply) => void): grpc.ClientUnaryCall;
+    public setAltitudeToDetach(request: actions_pb.Double, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: actions_pb.SetAltitudeToDetachReply) => void): grpc.ClientUnaryCall;
+    public setAltitudeToDetach(request: actions_pb.Double, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: actions_pb.SetAltitudeToDetachReply) => void): grpc.ClientUnaryCall;
 }

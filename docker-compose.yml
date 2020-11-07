@@ -86,7 +86,7 @@ services:
     container_name: webcaster
     restart: unless-stopped
     environment:
-      - PORT=3005
+      - PORT=80
     volumes:
       - ./service-webcaster/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
@@ -144,28 +144,36 @@ services:
     restart: unless-stopped
     volumes:
       - prometheus-data:/prometheus
-      - ./service-rocket-monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      # - ./alertmanager/alert.rules/alerts.rules.yml:/alertmanager/alert.rules/alerts.rules.yml
+      - ./service-rocket-monitoring/prometheus/:/etc/prometheus/
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=365d'
     labels:
       - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
+    links:
+      - alertmanager:alertmanager
+    ports:
+      - 9090:9090
     expose:
       - 9090
 
-      ## ALERTMANAGER FOR PROMETHEUS
-      # alertmanager:
-      # image: prom/alertmanager:latest
-      # container_name: alertmanager
-      # deploy:
-      # replicas: 1
-      # volumes:
-      # - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
-      # - ./alertmanager/templates/default.tmpl:/etc/alertmanager/templates/default.tmpl
-      # command:
-      # - '--config.file=/etc/alertmanager/alertmanager.yml'
+  # ALERTMANAGER FOR PROMETHEUS
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+#    deploy:
+#    replicas: 1
+    labels:
+      - "traefik.http.routers.alertmanager.rule=Host(`alertmanager.localhost`)"
+    volumes:
+    - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    #- ./alertmanager/templates/default.tmpl:/etc/alertmanager/templates/default.tmpl
+    command:
+    - '--config.file=/etc/alertmanager/alertmanager.yml'
+    - '--storage.path=/alertmanager'
+    expose:
+      - 9093
 
   ## GRAFANA DASHBOARD UI FOR PROMETHEUS METRICS
   grafana:
@@ -174,7 +182,7 @@ services:
     restart: unless-stopped
     environment:
       - GF_PATHS_CONFIG=/etc/grafana/grafana.ini
-      - GF_INSTALL_PLUGINS=grafana-worldmap-panel,pr0ps-trackmap-panel
+      - GF_INSTALL_PLUGINS=grafana-worldmap-panel,pr0ps-trackmap-panel,camptocamp-prometheus-alertmanager-datasource
     depends_on:
       - prometheus
     volumes:
@@ -237,7 +245,7 @@ services:
       - ROCKET_ID=1
       - MODULE_TYPE=booster
     volumes:
-      - ./service-modules/analog-mock-booster.json:/etc/analog-mock-booster.json # FOR ANALOG MODULE STATUS ONLY
+      - module-metrics-booster-1:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
 
@@ -252,7 +260,7 @@ services:
       - ROCKET_ID=1
       - MODULE_TYPE=middle
     volumes:
-      - ./service-modules/analog-mock-middle.json:/etc/analog-mock-middle.json # FOR ANALOG MODULE STATUS ONLY
+      - module-metrics-middle-1:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
     # TODO Traefik LB + PrefixPath by ID
@@ -268,7 +276,7 @@ services:
       - ROCKET_ID=1
       - MODULE_TYPE=payload
     volumes:
-      - ./service-modules/analog-mock-payload.json:/etc/analog-mock-payload.json # FOR ANALOG MODULE STATUS ONLY
+      - module-metrics-payload-1:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
     # TODO Traefik LB + PrefixPath by ID
@@ -284,7 +292,7 @@ services:
       - ROCKET_ID=1
       - MODULE_TYPE=booster
     volumes:
-      - ./service-modules/analog-mock-booster.json:/etc/analog-mock-booster.json # FOR ANALOG MODULE DEBUG ONLY
+      - module-metrics-booster-1:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
@@ -303,7 +311,7 @@ services:
       - ROCKET_ID=1
       - ID_MODULE=2
     volumes:
-      - ./service-modules/analog-mock-middle.json:/etc/analog-mock-middle.json # FOR ANALOG MODULE DEBUG ONLY
+      - module-metrics-middle-1:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
@@ -321,7 +329,7 @@ services:
       - ROCKET_ID=1
       - MODULE_TYPE=payload
     volumes:
-      - ./service-modules/analog-mock-payload.json:/etc/analog-mock-payload.json # FOR ANALOG MODULE DEBUG ONLY
+      - module-metrics-payload-1:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
@@ -340,7 +348,7 @@ services:
       - ROCKET_ID=2
       - MODULE_TYPE=booster
     volumes:
-      - ./service-modules/analog-mock-booster.json:/etc/analog-mock-booster.json # FOR ANALOG MODULE STATUS ONLY
+      - module-metrics-booster-2:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
 
@@ -355,7 +363,7 @@ services:
       - ROCKET_ID=2
       - MODULE_TYPE=middle
     volumes:
-      - ./service-modules/analog-mock-middle.json:/etc/analog-mock-middle.json # FOR ANALOG MODULE STATUS ONLY
+      - module-metrics-middle-2:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
     # TODO Traefik LB + PrefixPath by ID
@@ -371,7 +379,7 @@ services:
       - ROCKET_ID=2
       - MODULE_TYPE=payload
     volumes:
-      - ./service-modules/analog-mock-payload.json:/etc/analog-mock-payload.json # FOR ANALOG MODULE STATUS ONLY
+      - module-metrics-payload-2:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
       - "80"
     # TODO Traefik LB + PrefixPath by ID
@@ -387,7 +395,7 @@ services:
       - ROCKET_ID=2
       - MODULE_TYPE=booster
     volumes:
-      - ./service-modules/analog-mock-booster.json:/etc/analog-mock-booster.json # FOR ANALOG MODULE DEBUG ONLY
+      - module-metrics-booster-2:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
@@ -406,7 +414,7 @@ services:
       - ROCKET_ID=2
       - ID_MODULE=2
     volumes:
-      - ./service-modules/analog-mock-middle.json:/etc/analog-mock-middle.json # FOR ANALOG MODULE DEBUG ONLY
+      - module-metrics-middle-2:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
@@ -424,7 +432,7 @@ services:
       - ROCKET_ID=2
       - MODULE_TYPE=payload
     volumes:
-      - ./service-modules/analog-mock-payload.json:/etc/analog-mock-payload.json # FOR ANALOG MODULE DEBUG ONLY
+      - module-metrics-payload-2:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
     expose:
       - "80"
     depends_on:
@@ -434,5 +442,10 @@ services:
 volumes:
   prometheus-data: { }
   grafana-data: { }
-
+  module-metrics-booster-1: { }
+  module-metrics-middle-1: { }
+  module-metrics-payload-1: { }
+  module-metrics-booster-2: { }
+  module-metrics-middle-2: { }
+  module-metrics-payload-2: { }
 
