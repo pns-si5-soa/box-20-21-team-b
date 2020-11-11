@@ -127,9 +127,7 @@ func readJSONMetric() (metric Metric) {
 	byteValue, _ := ioutil.ReadFile(AnalogFilePath)
 	parseErr := json.Unmarshal(byteValue, &metric)
 	if parseErr != nil {
-		//log.Println("Error Unmarshal : ")
-		//log.Println(parseErr)
-		//log.Fatal(parseErr)
+		log.Println("Error Unmarshal : ")
 	}
 
 	return
@@ -137,18 +135,11 @@ func readJSONMetric() (metric Metric) {
 
 // Add a metric to the current module's cache
 func appendMetric(metric Metric) {
-	//log.Println(metric)
-
 	// if metric is the same
 	if len(CurrentModule.LastMetrics) != 0 && metric.Timestamp.Equal(CurrentModule.LastMetrics[0].Timestamp) {
 		//log.Println("No new Metric")
 		return
 	}
-
-	// TODO reading metric
-	//log.Print("New Metric reads : ")
-	//log.Println(metric)
-
 	// boom detected
 	if metric.IsBoom {
 		log.Println("Boom initiated")
@@ -267,6 +258,7 @@ func getLastMetricRoutine(done <-chan bool) {
 
 				// Get last metric writes
 				last := readJSONMetric()
+				log.Println(last.Pressure)
 				appendMetric(last)
 			}
 		}
@@ -304,7 +296,6 @@ func main() {
 		log.Println("Error : no moduleType provided. Exit")
 		os.Exit(-1)
 	}
-	log.Println(moduleType)
 	AnalogFilePath = "/etc/module-logs/analog-mock-" + moduleType + ".json"
 	AnalogFile, _ = os.OpenFile(AnalogFilePath, os.O_CREATE|os.O_SYNC|os.O_WRONLY, os.ModePerm)
 

@@ -1,5 +1,6 @@
 global:
   scrape_interval: 100ms
+  evaluation_interval: 1s
   external_labels:
     env: 'boxb'
 

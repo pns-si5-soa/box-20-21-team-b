@@ -3,7 +3,7 @@ groups:
   rules:
 
   - alert: MaxQReached
-    expr: boxb_module_metrics_pressure{job="module-metrics"} > 1
+    expr: boxb_module_metrics_pressure{job="module-metrics2"} > 5
     labels:
       severity: critical
     annotations:
