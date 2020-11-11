@@ -11,8 +11,9 @@ Rigaut François - 100 points
 
 ## Démonstration finale
 ### Pré-requis
-- Docker
-- Port 80 et 8080 accessibles (et 9090 pour les besoins de la démo uniquement)
+- Docker  
+- Port 80 et 8080 accessibles (et 9090 pour les besoins de la démo uniquement)  
+- Internet  
 
 
 Pour cette démonstration nous allons lancer deux fusées.  
@@ -36,9 +37,9 @@ Les couleurs des logs :
 [MongoDB](https://www.mongodb.com/)  
 [NestJs](https://nestjs.com/)  
 [Docker](https://www.docker.com/)  
-[Grafana](https://grafana.com/)
-[Prometheus](https://prometheus.io)
-[Kubernetes <3](https://kubernetes.io)
+[Grafana](https://grafana.com/)  
+[Prometheus](https://prometheus.io)  
+[Kubernetes <3](https://kubernetes.io)  
 
 ## Run the project
 
@@ -46,10 +47,10 @@ First of all you need to download Docker. Then run the script `prepare.sh`.
 The script will create each container for each service and make healthchecks. 
 After this step you can run the `run.sh` file to have a demonstration.
 
-`
-$ ./prepare.sh
-$ ./run.sh
-`
+```
+$ ./prepare.sh  
+$ ./run.sh  
+```
 
 ## Access tools
 
@@ -60,10 +61,10 @@ You can also check Prometheus by getting to `http://prometheus.localhost/`
 
 ## BONUS : Run Kubernetes
 
-`
-$ ./prepare-kubernetes.sh
-$ ./run-kubernetes.sh
-`
+```
+$ ./prepare-kubernetes.sh  
+$ ./run-kubernetes.sh  
+```
 
 This will load all the current resources (mostly Deploys, Pods, Services & Ingress) located in the `kubernetes` folder.
 
