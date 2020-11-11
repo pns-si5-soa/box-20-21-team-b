@@ -284,7 +284,7 @@ services:
   module-actions-booster-1:
     build: ./service-modules/service-module-actions
     image: boxb/module-actions
-    restart: unless-stopped
+    restart: on-failure
     container_name: module-actions-booster-1
     environment:
       - PORT=80
@@ -303,7 +303,7 @@ services:
   module-actions-middle-1:
     build: ./service-modules/service-module-actions
     image: boxb/module-actions
-    restart: unless-stopped
+    restart: on-failure
     container_name: module-actions-middle-1
     environment:
       - PORT=80
@@ -321,7 +321,7 @@ services:
   module-actions-payload-1:
     build: ./service-modules/service-module-actions
     image: boxb/module-actions
-    restart: unless-stopped
+    restart: on-failure
     container_name: module-actions-payload-1
     environment:
       - PORT=80
@@ -387,7 +387,7 @@ services:
   module-actions-booster-2:
     build: ./service-modules/service-module-actions
     image: boxb/module-actions
-    restart: unless-stopped
+    restart: on-failure
     container_name: module-actions-booster-2
     environment:
       - PORT=80
@@ -406,7 +406,7 @@ services:
   module-actions-middle-2:
     build: ./service-modules/service-module-actions
     image: boxb/module-actions
-    restart: unless-stopped
+    restart: on-failure
     container_name: module-actions-middle-2
     environment:
       - PORT=80
@@ -424,7 +424,7 @@ services:
   module-actions-payload-2:
     build: ./service-modules/service-module-actions
     image: boxb/module-actions
-    restart: unless-stopped
+    restart: on-failure
     container_name: module-actions-payload-2
     environment:
       - PORT=80

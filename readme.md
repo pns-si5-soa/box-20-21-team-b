@@ -4,10 +4,24 @@ Blue Origin X project for the "Service Oriented Architecture" course.
 
 ## Members
 
-Masia Sylvain  
-Montoya Damien  
-Peres Richard  
-Rigaut François
+Masia Sylvain - 100 points  
+Montoya Damien - 100 points  
+Peres Richard - 100 points  
+Rigaut François - 100 points  
+
+## Démonstration finale
+
+Pour cette démonstration nous allons lancer deux fusées.  
+Pour que ce soit plus compréhensible nous allons les lancer l'une après l'autre (bien entendu on pourrait les gérer en même temps).  
+Pour la première fusée tout se déroulera très bien, de son lancement jusqu'à l'atterissage du booster.
+La seconde fusée quant à elle recevra une alerte critique liée au maxQ et explosera en conséquence automatiquement pour ne pas foncer sur la lune.  
+
+Les couleurs des logs :
+- jaune -> indique l'us en cours
+- bleu -> indique le cheminement des données
+- vert -> affiche les logs de kafka
+- blanc -> informatifs / données / retour de requête
+
 
 ## Architecture
 [Services architecture](https://docs.google.com/drawings/d/1nPwjdThcmIOF9405_RnOB57g_V54kWaU8bnyY00sa-E/edit?usp=sharing)  

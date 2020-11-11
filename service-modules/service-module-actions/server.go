@@ -174,6 +174,8 @@ func resolveAutoActions() {
 	}
 	// MAX Q check -- decrease speed if reached
 	if CurrentModule.LastMetric.Pressure > CurrentModule.MaxPressure {
+		log.Println(CurrentModule.LastMetric.Pressure)
+		log.Println(CurrentModule.MaxPressure)
 		sendEventToKafka(Event{
 			Timestamp:   time.Time{},
 			IdModule:    CurrentModule.Id,
@@ -355,7 +357,9 @@ func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*
 	boomMessage := "Module Boom in 5 seconds"
 	log.Println(boomMessage)
 
+	CurrentModule.LastMetric.Pressure =  -1
 	CurrentModule.LastMetric.IsBoom = true
+	writeJSONMetric(CurrentModule.LastMetric)
 
 	// TODO /ok return ko ?
 	sendEventToKafka(Event{
@@ -368,7 +372,8 @@ func (s *moduleActionsServer) Boom(ctx context.Context, empty *actions.Empty) (*
 	})
 
 	// Exit system in 5 seconds to simulate boom
-	time.AfterFunc(5*time.Second, func() { os.Exit(0) })
+	//time.AfterFunc(5*time.Second, func() { os.Exit(0) })
+	os.Exit(0)
 
 	return &actions.BoomReply{Content: boomMessage}, nil
 }
