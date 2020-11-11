@@ -12,7 +12,7 @@ Rigaut François - 100 points
 ## Démonstration finale
 ### Pré-requis
 - Docker
-- Port 80 et 8080 accessible (et 9090 pour les besoins de la démo uniquement)
+- Port 80 et 8080 accessibles (et 9090 pour les besoins de la démo uniquement)
 
 
 Pour cette démonstration nous allons lancer deux fusées.  
@@ -31,18 +31,25 @@ Les couleurs des logs :
 [Services architecture](https://docs.google.com/drawings/d/1nPwjdThcmIOF9405_RnOB57g_V54kWaU8bnyY00sa-E/edit?usp=sharing)  
 
 ## Technology
-[Node.js 12.18.3](https://nodejs.org/en/)  
+[Node.js](https://nodejs.org/en/)  
 [Golang](https://golang.org/)  
 [MongoDB](https://www.mongodb.com/)  
 [NestJs](https://nestjs.com/)  
 [Docker](https://www.docker.com/)  
-[Prometheus](https://grafana.com/)  
+[Grafana](https://grafana.com/)
+[Prometheus](https://prometheus.io)
+[Kubernetes <3](https://kubernetes.io)
 
 ## Run the project
 
-First of all you need to download Docker. Then run the scrip `prepare.sh`. 
+First of all you need to download Docker. Then run the script `prepare.sh`. 
 The script will create each container for each service and make healthchecks. 
-After this step you can run the `run.sh` fil eto have a demonstration.
+After this step you can run the `run.sh` file to have a demonstration.
+
+`
+$ ./prepare.sh
+$ ./run.sh
+`
 
 ## Access tools
 
@@ -50,9 +57,16 @@ Get to `http://grafana.localhost/` to access grafana with username `boxb` and pa
 
 You can also check Prometheus by getting to `http://prometheus.localhost/`
 
-## Setup a project with NestJs
 
-First you need to download Node.js. Then run the following command `npm i -g @nestjs/cli`. In the folder where you want to start a project type `nest new project-name`
+## BONUS : Run Kubernetes
 
+`
+$ ./prepare-kubernetes.sh
+$ ./run-kubernetes.sh
+`
 
+This will load all the current resources (mostly Deploys, Pods, Services & Ingress) located in the `kubernetes` folder.
 
+!! WARNING !! this is for enjoyment purpose only, not all the services are covered yet so the `run.sh` will not work for example.
+
+Enjoy :)
