@@ -10,6 +10,10 @@ Peres Richard - 100 points
 Rigaut François - 100 points  
 
 ## Démonstration finale
+### Pré-requis
+- Docker
+- Port 80 et 8080 accessible (et 9090 pour les besoins de la démo uniquement)
+
 
 Pour cette démonstration nous allons lancer deux fusées.  
 Pour que ce soit plus compréhensible nous allons les lancer l'une après l'autre (bien entendu on pourrait les gérer en même temps).  
