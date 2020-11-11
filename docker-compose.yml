@@ -108,8 +108,8 @@ services:
       - MONGODB_DATABASE="blue_origin"
     expose:
       - 27017
-    ports:
-      - 27017:27017
+    # ports:
+    #   - 27017:27017
 
   ## kafka bus configuration
   zookeeper:
