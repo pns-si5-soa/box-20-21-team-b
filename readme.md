@@ -14,6 +14,7 @@ Rigaut François - 100 points
 - Docker  
 - Port 80 et 8080 accessibles (et 9090 pour les besoins de la démo uniquement)  
 - Internet  
+- Il peut être nécessaire de `dos2unix *.sh` afin d'éviter tout problème d'encodage des scripts sh
 
 
 Pour cette démonstration nous allons lancer deux fusées.  
