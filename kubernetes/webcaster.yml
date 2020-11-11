@@ -1,0 +1,64 @@
+# Deploy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webcaster
+    boxb: boxb-ground
+  name: webcaster
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webcaster
+      boxb: boxb-ground
+  template:
+    metadata:
+      labels:
+        app: webcaster
+        boxb: boxb-ground
+    spec:
+      containers:
+      - image: boxb/webcaster:latest
+        name: webcaster
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /webcaster/ok
+            port: 80
+          initialDelaySeconds: 20
+          timeoutSeconds: 3
+          periodSeconds: 3
+          failureThreshold: 5
+        livenessProbe:
+          httpGet:
+            path: /webcaster/ok
+            port: 80
+          initialDelaySeconds: 20
+          timeoutSeconds: 3
+          periodSeconds: 5
+          failureThreshold: 10
+        env:
+          - name: PORT
+            value: "80"
+
+---
+
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: webcaster
+  name: webcaster
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: webcaster
+#  type: NodePort # Uncomment if doesnt match IP

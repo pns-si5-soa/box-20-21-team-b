@@ -1,0 +1,67 @@
+# Deploy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: weather
+    boxb: boxb-ground
+  name: weather
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weather
+      boxb: boxb-ground
+  template:
+    metadata:
+      labels:
+        app: weather
+        boxb: boxb-ground
+    spec:
+      containers:
+      - image: boxb/weather:latest
+        name: weather
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /weather/ok
+            port: 80
+          initialDelaySeconds: 20
+          timeoutSeconds: 3
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /weather/ok
+            port: 80
+          initialDelaySeconds: 20
+          timeoutSeconds: 3
+          periodSeconds: 5
+          failureThreshold: 10
+        env:
+        - name: PORT
+          value: "80"
+        - name: MISSION_HOST
+          value: "mission"
+        - name: MISSION_PORT
+          value: "80"
+
+---
+
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: weather
+  name: weather
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: weather
+#  type: NodePort # Uncomment if doesnt match IP

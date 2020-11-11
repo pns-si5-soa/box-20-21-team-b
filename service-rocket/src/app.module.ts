@@ -13,7 +13,7 @@ import { AlertService } from './alert/alert.service';
     imports: [HttpModule, MongooseModule.forRoot('mongodb://' + MONGO_HOST + ':' + MONGO_PORT + '/' + MONGO_DB), PollModule,
         KafkaModule.register({
             clientId: 'rocket-service',
-            brokers: ['kafka:9092'],
+            brokers: ['kafka-service:9092'],
             groupId: 'box-b',
         }),
         ConsumerModule,

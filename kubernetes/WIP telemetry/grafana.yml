@@ -1,0 +1,78 @@
+#  labels:
+#    - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+
+
+# Deploy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+    boxb: boxb-ground
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+      boxb: boxb-ground
+  template:
+    metadata:
+      labels:
+        app: grafana
+        boxb: boxb-ground
+    spec:
+      containers:
+        - image: grafana/grafana
+          name: grafana
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          readinessProbe: # TODO
+            httpGet:
+              path: /grafana/ok
+              port: 80
+            initialDelaySeconds: 20
+            timeoutSeconds: 3
+            periodSeconds: 5
+            failureThreshold: 5
+          livenessProbe: # TODO
+            httpGet:
+              path: /grafana/ok
+              port: 80
+            initialDelaySeconds: 20
+            timeoutSeconds: 3
+            periodSeconds: 5
+            failureThreshold: 10
+          env:
+            - name: GF_PATHS_CONFIG
+              value: /etc/grafana/grafana.ini
+            - name: GF_INSTALL_PLUGINS
+              value: grafana-worldmap-panel,pr0ps-trackmap-panel,camptocamp-prometheus-alertmanager-datasource
+
+            # TODO
+#          volumes:
+#            - grafana-data:/var/lib/grafana
+#            - ./service-grafana-monitoring/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+#            - ./service-grafana-monitoring/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+#            - ./service-grafana-monitoring/grafana/grafana.ini:/etc/grafana/grafana.ini
+#            - ./service-grafana-monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+
+---
+
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    app: grafana
+#  type: NodePort # Uncomment if doesnt match IP

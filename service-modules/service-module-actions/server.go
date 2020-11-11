@@ -489,7 +489,7 @@ func main() {
 
 
 	// to produce messages
-	conn, err := kafka.DialLeader(context.Background(), "tcp", "kafka:9092", TopicRocketEvent, 0)
+	conn, err := kafka.DialLeader(context.Background(), "tcp", "kafka-service:9092", TopicRocketEvent, 0)
 	if err != nil {
 		log.Fatal("failed to dial leader:", err)
 	}
