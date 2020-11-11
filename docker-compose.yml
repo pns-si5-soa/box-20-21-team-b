@@ -8,50 +8,20 @@ services:
     restart: unless-stopped
     container_name: weather
     environment:
-      - PORT=3000
+#      - PORT=3000
+      - PORT=80
       - MISSION_HOST=mission
-      - MISSION_PORT=3002
+#      - MISSION_PORT=3002
+      - MISSION_PORT=80
     volumes:
       - ./service-weather/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
+      - kafka-service
     expose:
-      - "3000"
-    ports:
-      - 3000:3000
-    networks:
-      - services
-      - proxy
-
-  ## COLLECT, STOCK & EXPOSE ALL TELEMETRICS
-  telemetry:
-    build: ./service-telemetry
-    image: boxb/telemetry
-    restart: unless-stopped
-    container_name: telemetry
-    environment:
-      - PORT=3004
-      - PROBE_HOST=metrics-probe # Todo : Change with proper service
-      - PROBE_PORT=3013 # Todo : Change with proper service
-      - STAGE_HOST=metrics-stage # Todo : Change with proper service
-      - STAGE_PORT=3023 # Todo : Change with proper service
-      - BOOSTER_HOST=metrics-booster # Todo : Change with proper service
-      - BOOSTER_PORT=3033 # Todo : Change with proper service
-      - MONGO_HOST=mongo
-      - MONGO_PORT=27017
-      - MONGO_DB=blue_origin
-    volumes:
-      - ./service-telemetry/src/:/app/src/ # FOR HOT RELOAD ONLY
-    depends_on:
-      - mongo
-    expose:
-      - "3004"
-    ports:
-      - 3004:3004
-    networks:
-      - services
-      - proxy
-      - modules
+      - 80
+    labels:
+      - "traefik.http.routers.weather.rule=PathPrefix(`/weather`)"
 
   ## ROCKET HQ
   rocket:
@@ -60,31 +30,24 @@ services:
     restart: unless-stopped
     container_name: rocket
     environment:
-      - PORT=3001
-      - SOCKET_PORT=30011
+      - PORT=80
       - MISSION_HOST=mission
-      - MISSION_PORT=3002
+      - MISSION_PORT=80
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=blue_origin
-      - PROBE_HOST=actions-probe # Todo : Change with proper service
-      - PROBE_PORT=3015 # Todo : Change with proper service
-      - STAGE_HOST=actions-stage # Todo : Change with proper service
-      - STAGE_PORT=3025 # Todo : Change with proper service
-      - BOOSTER_HOST=actions-booster # Todo : Change with proper service
-      - BOOSTER_PORT=3035 # Todo : Change with proper service
+      - MODULES=1,1,booster,1,2,middle,1,3,payload,2,1,booster,2,2,middle,2,3,payload
+      ## a 3 size tuple (id of rocket, id of module, name of module)
+      - MODULES_PORT=80
     volumes:
       - ./service-rocket/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
+      - kafka-service
     expose:
-      - "3001"
-    ports:
-      - 3001:3001
-    networks:
-      - services
-      - proxy
-      - modules
+      - 80
+    labels:
+      - "traefik.http.routers.rocket.rule=PathPrefix(`/rocket`)"
 
   ## SEND POOLS & START MISSION
   mission:
@@ -93,25 +56,46 @@ services:
     container_name: mission
     restart: unless-stopped
     environment:
-      - PORT=3002
+#      - PORT=3002
+      - PORT=80
       - ROCKET_HOST=rocket
-      - ROCKET_PORT=3001
+#      - ROCKET_PORT=3001
+      - ROCKET_PORT=80
       - WEATHER_HOST=weather
-      - WEATHER_PORT=3000
+#      - WEATHER_PORT=3000
+      - WEATHER_PORT=80
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=blue_origin
+      - MODULES_HOST=mission
+      - MODULES_PORT=80
     volumes:
       - ./service-mission/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - mongo
+      - kafka-service
     expose:
-      - "3002"
-    ports:
-      - 3002:3002
-    networks:
-      - services
-      - proxy
+      - 80
+    labels:
+      - "traefik.http.routers.mission.rule=PathPrefix(`/mission`)"
+
+  ## Webcaster bus subscriber
+  webcaster:
+    build: ./service-webcaster
+    image: boxb/webcaster
+    container_name: webcaster
+    restart: unless-stopped
+    environment:
+      - PORT=80
+    volumes:
+      - ./service-webcaster/src/:/app/src/ # FOR HOT RELOAD ONLY
+    depends_on:
+      - mongo
+      - kafka-service
+    expose:
+      - 80
+    labels:
+      - "traefik.http.routers.webcaster.rule=PathPrefix(`/webcaster`)"
 
   ## DATABASE FOR TELEMETRY, POLLS & ACTIONS HISTORY (WIP)
   mongo:
@@ -124,156 +108,344 @@ services:
       - MONGODB_DATABASE="blue_origin"
     expose:
       - 27017
+    # ports:
+    #   - 27017:27017
+
+  ## kafka bus configuration
+  zookeeper:
+    container_name: boxb-zookeeper
+    restart: unless-stopped
+    image: wurstmeister/zookeeper
+    environment:
+      zk_id: "1"
+    expose:
+      - 2181
+  kafka-service:
+    container_name: boxb-kafka
+    restart: unless-stopped
+    image: wurstmeister/kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka-service
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_ZOOKEEPER_CONNECT: boxb-zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_BROKER_ID: 1
+      KAFKA_CREATE_TOPICS: "topic-poll:1:1,topic-poll-response:1:1,topic-rocket-event:1:1,topic-launch-event:1:1,topic-launch-order:1:1"
+    expose:
+      - 9092
+
+
+  ## PROMETHEUS SERVER FOR RETRIEVING DATA FROM ROCKET MODULES
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: boxb-prometheus
+    restart: unless-stopped
+    volumes:
+      - prometheus-data:/prometheus
+      - ./service-rocket-monitoring/prometheus/:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=365d'
+    labels:
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
+    links:
+      - alertmanager:alertmanager
     ports:
-      - 27017:27017
-    networks:
-      - services
+      - 9090:9090
+    expose:
+      - 9090
+
+  # ALERTMANAGER FOR PROMETHEUS
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+#    deploy:
+#    replicas: 1
+    labels:
+      - "traefik.http.routers.alertmanager.rule=Host(`alertmanager.localhost`)"
+    volumes:
+    - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    #- ./alertmanager/templates/default.tmpl:/etc/alertmanager/templates/default.tmpl
+    command:
+    - '--config.file=/etc/alertmanager/alertmanager.yml'
+    - '--storage.path=/alertmanager'
+    expose:
+      - 9093
+
+  ## GRAFANA DASHBOARD UI FOR PROMETHEUS METRICS
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      - GF_PATHS_CONFIG=/etc/grafana/grafana.ini
+      - GF_INSTALL_PLUGINS=grafana-worldmap-panel,pr0ps-trackmap-panel,camptocamp-prometheus-alertmanager-datasource
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./service-rocket-monitoring/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./service-rocket-monitoring/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./service-rocket-monitoring/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./service-rocket-monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    labels:
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+    expose:
+      - 3000
 
   ## REVERSE PROXY
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    volumes:
-      - ./reverse_proxy.conf:/etc/nginx/nginx.conf
-    networks:
-      - proxy
-    ports:
-      - 80:80
+  traefik:
+    image: traefik:v2.3
+    container_name: boxb-traefik
+    restart: unless-stopped
+    # Enables the web UI and tells Traefik to listen to docker
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
     depends_on:
-      - mongo
       - rocket
       - mission
       - weather
-      - telemetry
+      - webcaster
+      - module-actions-booster-1
+      - module-actions-booster-2
+      - module-actions-middle-1
+      - module-actions-middle-2
+      - module-actions-payload-1
+      - module-actions-payload-2
+      - module-metrics-booster-1
+      - module-metrics-booster-2
+      - module-metrics-middle-1
+      - module-metrics-middle-2
+      - module-metrics-payload-1
+      - module-metrics-payload-2
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
 
   ## MODULES
-  metrics-probe:
-    build: ./service-module-metrics
+
+  ## first number is rocket id, second number is module id
+  module-metrics-booster-1:
+    build: ./service-modules/service-module-metrics
     image: boxb/module-metrics
     restart: unless-stopped
-    container_name: module-metrics-probe
+    container_name: module-metrics-booster-1
     environment:
-      - PORT=3013
-#      - MONGO_HOST=mongo
-#      - MONGO_PORT=27017
-#      - MONGO_DB=blue_origin
+      - PORT=80
+      - ID_MODULE=1
+      - ROCKET_ID=1
+      - MODULE_TYPE=booster
     volumes:
-    - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
-    depends_on:
-      - mongo
+      - module-metrics-booster-1:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
-      - "3013"
-    ports:
-      - 3013:3013
-    networks:
-      - modules
+      - "80"
 
-  metrics-stage:
-      build: ./service-module-metrics
-      image: boxb/module-metrics
-      restart: unless-stopped
-      container_name: module-metrics-stage
-      environment:
-        - PORT=3023
-  #      - MONGO_HOST=mongo
-  #      - MONGO_PORT=27017
-  #      - MONGO_DB=blue_origin
-      volumes:
-      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
-      depends_on:
-        - mongo
-      expose:
-        - "3023"
-      ports:
-        - 3023:3023
-      networks:
-        - modules
-
-  metrics-booster:
-      build: ./service-module-metrics
-      image: boxb/module-metrics
-      restart: unless-stopped
-      container_name: module-metrics-booster
-      environment:
-        - PORT=3033
-  #      - MONGO_HOST=mongo
-  #      - MONGO_PORT=27017
-  #      - MONGO_DB=blue_origin
-      volumes:
-      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
-      depends_on:
-        - mongo
-      expose:
-        - "3033"
-      ports:
-        - 3033:3033
-      networks:
-        - modules
-
-  actions-probe:
-    build: ./service-module-actions
-    image: boxb/module-actions
+  module-metrics-middle-1:
+    build: ./service-modules/service-module-metrics
+    image: boxb/module-metrics
     restart: unless-stopped
-    container_name: module-actions-probe
+    container_name: module-metrics-middle-1
     environment:
-      - PORT=3015
-#      - MONGO_HOST=mongo
-#      - MONGO_PORT=27017
-#      - MONGO_DB=blue_origin
+      - PORT=80
+      - ID_MODULE=2
+      - ROCKET_ID=1
+      - MODULE_TYPE=middle
     volumes:
-      - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
-    depends_on:
-      - mongo
+      - module-metrics-middle-1:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
     expose:
-      - "3015"
-    ports:
-      - 3015:3015
-    networks:
-      - modules
+      - "80"
+    # TODO Traefik LB + PrefixPath by ID
 
-  actions-stage:
-      build: ./service-module-actions
-      image: boxb/module-actions
-      restart: unless-stopped
-      container_name: module-actions-stage
-      environment:
-        - PORT=3025
-  #      - MONGO_HOST=mongo
-  #      - MONGO_PORT=27017
-  #      - MONGO_DB=blue_origin
-      volumes:
-        - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
-      depends_on:
-        - mongo
-      expose:
-        - "3025"
-      ports:
-        - 3025:3025
-      networks:
-        - modules
+  module-metrics-payload-1:
+    build: ./service-modules/service-module-metrics
+    image: boxb/module-metrics
+    restart: unless-stopped
+    container_name: module-metrics-payload-1
+    environment:
+      - PORT=80
+      - ID_MODULE=3
+      - ROCKET_ID=1
+      - MODULE_TYPE=payload
+    volumes:
+      - module-metrics-payload-1:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
+    expose:
+      - "80"
+    # TODO Traefik LB + PrefixPath by ID
 
-  actions-booster:
-      build: ./service-module-actions
-      image: boxb/module-actions
-      restart: unless-stopped
-      container_name: module-actions-booster
-      environment:
-        - PORT=3035
-  #      - MONGO_HOST=mongo
-  #      - MONGO_PORT=27017
-  #      - MONGO_DB=blue_origin
-      volumes:
-        - ./analog-mock.json:/etc/analog-mock.json # FOR ANALOGIQUE MODULE STATUS ONLY
-      depends_on:
-        - mongo
-      expose:
-        - "3035"
-      ports:
-        - 3035:3035
-      networks:
-        - modules
-networks:
-  services:
-  proxy:
-  modules:
+  module-actions-booster-1:
+    build: ./service-modules/service-module-actions
+    image: boxb/module-actions
+    restart: on-failure
+    container_name: module-actions-booster-1
+    environment:
+      - PORT=80
+      - ID_MODULE=1
+      - ROCKET_ID=1
+      - MODULE_TYPE=booster
+    volumes:
+      - module-metrics-booster-1:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
+    expose:
+      - "80"
+    depends_on:
+      - kafka-service
+      - mission
+    # TODO Traefik LB + PrefixPath by ID
+
+  module-actions-middle-1:
+    build: ./service-modules/service-module-actions
+    image: boxb/module-actions
+    restart: on-failure
+    container_name: module-actions-middle-1
+    environment:
+      - PORT=80
+      - MODULE_TYPE=middle
+      - ROCKET_ID=1
+      - ID_MODULE=2
+    volumes:
+      - module-metrics-middle-1:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
+    expose:
+      - "80"
+    depends_on:
+      - kafka-service
+      - mission
+
+  module-actions-payload-1:
+    build: ./service-modules/service-module-actions
+    image: boxb/module-actions
+    restart: on-failure
+    container_name: module-actions-payload-1
+    environment:
+      - PORT=80
+      - ID_MODULE=3
+      - ROCKET_ID=1
+      - MODULE_TYPE=payload
+    volumes:
+      - module-metrics-payload-1:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
+    expose:
+      - "80"
+    depends_on:
+      - kafka-service
+      - mission
+
+  ## second rocket
+  module-metrics-booster-2:
+    build: ./service-modules/service-module-metrics
+    image: boxb/module-metrics
+    restart: unless-stopped
+    container_name: module-metrics-booster-2
+    environment:
+      - PORT=80
+      - ID_MODULE=1
+      - ROCKET_ID=2
+      - MODULE_TYPE=booster
+    volumes:
+      - module-metrics-booster-2:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
+    expose:
+      - "80"
+
+  module-metrics-middle-2:
+    build: ./service-modules/service-module-metrics
+    image: boxb/module-metrics
+    restart: unless-stopped
+    container_name: module-metrics-middle-2
+    environment:
+      - PORT=80
+      - ID_MODULE=2
+      - ROCKET_ID=2
+      - MODULE_TYPE=middle
+    volumes:
+      - module-metrics-middle-2:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
+    expose:
+      - "80"
+    # TODO Traefik LB + PrefixPath by ID
+
+  module-metrics-payload-2:
+    build: ./service-modules/service-module-metrics
+    image: boxb/module-metrics
+    restart: unless-stopped
+    container_name: module-metrics-payload-2
+    environment:
+      - PORT=80
+      - ID_MODULE=3
+      - ROCKET_ID=2
+      - MODULE_TYPE=payload
+    volumes:
+      - module-metrics-payload-2:/etc/module-logs/ # FOR ANALOG MODULE STATUS ONLY
+    expose:
+      - "80"
+    # TODO Traefik LB + PrefixPath by ID
+
+  module-actions-booster-2:
+    build: ./service-modules/service-module-actions
+    image: boxb/module-actions
+    restart: on-failure
+    container_name: module-actions-booster-2
+    environment:
+      - PORT=80
+      - ID_MODULE=1
+      - ROCKET_ID=2
+      - MODULE_TYPE=booster
+    volumes:
+      - module-metrics-booster-2:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
+    expose:
+      - "80"
+    depends_on:
+      - kafka-service
+      - mission
+    # TODO Traefik LB + PrefixPath by ID
+
+  module-actions-middle-2:
+    build: ./service-modules/service-module-actions
+    image: boxb/module-actions
+    restart: on-failure
+    container_name: module-actions-middle-2
+    environment:
+      - PORT=80
+      - MODULE_TYPE=middle
+      - ROCKET_ID=2
+      - ID_MODULE=2
+    volumes:
+      - module-metrics-middle-2:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
+    expose:
+      - "80"
+    depends_on:
+      - kafka-service
+      - mission
+
+  module-actions-payload-2:
+    build: ./service-modules/service-module-actions
+    image: boxb/module-actions
+    restart: on-failure
+    container_name: module-actions-payload-2
+    environment:
+      - PORT=80
+      - ID_MODULE=3
+      - ROCKET_ID=2
+      - MODULE_TYPE=payload
+    volumes:
+      - module-metrics-payload-2:/etc/module-logs/ # FOR ANALOG MODULE DEBUG ONLY
+    expose:
+      - "80"
+    depends_on:
+      - kafka-service
+      - mission
+
+volumes:
+  prometheus-data: { }
+  grafana-data: { }
+  module-metrics-booster-1: { }
+  module-metrics-middle-1: { }
+  module-metrics-payload-1: { }
+  module-metrics-booster-2: { }
+  module-metrics-middle-2: { }
+  module-metrics-payload-2: { }
 

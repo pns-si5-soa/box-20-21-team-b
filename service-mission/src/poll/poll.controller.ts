@@ -1,6 +1,7 @@
 import {Body, Controller, Post} from '@nestjs/common';
-import {PollService} from "./poll.service";
-import {PollDTO} from "./poll.dto";
+import {PollService} from './poll.service';
+import {PollInitDTO} from "../dto/pollinit.dto";
+import {PollDTO} from "../dto/poll.dto";
 
 @Controller('mission/poll')
 export class PollController {
@@ -9,22 +10,12 @@ export class PollController {
     }
 
     @Post('initiate')
-    launchPoll(): string {
-        return this.pollService.launchPoll();
-    }
-
-    @Post('weather')
-    progressPollWeather(@Body() message: PollDTO): string {
-        return this.pollService.progressPollWeather(message.ready);
-    }
-
-    @Post('rocket')
-    progressPollRocket(@Body() message: PollDTO): string {
-        return this.pollService.progressPollRocket(message.ready);
+    async launchPoll(@Body() message: PollInitDTO): Promise<string> {
+        return await this.pollService.launchPoll(message.rocketId);
     }
 
     @Post('mission')
-    finalizePoll(@Body() message: PollDTO): string {
-        return this.pollService.finalizePoll(message.ready);
+    async finalizePoll(@Body() message: PollDTO): Promise<string> {
+        return this.pollService.finalizePoll(message.ready, message.rocketId);
     }
 }

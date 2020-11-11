@@ -1,23 +1,39 @@
 # Requests to launch in this order to test the services
 
-Post `http://localhost/mission/poll/initiate`
-
-Next post are using the following body :
+Post `http://localhost/mission/poll/initiate` with body
 `
 {
-    "ready" : true | false
+    "rocketId" : 1
 }
 `
 
 Get `http://localhost/weather/status`
 
-Post `http://localhost/weather/poll/respond`
+Post `http://localhost/weather/poll/respond` with body
+`
+{
+    "rocketId" : 1,
+    "ready": true
+}
+`
 
-**Get `http://localhost/rocket/status**`
+Get `http://localhost/rocket/status**`
 
-Post `http://localhost/rocket/poll/respond`
+Post `http://localhost/rocket/poll/respond` with body
+`
+{
+    "rocketId" : 1,
+    "ready": true
+}
+`
 
-Post `http://localhost/mission/poll/mission`
+Post `http://localhost/mission/poll/mission` with body
+`
+{
+    "rocketId" : 1,
+    "ready": true
+}
+`
 
 Post `http://localhost/rocket/launch`
 

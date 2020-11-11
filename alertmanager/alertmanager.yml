@@ -1,0 +1,7 @@
+route:
+  receiver: 'rocket'
+
+receivers:
+  - name: 'rocket'
+    webhook_configs:
+    - url: 'http://rocket/rocket/alert' # replace with your PagerTree webhook url

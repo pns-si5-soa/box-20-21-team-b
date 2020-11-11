@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: boxb-ground
+spec:
+  rules:
+    - host: localhost # maybe replace with boxb-ground.minikube ?
+      http:
+        paths:
+          - path: /mission
+            backend:
+              serviceName: mission
+              servicePort: 80
+          - path: /rocket
+            backend:
+              serviceName: rocket
+              servicePort: 80
+          - path: /weather
+            backend:
+              serviceName: weather
+              servicePort: 80
+          - path: /webcaster
+            backend:
+              serviceName: webcaster
+              servicePort: 80
+
+          - path: /grafana
+              backend:
+                serviceName: grafana
+                servicePort: 80

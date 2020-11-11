@@ -1,0 +1,70 @@
+# Deploy
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: module-metrics- # TODO add module ID
+    boxb: boxb-space # TODO good value ?
+  name: module-metrics- # TODO add module ID
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: module-metrics- # TODO add module ID
+      boxb: boxb-space # TODO good value ?
+  template:
+    metadata:
+      labels:
+        app: module-metrics- # TODO add module ID
+        boxb: boxb-space # TODO good value ?
+    spec:
+      containers:
+      - image: boxb/module-metrics:latest
+        name: module-metrics- # TODO add module ID
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /module-metrics-/ok # TODO add module ID
+            port: 80
+          initialDelaySeconds: 20
+          timeoutSeconds: 3
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /module-metrics-/ok # TODO add module ID
+            port: 80
+          initialDelaySeconds: 20
+          timeoutSeconds: 3
+          periodSeconds: 5
+          failureThreshold: 10
+        env:
+        - name: PORT
+          value: "80"
+        - name: ID_MODULE
+          value: 1 # TODO dynamic id
+        - name: ROCKET_ID
+          value: 1 # TODO dynamic id
+        - name: MODULE_TYPE
+          value: booster # TODO dynamic name
+          # TODO volume commun avec actions
+#          volumes:
+#            - module-metrics-booster-1:/etc/module-logs/
+---
+
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: module-metrics- # TODO add module ID
+  name: module-metrics- # TODO add module ID
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: module-metrics- # TODO add module ID
+#  type: NodePort # Uncomment if doesnt match I

@@ -1,80 +1,145 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { setInterval } from "timers";
-import { TelemetryGateway } from "./telemetry/telemetry.gateway";
 import { Rocket } from "./models/rocket/rocket";
-import { HeadModule } from "./models/rocket/headModule";
-import { Payload } from "./models/payload";
-import { FuelModule } from "./models/rocket/fuelModule";
 import { Double, Empty } from "../rpc/actions_pb";
-import { clientBooster, clientProbe, clientStage } from "./actions.stub";
 import { Response } from 'express'
+import {KafkaService} from "./kafka/kafka.service";
+import {TOPIC_LAUNCH_EVENT} from "./kafka/topics";
+import { MODULES, MODULES_PORT} from "./env_variables";
+import {Module} from "./models/rocket/module";
+import {ModuleActionsClient} from "../rpc/actions_grpc_pb";
+import {credentials} from "grpc";
 
 @Injectable()
 export class AppService {
-    private payloadAltitudeToDetach = 200;
-    private calculateAltitude: any;
-    private rocket: Rocket;
-    private canLaunch = false;
+    private static rockets: Rocket[]
+    private static canLaunch = false;
 
-    constructor(private readonly telemetryGateway: TelemetryGateway) { }
+    getRocketWithId(id: number){
+        for (const rockets of AppService.rockets) {
+            if(rockets.id == id)
+                return rockets;
+        }
+        return null;
+    }
 
-    getStatus(): string {
+    constructor(private readonly kafkaService: KafkaService) {
+        AppService.rockets = []
+
+        const rocketsNotCasted = MODULES.split(",")
+        let rocket = null;
+
+        let rocketId = -1;
+        for(let i = 0;i<rocketsNotCasted.length;i++){
+            const id = parseInt(rocketsNotCasted[i], 10);
+            if(i%3 === 0){ //id of a rocket
+                rocketId = id;
+                if((rocket === null || rocket.id !== id)) {
+                    rocket = this.getRocketWithId(id);
+                    if (rocket === null) { // the rocket does not already exists
+                        rocket = new Rocket(id);
+                        AppService.rockets.push(rocket)
+                    }
+                }
+            }else{
+                const moduleName = rocketsNotCasted[i+1];
+                Logger.log('module-actions-' + moduleName + '-' + rocketId + ':'+MODULES_PORT)
+                rocket.addModule(new Module(id, new ModuleActionsClient(
+                    'module-actions-' + moduleName + '-' + rocketId + ':'+MODULES_PORT,
+                    credentials.createInsecure()
+                ), moduleName));
+                i++;
+            }
+        }
+    }
+
+    async getStatus(): Promise<string> {
+        await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
+            messageId: '' + new Date().valueOf(),
+            body: {
+                value: 'Rocket preparation : (fueling ok, status ready)'
+            },
+            messageType: 'info',
+            topicName: TOPIC_LAUNCH_EVENT
+        });
         return 'Rocket status : ready';
     }
 
-    allowLaunch(): string {
-        this.canLaunch = true;
-        Logger.log('Mission commander sent a go. You can now launch the rocket')
+    public allowLaunch(rocketId: number): string {
+        AppService.canLaunch = true;
+        Logger.log('Mission commander sent a go. You can now launch the rocket with id ' + rocketId)
         return 'Rocket can now be launched';
     }
 
-    requestLaunch(): string {
-        this.rocket = new Rocket();
-        this.rocket.setHeadModule(new HeadModule(20.0, new Payload('210 avenue de la grande ours', 150.5)));
-        this.rocket.addModule(new FuelModule(100.0));
-        this.rocket.setNumberInitialStages();
-
-        this.calculateAltitude = setInterval(this.altitudeInterval.bind(this), 1500);
-        this.telemetryGateway.sendProcess("Rocket Launched");
-        return "Launching the rocket!";
+    public async requestLaunch(rocketId: number): Promise<string> {
+        this.launchingSequence(rocketId);
+        return "Rocket launching sequence started";
     }
 
-    //TODO remove in next release
-    private altitudeInterval(): void {
-        Logger.log("Calculating altitude... " + this.rocket.altitude + "km");
-        this.telemetryGateway.sendPosition(this.rocket.altitude);
-        this.rocket.altitude += 10;
-        if (this.rocket.numberOfStages() > 1)
-            this.rocket.removeFuel(8);
-        else
-            this.rocket.removeFuel(1); //head consomme moins
+    private async launchingSequence(rocketId: number): Promise<void>{
+        await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
+            messageId: '' + new Date().valueOf(),
+            body: {
+                value: 'Rocket ' + rocketId + ' - on internal power',
+                timestamp: Date.now(),
+                rocketId: rocketId
+            },
+            messageType: 'info',
+            topicName: TOPIC_LAUNCH_EVENT
+        });
 
+        setTimeout(async function(){
+            await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
+                messageId: '' + new Date().valueOf(),
+                body: {
+                    value: 'Rocket ' + rocketId + ' - Startup (T-00:01:00)',
+                    timestamp: Date.now(),
+                    rocketId: rocketId
+                },
+                messageType: 'info',
+                topicName: TOPIC_LAUNCH_EVENT
+            });
+            setTimeout(async function(){
+                await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
+                    messageId: '' + new Date().valueOf(),
+                    body: {
+                        value: 'Rocket ' + rocketId + ' - Main engine start (T-00:00:03)',
+                        timestamp: Date.now(),
+                        rocketId: rocketId
+                    },
+                    messageType: 'info',
+                    topicName: TOPIC_LAUNCH_EVENT
+                });
+                setTimeout(async function(){
+                    await this.kafkaService.sendMessage(TOPIC_LAUNCH_EVENT, {
+                        messageId: '' + new Date().valueOf(),
+                        body: {
+                            value: 'Rocket ' + rocketId + ' - Liftoff/Launch (T+00:00:00)',
+                            timestamp: Date.now(),
+                            rocketId: rocketId
+                        },
+                        messageType: 'info',
+                        topicName: TOPIC_LAUNCH_EVENT
+                    });
 
-        if (this.rocket.getFuelAtLastModule() == 0) {
-            //this.detachFuelPart();
-        }
-
-        if (this.rocket.altitude >= this.payloadAltitudeToDetach) {
-            //this.detachPayloadPart();
-        }
+                    const rocket = this.getRocketWithId(rocketId);
+                    for(const module of rocket.modules){
+                        module.moduleAction.toggleRunning(new Empty(), function(err, response){
+                            if (response !== undefined) {
+                                Logger.log(response.getContent());
+                            }
+                            else {
+                                Logger.error('Error: gRPC communication fail:' + err);
+                            }
+                        });
+                    }
+                }.bind(this), 1000)
+            }.bind(this), 1000)
+        }.bind(this), 1000)
     }
 
-    //TODO remove in next release
-    public setPayloadAltitudeToDetach(altitudeToDetach: number): string {
-        this.payloadAltitudeToDetach = altitudeToDetach;
-        this.telemetryGateway.sendProcess('Altitude to detach payload : ' + this.payloadAltitudeToDetach);
-        return 'Altitude to detach payload is now ' + this.payloadAltitudeToDetach + 'km';
-    }
-
-    public boom(res: Response, module: string): void {
-        let moduleToRemove;
-        if(module === 'payload')
-            moduleToRemove = clientProbe;
-        else if(module === 'stage')
-            moduleToRemove = clientStage;
-        else
-            moduleToRemove = clientBooster;
-        moduleToRemove.boom(new Empty(), function (err, response) {
+    public boom(res: Response, rocketId: number, moduleId: number): void {
+        const module = this.getRocketWithId(rocketId).getModuleWithId(moduleId);
+        module.moduleAction.boom(new Empty(), function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());
             else
@@ -82,13 +147,9 @@ export class AppService {
         });
     }
 
-    detachModule(res: Response, module: string) {
-        let moduleToRemove;
-        if(module === 'payload')
-            moduleToRemove = clientProbe;
-        else
-            moduleToRemove = clientBooster;
-        moduleToRemove.detach(new Empty(), function (err, response) {
+    public detachModule(res: Response, rocketId: number, moduleId: number) {
+        const module = this.getRocketWithId(rocketId).getModuleWithId(moduleId);
+        module.moduleAction.detach(new Empty(), function (err, response) {
             if (response !== undefined) {
                 if (response.getVal() === true) {
                     res.status(200).send('Successfully detached module');
@@ -103,10 +164,11 @@ export class AppService {
         return res;
     }
 
-    setThrustersSpeed(value: number, res: Response) {
+    public setThrustersSpeed(value: number, res: Response, rocketId: number, moduleId: number) {
+        const module = this.getRocketWithId(rocketId).getModuleWithId(moduleId);
         const speed = new Double();
         speed.setVal(value);
-        clientBooster.setThrustersSpeed(speed, function (err, response) {
+        module.moduleAction.setThrustersSpeed(speed, function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());
             else
@@ -114,8 +176,9 @@ export class AppService {
         });
     }
 
-    okActions(res: Response) {
-        clientBooster.ok(new Empty(), function (err, response) {
+    public okActions(res: Response, rocketId: number, moduleId: number) {
+        const module = this.getRocketWithId(rocketId).getModuleWithId(moduleId);
+        module.moduleAction.ok(new Empty(), function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());
             else
@@ -123,8 +186,21 @@ export class AppService {
         });
     }
 
-    toggleRunning(res: Response) {
-        clientBooster.toggleRunning(new Empty(), function (err, response) {
+    public toggleRunning(res: Response, rocketId: number, moduleId: number) {
+        const module = this.getRocketWithId(rocketId).getModuleWithId(moduleId);
+        module.moduleAction.toggleRunning(new Empty(), function (err, response) {
+            if (response !== undefined)
+                res.status(200).send(response.getContent());
+            else
+                res.status(500).send('Error: gRPC communication fail');
+        });
+    }
+
+    setAltitudeToDetach(value: number, res: Response, rocketId: number, moduleId: number) {
+        const module = this.getRocketWithId(rocketId).getModuleWithId(moduleId);
+        const alt = new Double();
+        alt.setVal(value);
+        module.moduleAction.setAltitudeToDetach(alt, function (err, response) {
             if (response !== undefined)
                 res.status(200).send(response.getContent());
             else

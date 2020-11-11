@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 100ms
+  evaluation_interval: 1s
+  external_labels:
+    env: 'boxb'
+
+alerting:
+ alertmanagers:
+ - static_configs:
+   - targets:
+     - alertmanager:9093
+   scheme: http
+#   timeout: 10s
+
+rule_files:
+ - "alert.rules"
+
+scrape_configs:
+  - job_name: 'module-metrics'
+    static_configs:
+      - targets: ['module-metrics-payload-1', 'module-metrics-middle-1', 'module-metrics-booster-1']
+#      - labels: [ id: id]
+    metrics_path: "/module-metrics/metrics"
+    scrape_interval: 100ms
+    
+  - job_name: 'module-metrics2'
+    static_configs:
+      - targets: ['module-metrics-payload-2', 'module-metrics-middle-2', 'module-metrics-booster-2']
+#      - labels: [ id: id]
+    metrics_path: "/module-metrics/metrics"
+    scrape_interval: 100ms
